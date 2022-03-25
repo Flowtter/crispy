@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.3.0
+    hooks:
+      - id: end-of-file-fixer
+        stages: ["commit"]
+      - id: no-commit-to-branch
+        args: ["--branch", "master"]
+        stages: ["commit"]
+  - repo: local
+    hooks:
+      - id: conventional-commit
+        name: Conventional commit
+        description: Check if commits follow the conventional commit specification
+        language: system
+        entry: ./scripts/check_commit_msg.sh
+        stages: ["commit-msg"]
+      - id: clang-format
+        name: clang-format
+        description: Format code using clang-format
+        language: system
+        files: \.(cc|hh)$
+        entry: clang-format -i
+        args: ["-style=file"]
+        stages: ["commit"]
