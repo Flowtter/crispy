@@ -1,0 +1,23 @@
+name: Run tests
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  #format:
+  #  runs-on: ubuntu-latest
+  #  name: Coding style
+  #  steps:
+  #    - uses: actions/checkout@v2
+  #    - name: run coding style
+  #      run: /bin/sh ./scripts/yapf.sh
+  commit-style:
+    runs-on: ubuntu-latest
+    name: Commit style
+    steps:
+      - uses: actions/checkout@v2
+      - name: run commit style
+        run: /bin/sh ./scripts/check_commit_msg.sh
