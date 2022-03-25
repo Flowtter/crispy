@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run coding tests
-        run: docker build . -f ./docker/Dockerfile -t crispy/yapf
+        run: docker build . -f ./docker/yapf.Dockerfile -t crispy/yapf
       - name: Cleanup
         if: always()
         run: docker rmi -f $(docker images -f "dangling=true" -q) crispy/yapf || exit 0
