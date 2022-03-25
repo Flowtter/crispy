@@ -15,11 +15,3 @@ repos:
         language: system
         entry: ./scripts/check_commit_msg.sh
         stages: ["commit-msg"]
-      - id: clang-format
-        name: clang-format
-        description: Format code using clang-format
-        language: system
-        files: \.(cc|hh)$
-        entry: clang-format -i
-        args: ["-style=file"]
-        stages: ["commit"]
