@@ -1,0 +1,12 @@
+yapf
+fastapi
+python-multipart
+uvicorn
+python-dotenv
+
+numpy
+opencv-python==4.5.5.62
+librosa
+moviepy
+IPython
+progressbar2
