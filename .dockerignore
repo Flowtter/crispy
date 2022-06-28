@@ -1,0 +1,7 @@
+AI/
+.vscode/
+docker-ci/
+frontend
+mnist_dataset
+resources
+backend/*resources
