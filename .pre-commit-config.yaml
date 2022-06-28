@@ -15,3 +15,11 @@ repos:
         language: system
         entry: ./scripts/check_commit_msg.sh
         stages: ["commit-msg"]
+  - repo: local
+    hooks:
+      - id: coding-style
+        name: Coding style
+        description: Check if code respects the coding-style
+        language: system
+        entry: ./scripts/yapf.sh
+        stages: ["commit"]
