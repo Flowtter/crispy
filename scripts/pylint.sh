@@ -1,3 +1,3 @@
 #!/bin/sh
 
-find backend/src/crispy -name '*.py' -print0 | xargs -0 pylint
+find backend/src -name '*.py' -print0 | xargs -0 pylint

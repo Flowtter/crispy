@@ -2,8 +2,7 @@ mnist_dataset/
 .vscode/
 AI/
 
-resources/*/*
-!resources/*/.gitkeep
+resources/
 session/
 
 **/.env
@@ -15,3 +14,7 @@ output/
 *.mp4
 export*
 *.log
+
+.mypy_cache/
+resources/
+build/
