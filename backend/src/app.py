@@ -1,3 +1,6 @@
+# Pylint is disabled for this file because it is the app file
+# This file will be probably be refactored in the future
+
 import subprocess
 from typing import List
 from fastapi import FastAPI
