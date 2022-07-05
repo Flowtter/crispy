@@ -15,7 +15,7 @@ Now `pre-commit` will run on every `git commit`.
 # run
 - add some images in `resources/images`
 - `docker-compose up --build`
-- open `http://0.0.0.0:8080/` on your browser
+- open `http://127.0.0.1:8080/` on your browser
 
 
 # dev
@@ -28,4 +28,4 @@ to do so, you'll need another resource folder
 
 
 - `cd frontend && npm install && npm run dev`
-- `cd backend && pip install -r requirements.txt && uvicorn src.app:app --reload --host 0.0.0.0 --port 1337`
+- `cd backend && pip install -r requirements.txt && uvicorn src.app:app --reload --host 127.0.0.1 --port 1337`

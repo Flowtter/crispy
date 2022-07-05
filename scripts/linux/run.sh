@@ -1,4 +1,4 @@
 #!/bin/sh
 
-uvicorn app:app --reload --host 0.0.0.0 --port 1337
 google-chrome frontend/index.html
+uvicorn app:app --reload --host 127.0.0.1 --port 1337

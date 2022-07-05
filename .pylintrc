@@ -10,4 +10,6 @@ disable=
     E0611,
     R0903,
     W0640,
-    E0401 # FIXME: issue with the requirements
+    E0401, # FIXME: issue with the requirements
+    W0108,
+    E1101
