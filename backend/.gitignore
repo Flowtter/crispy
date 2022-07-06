@@ -1,2 +1,6 @@
 *resources
 !AI/
+dataset/*
+!dataset/.gitkeep
+!src/dataset
+dataset-*.zip

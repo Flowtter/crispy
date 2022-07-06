@@ -10,3 +10,4 @@ librosa
 moviepy
 IPython
 progressbar2
+ffmpeg-python

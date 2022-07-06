@@ -12,4 +12,6 @@ disable=
     W0640,
     E0401, # FIXME: issue with the requirements
     W0108,
-    E1101
+    E1101,
+    R0914,
+    C0200
