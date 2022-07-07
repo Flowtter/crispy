@@ -2,5 +2,6 @@
 !AI/
 dataset/*
 !dataset/values_template.json
+!dataset/README.md
 !src/dataset
 dataset-*.zip
