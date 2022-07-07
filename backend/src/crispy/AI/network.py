@@ -63,10 +63,12 @@ class NeuralNetwork:
         return 0, expected, got
 
     def mean_weights(self, N: "NeuralNetwork") -> None:
+        """Mitigate the weights of the current network with the weights of N"""
         for i in range(len(self.weights)):
             self.weights[i] = (self.weights[i] + N.weights[i]) / 2
 
     def query(self, inputs: List[float]) -> List[float]:
+        """Query the neural network on a given input"""
         inputs = np.array(inputs, ndmin=2).T
 
         outputs = []
@@ -80,10 +82,12 @@ class NeuralNetwork:
         return outputs[-1]
 
     def save(self, filename: str) -> None:
+        """Save the weights of the neural network in numpy format"""
         print(f"Saving weights to {filename}.npy")
         np.save(filename, self.weights)
 
     def load(self, filename: str) -> None:
+        """Load the weights of the neural network from numpy format"""
         self.weights = np.load(filename, allow_pickle=True)
 
     def __str__(self) -> str:

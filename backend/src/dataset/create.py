@@ -14,6 +14,7 @@ INDEX = 0
 
 
 def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
+    """Convert the images to a csv file"""
     global INDEX
 
     if not file in values:
@@ -77,6 +78,7 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
 
 
 def extract_images(video_path: str, save_path: str) -> None:
+    """Extract the images from the video"""
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
@@ -93,6 +95,7 @@ def extract_images(video_path: str, save_path: str) -> None:
 
 
 def concat_csv(folder: str) -> None:
+    """Merge all the csv files into one"""
     result = []
     files = os.listdir(folder)
     files.sort()

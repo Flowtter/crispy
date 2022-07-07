@@ -3,6 +3,8 @@ import warnings
 from datetime import datetime
 import argparse
 import sys
+import os
+import shutil
 
 import numpy as np
 import progressbar
@@ -11,6 +13,8 @@ from network import NeuralNetwork
 
 # FIXME
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
+
+DEBUG = False
 
 
 class Trainer(NeuralNetwork):
@@ -22,9 +26,24 @@ class Trainer(NeuralNetwork):
         value %= 1 << 12
         self.hash = str(value)
 
+    @staticmethod
+    def move_images(histogram: List[int]) -> None:
+        """Debugging method to move images to the folder `issues`"""
+        maximum = max(histogram)
+
+        for f in os.listdir("./issues"):
+            os.remove(os.path.join("./issues", f))
+
+        for index, value in enumerate(histogram):
+            if value >= maximum - 2:
+                shutil.copy("./backend/dataset/result/" + images[index],
+                            "./issues/" + images[index])
+
     def train(self, epochs: int, inputs: List[List[float]],
               targets: List[Any]) -> None:
+        """Train the neural network for a given number of epochs"""
         last_error = float("inf")
+        histogram = [0 for _ in range(len(inputs))]
         for epoch in range(epochs):
             print("===\n\tEpoch:", epoch)
             progress_bar = progressbar.ProgressBar(max_value=len(inputs))
@@ -37,8 +56,8 @@ class Trainer(NeuralNetwork):
                 if j % 25 == 0:
                     progress_bar.update(j)
 
-                # if res == 0 and last_error < 20:
-                #     print("\n---Error at:", j, "expected:", exp, "got:", got)
+                if res == 0:
+                    histogram[j] += 1
 
             progress_bar.finish()
             # self.learning_rate *= 0.995
@@ -48,6 +67,9 @@ class Trainer(NeuralNetwork):
             if epoch % 10 == 0:
                 self.save("./outputs/trained_network_" + self.hash + "_" +
                           str(epoch))
+                if epoch and DEBUG:
+                    self.move_images(histogram)
+                histogram = [0 for _ in range(len(inputs))]
 
             last_error = len(inputs) - accuracy
             print("Accuracy:", accuracy / len(inputs))
@@ -57,14 +79,18 @@ class Trainer(NeuralNetwork):
         self.save("./outputs/trained_network_" + self.hash + "_end")
 
     def test(self, inputs: List[List[float]], targets: List[Any]) -> None:
-        print("Testing:")
+        """Test the neural network"""
+        print("Testing\nmode DEBUG =", DEBUG)
         accuracy_score = 0
         for j in range(len(inputs)):
             result = np.argmax(self.query(inputs[j]))
             accuracy_score += result == np.argmax(targets[j])
             if result != np.argmax(targets[j]):
-                print("--- Expected:", np.argmax(targets[j]), "Got:", result,
-                      "at:", j)
+                if DEBUG:
+                    print(j)
+                else:
+                    print("--- Expected:", np.argmax(targets[j]), "Got:",
+                          result, "at:", j)
 
         print("\nAccuracy:", accuracy_score / len(inputs))
 
@@ -73,6 +99,7 @@ class Trainer(NeuralNetwork):
 
 
 def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
+    """Read the path csv file and return the inputs and targets"""
     with open(path, 'r') as f:
         test_data_list = f.readlines()
 
@@ -92,13 +119,15 @@ def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
 
 
 def test(trainer: Trainer, path: str) -> None:
+    """Wrapper for the test method"""
+    print("=================================")
     final_inputs, final_targets = get_inputs_targets(path)
     trainer.test(final_inputs, final_targets)
 
 
 def train(epoch: int, trainer: Trainer, path: str) -> None:
+    """Wrapper for the train method"""
     final_inputs, final_targets = get_inputs_targets(path)
-
     trainer.train(epoch, final_inputs, final_targets)
 
 
@@ -119,13 +148,20 @@ if __name__ == "__main__":
     parser.add_argument("--load",
                         help="Load a trained network",
                         action="store_true")
-    parser.add_argument(
-        "--path",
-        help="Path to the network",
-        type=str,
-        default="./backend/assets/trained_network_1571_end.npy")
+    parser.add_argument("--path",
+                        help="Path to the network",
+                        type=str,
+                        default="./backend/assets/trained_network_latest.npy")
+
+    parser.add_argument("--debug", help="Debug mode", action="store_true")
 
     args = parser.parse_args()
+
+    images = []
+    if args.debug:
+        images = os.listdir("./backend/dataset/result")
+        images.sort(key=lambda x: int(x.split("_")[0]))
+        DEBUG = True
 
     if args.load:
         t.load(args.path)
