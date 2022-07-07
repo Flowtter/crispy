@@ -67,8 +67,10 @@ class Trainer(NeuralNetwork):
             if epoch % 10 == 0:
                 self.save("./outputs/trained_network_" + self.hash + "_" +
                           str(epoch))
+
                 if epoch and DEBUG:
                     self.move_images(histogram)
+
                 histogram = [0 for _ in range(len(inputs))]
 
             last_error = len(inputs) - accuracy

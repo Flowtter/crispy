@@ -3,12 +3,10 @@ import json
 import argparse
 
 from PIL import Image, ImageOps
-import ffmpeg
 
-DATASET_PATH = os.path.join("backend", "dataset")
-VALUES_PATH = os.path.join(DATASET_PATH, "values.json")
-VIDEOS_PATH = os.path.join("backend", "resources", "video")
-DOT_PATH = os.path.join("backend", "assets", "dot.png")
+from video import ffmpeg_utils
+
+from constants import *  # pylint: disable=wildcard-import
 
 INDEX = 0
 
@@ -77,23 +75,6 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
             f.write(",".join([str(x) for x in row]) + "\n")
 
 
-def extract_images(video_path: str, save_path: str) -> None:
-    """Extract the images from the video"""
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-
-    (
-        ffmpeg
-        .input(video_path)
-        .filter('fps', fps='1/0.25')
-        .crop(x=900, y=804, width=120, height=60)
-        .overlay(ffmpeg.input(DOT_PATH))
-        .output(os.path.join(save_path, "%3d.bmp"), start_number=0)
-        .overwrite_output()
-        .run(quiet=True)
-    ) # yapf: disable
-
-
 def concat_csv(folder: str) -> None:
     """Merge all the csv files into one"""
     result = []
@@ -129,8 +110,9 @@ def main(ext: bool, csv: bool) -> None:
         print("Doing:", video)
         video_no_ext = video.split(".")[0]
         if ext:
-            extract_images(os.path.join(VIDEOS_PATH, video),
-                           os.path.join(DATASET_PATH, video_no_ext))
+            ffmpeg_utils.extract_images(
+                os.path.join(VIDEOS_PATH, video),
+                os.path.join(DATASET_PATH, video_no_ext))
 
         if csv:
             to_csv(DATASET_PATH, video_no_ext, values)

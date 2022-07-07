@@ -1,6 +1,6 @@
 *resources
 !AI/
 dataset/*
-!dataset/.gitkeep
+!dataset/values_template.json
 !src/dataset
 dataset-*.zip
