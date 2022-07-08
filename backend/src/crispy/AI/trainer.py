@@ -95,7 +95,7 @@ class Trainer(NeuralNetwork):
         print("Confidence:", round(con, 5) * 100, "%")
         print("Mini confidence:", mini_confidence * 100)
 
-        return acc > 0.98 and confidence / con > 0.95
+        return acc > 0.98 and con > 0.95
 
     def __str__(self) -> str:
         return "hash: " + self.hash + "\n" + super().__str__()
