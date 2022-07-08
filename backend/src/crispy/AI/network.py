@@ -11,13 +11,15 @@ class NeuralNetwork:
     def __init__(self, nodes: List[int], learning_rate: float) -> None:
         self.nodes = nodes
         self.learning_rate = learning_rate
-        self.weights = []
-        for i in range(len(nodes) - 1):
-            w = np.random.normal(0.0, pow(nodes[i], -0.5),
-                                 (nodes[i + 1], nodes[i]))
-            self.weights.append(w)
-
+        self.weights: List[Any] = []
         self.activation_function = lambda x: scipy.special.expit(x)
+
+    def initialize_weights(self) -> None:
+        """Initialize the weights of the neural network"""
+        for i in range(len(self.nodes) - 1):
+            w = np.random.normal(0.0, pow(self.nodes[i], -0.5),
+                                 (self.nodes[i + 1], self.nodes[i]))
+            self.weights.append(w)
 
     def _train(self, inputs: List[float],
                targets: Any) -> Tuple[int, int, int]:
@@ -40,8 +42,8 @@ class NeuralNetwork:
         expected = int(np.argmax(targets))
         got = int(np.argmax(outputs[-1]))
 
-        if expected == got:
-            return 1, expected, got
+        # if expected == got:
+        # return 1, expected, got
 
         errors = [targets - outputs[-1]]
 
@@ -60,7 +62,7 @@ class NeuralNetwork:
                 np.dot((errors[i] * outputs[i] *
                       (1.0 - outputs[i])), np.transpose(final_inputs[i]))
 
-        return 0, expected, got
+        return expected == got, expected, got
 
     def mean_weights(self, N: "NeuralNetwork") -> None:
         """Mitigate the weights of the current network with the weights of N"""

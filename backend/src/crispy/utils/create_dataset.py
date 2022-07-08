@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 
-from PIL import Image, ImageOps
+from PIL import Image
 
 from video import ffmpeg_utils
 
@@ -42,22 +42,22 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
     file_clean = file_clean.replace(" ", "-")
 
     for i, image in enumerate(images):
-        im = ImageOps.grayscale(Image.open(os.path.join(path, image)))
-        pixel_values = list(im.getdata())
+        im = Image.open(os.path.join(path, image))
+
+        # Image is already in grey scale
+        pixel_values = list(im.getchannel("R").getdata())
 
         pixel_values.insert(0, int(i in dict_values))
         csv.append(pixel_values)
-        im.save(
-            os.path.join(DATASET_PATH, "result",
-                         str(INDEX) + "_" + file_clean + "_" + str(i) +
-                         ".bmp"))
+        if file != "test":
+            im.save(
+                os.path.join(
+                    DATASET_PATH, "result",
+                    str(INDEX) + "_" + file_clean + "_" + str(i) + ".bmp"))
         INDEX += 1
         if save:
             if not os.path.exists(os.path.join(path, "grey")):
                 os.makedirs(os.path.join(path, "grey"))
-            if not os.path.exists(os.path.join(path, "v_grey")):
-                os.makedirs(os.path.join(path, "v_grey"))
-            im.save(os.path.join(path, "grey", image))
             im3 = Image.new("RGB", (112, 112))
             for x in range(112):
                 for y in range(112):
@@ -68,7 +68,7 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
             res.paste(Image.open(os.path.join(path, image)), (0, 0))
             res.paste(im, (112, 0))
             res.paste(im3, (224, 0))
-            res.save(os.path.join(path, "v_grey", image))
+            res.save(os.path.join(path, "grey", image))
 
     with open(os.path.join(folder, file + ".csv"), "w") as f:
         for row in csv:
@@ -82,7 +82,7 @@ def concat_csv(folder: str) -> None:
     files.sort()
     for file in files:
         if file.split(".")[-1] == "csv":
-            if file == "result.csv":
+            if file in ('result.csv', 'test.csv'):
                 continue
             with open(os.path.join(folder, file), "r") as f:
                 lines = f.readlines()
@@ -101,6 +101,7 @@ def main(ext: bool, csv: bool) -> None:
 
     videos = os.listdir(VIDEOS_PATH)
     videos.sort()
+    videos = ["test.mp4"]
     print(videos)
 
     if not os.path.exists(os.path.join(DATASET_PATH, "result")):
@@ -108,7 +109,7 @@ def main(ext: bool, csv: bool) -> None:
 
     for video in videos:
         print("Doing:", video)
-        video_no_ext = video.split(".")[0]
+        video_no_ext = video.split('.', maxsplit=1)[0]
         if ext:
             ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),

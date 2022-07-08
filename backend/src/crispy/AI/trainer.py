@@ -4,8 +4,8 @@ from datetime import datetime
 import argparse
 import sys
 import os
-import shutil
 
+from PIL import Image
 import numpy as np
 import progressbar
 
@@ -27,23 +27,23 @@ class Trainer(NeuralNetwork):
         self.hash = str(value)
 
     @staticmethod
-    def move_images(histogram: List[int]) -> None:
+    def move_images_from_histogram(histogram: List[int], path: str) -> None:
         """Debugging method to move images to the folder `issues`"""
+        assert DEBUG
         maximum = max(histogram)
 
-        for f in os.listdir("./issues"):
-            os.remove(os.path.join("./issues", f))
+        for f in os.listdir(path):
+            os.remove(os.path.join(path, f))
 
         for index, value in enumerate(histogram):
-            if value >= maximum - 2:
-                shutil.copy("./backend/dataset/result/" + images[index],
-                            "./issues/" + images[index])
+            if value >= maximum - 2 and value != 0:
+                im = Image.open("./backend/dataset/result/" + images[index])
+                im = im.resize((100 * im.width, 100 * im.height))
+                im.save(os.path.join(path, images[index]))
 
     def train(self, epochs: int, inputs: List[List[float]],
               targets: List[Any]) -> None:
         """Train the neural network for a given number of epochs"""
-        last_error = float("inf")
-        histogram = [0 for _ in range(len(inputs))]
         for epoch in range(epochs):
             print("===\n\tEpoch:", epoch)
             progress_bar = progressbar.ProgressBar(max_value=len(inputs))
@@ -53,48 +53,49 @@ class Trainer(NeuralNetwork):
             for j in range(len(inputs)):
                 res, _, _ = self._train(inputs[j], targets[j])
                 accuracy += res
+
                 if j % 25 == 0:
                     progress_bar.update(j)
-
-                if res == 0:
-                    histogram[j] += 1
 
             progress_bar.finish()
             # self.learning_rate *= 0.995
 
             print("Errors:", len(inputs) - accuracy)
+            print("Accuracy:", accuracy / len(inputs))
 
-            if epoch % 10 == 0:
+            if epoch % 25 == 0:
                 self.save("./outputs/trained_network_" + self.hash + "_" +
                           str(epoch))
 
-                if epoch and DEBUG:
-                    self.move_images(histogram)
-
-                histogram = [0 for _ in range(len(inputs))]
-
-            last_error = len(inputs) - accuracy
-            print("Accuracy:", accuracy / len(inputs))
-            if last_error == 0:
-                break
-
         self.save("./outputs/trained_network_" + self.hash + "_end")
 
-    def test(self, inputs: List[List[float]], targets: List[Any]) -> None:
+    def test(self, inputs: List[List[float]], targets: List[Any]) -> bool:
         """Test the neural network"""
-        print("Testing\nmode DEBUG =", DEBUG)
+        print("Testing...")
         accuracy_score = 0
+        failed = []
+        confidence = 0
+        mini_confidence = 100
         for j in range(len(inputs)):
-            result = np.argmax(self.query(inputs[j]))
+            q = self.query(inputs[j])
+            confidence += np.max(q)
+            mini_confidence = min(mini_confidence, np.max(q))
+            result = np.argmax(q)
+
             accuracy_score += result == np.argmax(targets[j])
             if result != np.argmax(targets[j]):
-                if DEBUG:
-                    print(j)
-                else:
-                    print("--- Expected:", np.argmax(targets[j]), "Got:",
-                          result, "at:", j)
+                failed.append(j)
+                print("--- Expected:", np.argmax(targets[j]), "Got:", result,
+                      "at:", j, "confidence:",
+                      str(int(np.max(q) * 100)) + "%")
 
-        print("\nAccuracy:", accuracy_score / len(inputs))
+        acc = accuracy_score / len(inputs)
+        con = confidence / len(inputs)
+        print("\nAccuracy:", round(acc, 5) * 100, "%")
+        print("Confidence:", round(con, 5) * 100, "%")
+        print("Mini confidence:", mini_confidence * 100)
+
+        return acc > 0.98 and confidence / con > 0.95
 
     def __str__(self) -> str:
         return "hash: " + self.hash + "\n" + super().__str__()
@@ -117,14 +118,14 @@ def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
 
             final_inputs.append(inputs)
             final_targets.append(targets)
+
     return final_inputs, final_targets
 
 
-def test(trainer: Trainer, path: str) -> None:
+def test(trainer: Trainer, path: str) -> bool:
     """Wrapper for the test method"""
-    print("=================================")
     final_inputs, final_targets = get_inputs_targets(path)
-    trainer.test(final_inputs, final_targets)
+    return trainer.test(final_inputs, final_targets)
 
 
 def train(epoch: int, trainer: Trainer, path: str) -> None:
@@ -134,9 +135,10 @@ def train(epoch: int, trainer: Trainer, path: str) -> None:
 
 
 if __name__ == "__main__":
-    t = Trainer([7200, 120, 2], 0.001)
+    t = Trainer([4000, 120, 15, 2], 0.01)
 
     csv_path = "./backend/dataset/result.csv"
+    csv_test_path = "./backend/dataset/test.csv"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--train",
@@ -167,6 +169,8 @@ if __name__ == "__main__":
 
     if args.load:
         t.load(args.path)
+    else:
+        t.initialize_weights()
 
     print(t)
     if args.train:
@@ -176,4 +180,5 @@ if __name__ == "__main__":
         if not args.load and not args.train:
             print("You need to load a trained network")
             sys.exit(1)
-        test(t, csv_path)
+
+        sys.exit(not test(t, csv_test_path))
