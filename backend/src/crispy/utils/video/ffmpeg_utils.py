@@ -34,7 +34,9 @@ def __apply_filter_and_do_operations(im: Image,
 
 
 def extract_images(video_path: str, save_path: str) -> None:
-    """Extract the images from the video"""
+    """
+    Extract the images from the video
+    """
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 

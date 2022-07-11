@@ -18,7 +18,9 @@ DEBUG = False
 
 
 class Trainer(NeuralNetwork):
-    """Trainer for the neural network"""
+    """
+    Trainer for the neural network
+    """
 
     def __init__(self, nodes: List[int], learning_rate: float) -> None:
         super().__init__(nodes, learning_rate)
@@ -28,7 +30,9 @@ class Trainer(NeuralNetwork):
 
     @staticmethod
     def move_images_from_histogram(histogram: List[int], path: str) -> None:
-        """Debugging method to move images to the folder `issues`"""
+        """
+        Debugging method to move images to the folder `issues`
+        """
         assert DEBUG
         maximum = max(histogram)
 
@@ -43,7 +47,9 @@ class Trainer(NeuralNetwork):
 
     def train(self, epochs: int, inputs: List[List[float]],
               targets: List[Any]) -> None:
-        """Train the neural network for a given number of epochs"""
+        """
+        Train the neural network for a given number of epochs
+        """
         for epoch in range(epochs):
             print("===\n\tEpoch:", epoch)
             progress_bar = progressbar.ProgressBar(max_value=len(inputs))
@@ -70,7 +76,9 @@ class Trainer(NeuralNetwork):
         self.save("./outputs/trained_network_" + self.hash + "_end")
 
     def test(self, inputs: List[List[float]], targets: List[Any]) -> bool:
-        """Test the neural network"""
+        """
+        Test the neural network
+        """
         print("Testing...")
         accuracy_score = 0
         failed = []
@@ -102,7 +110,9 @@ class Trainer(NeuralNetwork):
 
 
 def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
-    """Read the path csv file and return the inputs and targets"""
+    """
+    Read the path csv file and return the inputs and targets
+    """
     with open(path, 'r') as f:
         test_data_list = f.readlines()
 
@@ -123,13 +133,17 @@ def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
 
 
 def test(trainer: Trainer, path: str) -> bool:
-    """Wrapper for the test method"""
+    """
+    Wrapper for the test method
+    """
     final_inputs, final_targets = get_inputs_targets(path)
     return trainer.test(final_inputs, final_targets)
 
 
 def train(epoch: int, trainer: Trainer, path: str) -> None:
-    """Wrapper for the train method"""
+    """
+    Wrapper for the train method
+    """
     final_inputs, final_targets = get_inputs_targets(path)
     trainer.train(epoch, final_inputs, final_targets)
 

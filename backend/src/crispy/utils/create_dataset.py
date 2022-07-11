@@ -12,7 +12,9 @@ INDEX = 0
 
 
 def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
-    """Convert the images to a csv file"""
+    """
+    Convert the images to a csv file
+    """
     global INDEX
 
     if not file in values:
@@ -76,7 +78,9 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
 
 
 def concat_csv(folder: str) -> None:
-    """Merge all the csv files into one"""
+    """
+    Merge all the csv files into one
+    """
     result = []
     files = os.listdir(folder)
     files.sort()
