@@ -17,9 +17,22 @@ repos:
         stages: ["commit-msg"]
   - repo: local
     hooks:
+      # FIXME: use anchors
       - id: coding-style
         name: Coding style
         description: Check if code respects the coding-style
         language: system
         entry: ./scripts/yapf.sh
+        stages: ["commit"]
+      - id: coding-style-lint
+        name: Coding style linting
+        description: Check if code respects the coding-style
+        language: system
+        entry: ./scripts/mypy.sh
+        stages: ["commit"]
+      - id: coding-style-type
+        name: Coding style type-check
+        description: Check if code respects the coding-style
+        language: system
+        entry: ./scripts/pylint.sh
         stages: ["commit"]
