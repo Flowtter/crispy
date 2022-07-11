@@ -18,6 +18,28 @@ jobs:
         if: always()
         run: docker run crispy/yapf
 
+  type-check:
+    runs-on: ubuntu-latest
+    name: Type checking
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run coding style type-check tests
+        run: docker build . -f ./docker-ci/mypy.Dockerfile -t crispy/mypy
+      - name: Cleanup
+        if: always()
+        run: docker run crispy/mypy
+
+  linting:
+    runs-on: ubuntu-latest
+    name: Linting
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run coding style linting tests
+        run: docker build . -f ./docker-ci/pylint.Dockerfile -t crispy/pylint
+      - name: Cleanup
+        if: always()
+        run: docker run crispy/pylint
+
   commit-style:
     runs-on: ubuntu-latest
     name: Commit style
