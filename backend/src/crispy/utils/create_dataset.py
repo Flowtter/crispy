@@ -86,7 +86,7 @@ def concat_csv(folder: str) -> None:
     files.sort()
     for file in files:
         if file.split(".")[-1] == "csv":
-            if file in ('result.csv', 'test.csv'):
+            if file in ("result.csv", "test.csv"):
                 continue
             with open(os.path.join(folder, file), "r") as f:
                 lines = f.readlines()
@@ -113,7 +113,7 @@ def main(ext: bool, csv: bool) -> None:
 
     for video in videos:
         print("Doing:", video)
-        video_no_ext = video.split('.', maxsplit=1)[0]
+        video_no_ext = video.split(".", maxsplit=1)[0]
         if ext:
             ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),

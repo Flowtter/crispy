@@ -113,14 +113,14 @@ def get_inputs_targets(path: str) -> Tuple[List[List[float]], List[Any]]:
     """
     Read the path csv file and return the inputs and targets
     """
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         test_data_list = f.readlines()
 
         final_inputs = []
         final_targets = []
 
         for record in test_data_list:
-            all_values = record.split(',')
+            all_values = record.split(",")
             inputs = (np.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
 
             targets = np.zeros(2) + 0.01
