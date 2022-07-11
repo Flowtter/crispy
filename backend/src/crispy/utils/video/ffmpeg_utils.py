@@ -33,7 +33,7 @@ def __apply_filter_and_do_operations(im: Image,
     return final
 
 
-def extract_images(video_path: str, save_path: str) -> None:
+def extract_images(video_path: str, save_path: str, fps: int = 4) -> None:
     """
     Extract the images from the video
     """
@@ -43,10 +43,10 @@ def extract_images(video_path: str, save_path: str) -> None:
     (
         ffmpeg
         .input(video_path)
-        .filter('fps', fps='1/0.25')
+        .filter("fps", fps=f"1/{round(1 / fps), 5}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
-        .output(os.path.join(save_path, "%5d.bmp"), start_number=0)
+        .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
         .overwrite_output()
         .run(quiet=True)
     ) # yapf: disable

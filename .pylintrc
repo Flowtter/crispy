@@ -17,3 +17,8 @@ disable=
     C0200,
     W0614,
     W1203
+
+
+string-quote=double
+triple-quote=double
+docstring-quote=double
