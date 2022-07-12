@@ -98,4 +98,4 @@ def test_split() -> None:
         filename='./test_split/test_basic.mp4')
     assert cut_10_100('./test_split/test_basic.mp4')
 
-    abort('./test_split/tset_basic.mp4')
+    abort('./test_split/test_basic.mp4')
