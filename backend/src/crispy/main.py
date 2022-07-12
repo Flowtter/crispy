@@ -4,7 +4,7 @@ import logging
 
 from utils.arguments import args
 from utils.constants import NEURAL_NETWORK_PATH
-from utils.IO.io import generate_tmp_architecture
+from utils.IO.io import generate_tmp_folder
 import video.video as vid
 from AI.network import NeuralNetwork
 
@@ -16,7 +16,7 @@ def main(videos: List[str]) -> None:
     nn.load(NEURAL_NETWORK_PATH)
     l.debug(f"Neural network: {nn}")
 
-    generate_tmp_architecture(not args.no_extract)
+    generate_tmp_folder(not args.no_extract)
 
     for video in videos:
         l.info(f"Currently processing {video}")

@@ -4,9 +4,9 @@ import shutil
 from utils.constants import TMP_PATH, IMAGE, CUT
 
 
-def generate_tmp_architecture(overwrite: bool) -> None:
+def generate_tmp_folder(overwrite: bool) -> None:
     """
-    Generate the .tmp directory
+    Generate the tmp directory
     """
     if not os.path.exists(TMP_PATH):
         os.makedirs(TMP_PATH)
@@ -19,8 +19,8 @@ def generate_folder_clip(name: str, overwrite: bool = True) -> None:
     """
     Generate the folder clip
     Will generate:
-    .tmp/{name}/cut
-    .tmp/{name}/images
+    tmp/{name}/cut
+    tmp/{name}/images
     """
     path = os.path.join(TMP_PATH, name)
     if not os.path.exists(path):
@@ -28,8 +28,7 @@ def generate_folder_clip(name: str, overwrite: bool = True) -> None:
         os.makedirs(os.path.join(path, CUT))
         os.makedirs(os.path.join(path, IMAGE))
     elif overwrite:
-        clear_directory(os.path.join(path, CUT))
-        clear_directory(os.path.join(path, IMAGE))
+        clear_directory(path)
         generate_folder_clip(name)
 
 
