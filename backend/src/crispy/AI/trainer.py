@@ -150,9 +150,8 @@ def train(epoch: int, trainer: Trainer, path: str) -> None:
 
 if __name__ == "__main__":
     t = Trainer([4000, 120, 15, 2], 0.01)
-
-    csv_path = "./backend/dataset/result.csv"
-    csv_test_path = "./backend/dataset/test.csv"
+    csv_path = os.path.join("backend", "dataset", "result.csv")
+    csv_test_path = os.path.join("backend", "dataset", "test.csv")
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--train",
@@ -166,10 +165,7 @@ if __name__ == "__main__":
     parser.add_argument("--load",
                         help="Load a trained network",
                         action="store_true")
-    parser.add_argument("--path",
-                        help="Path to the network",
-                        type=str,
-                        default="./backend/assets/trained_network_latest.npy")
+    parser.add_argument("--path", help="Path to the network", type=str)
 
     parser.add_argument("--debug", help="Debug mode", action="store_true")
 

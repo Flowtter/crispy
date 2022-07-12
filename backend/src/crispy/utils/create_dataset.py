@@ -4,9 +4,9 @@ import argparse
 
 from PIL import Image
 
-from video import ffmpeg_utils
+import ffmpeg_utils
 
-from constants import *  # pylint: disable=wildcard-import
+from constants import DATASET_PATH, DATASET_VALUES_PATH, VIDEOS_PATH
 
 INDEX = 0
 
@@ -100,13 +100,11 @@ def main(ext: bool, csv: bool) -> None:
     if not os.path.exists(DATASET_PATH):
         os.makedirs(DATASET_PATH)
 
-    with open(VALUES_PATH, "r") as f:
+    with open(DATASET_VALUES_PATH, "r") as f:
         values = json.load(f)
 
     videos = os.listdir(VIDEOS_PATH)
     videos.sort()
-    videos = ["test.mp4"]
-    print(videos)
 
     if not os.path.exists(os.path.join(DATASET_PATH, "result")):
         os.makedirs(os.path.join(DATASET_PATH, "result"))

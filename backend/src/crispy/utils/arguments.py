@@ -11,6 +11,11 @@ _parser.add_argument("-v",
                      help="increase output verbosity",
                      action="store_true")
 
+_parser.add_argument("--no-extract",
+                     default=False,
+                     help="Do not extract frames",
+                     action="store_true")
+
 args = _parser.parse_args()
 
 if args.debug:
