@@ -1,7 +1,7 @@
 import os
 import cv2
 from pytube import YouTube
-from ffmpeg_utils import scale_video, split_video
+from ffmpeg_utils import scale_video, _split_video
 
 
 def test_basic() -> None:
@@ -75,14 +75,14 @@ def split_check(video_path: str, frames: int) -> bool:
 
 
 def cut_1_100(video_path: str) -> bool:
-    split_video(video_path, [(0, 100)])
+    _split_video(video_path, [(0, 100)])
     return split_check(video_path, 100)
 
 
 def cut_10_100(video_path: str) -> bool:
-    split_video(video_path, [(0, 100), (100, 200), (200, 300), (300, 400),
-                             (400, 500), (500, 600), (600, 700), (700, 800),
-                             (800, 900), (900, 1000)])
+    _split_video(video_path, [(0, 100), (100, 200), (200, 300), (300, 400),
+                              (400, 500), (500, 600), (600, 700), (700, 800),
+                              (800, 900), (900, 1000)])
     return split_check(video_path, 100)
 
 

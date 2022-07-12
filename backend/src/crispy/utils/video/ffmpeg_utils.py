@@ -79,12 +79,12 @@ def find_available_path(video_path: str) -> str:
     """
     Find available path to store the scaled video temporarily.
     """
-    drive, tail = os.path.split(video_path)
-    tail = random.choice(string.ascii_letters) + tail
-    while (os.path.exists(os.path.join(drive, tail))):
-        tail = random.choice(string.ascii_letters) + tail
+    dirname, basename = os.path.split(video_path)
+    h = str(hash(basename)) + ".mp4"
+    while (os.path.exists(os.path.join(dirname, h))):
+        h = random.choice(string.ascii_letters) + h
 
-    return os.path.join(drive, tail)
+    return os.path.join(dirname, h)
 
 
 def scale_video(video_path: str) -> None:
@@ -99,7 +99,7 @@ def scale_video(video_path: str) -> None:
             .filter('scale', w=1920, h=1080)
             .output(save_path, start_number=0)
             .overwrite_output()
-            .run(quiet=True)
+            .run()
         ) # yapf: disable
 
         os.remove(video_path)
@@ -141,7 +141,7 @@ def split_video_once(video_path: str, split: tuple) -> None:
         ) # yapf: disable
 
 
-def split_video(video_path: str, splits: list) -> None:
+def _split_video(video_path: str, splits: list) -> None:
     if os.path.exists(video_path):
         for split in splits:
             split_video_once(video_path, split)
