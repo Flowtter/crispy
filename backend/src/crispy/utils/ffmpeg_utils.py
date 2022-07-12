@@ -8,8 +8,8 @@ BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
 
 
-def __apply_filter_and_do_operations(im: Image,
-                                     im_filter: Optional[Any]) -> Image:
+def _apply_filter_and_do_operations(im: Image,
+                                    im_filter: Optional[Any]) -> Image:
 
     if im_filter is not None:
         im = im.filter(im_filter)
@@ -43,7 +43,7 @@ def extract_images(video_path: str, save_path: str, fps: int = 4) -> None:
     (
         ffmpeg
         .input(video_path)
-        .filter("fps", fps=f"1/{round(1 / fps), 5}")
+        .filter("fps", fps=f"1/{round(1 / fps, 5)}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
         .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
@@ -60,8 +60,8 @@ def extract_images(video_path: str, save_path: str, fps: int = 4) -> None:
 
         im = ImageOps.grayscale(im)
 
-        edges = __apply_filter_and_do_operations(im, ImageFilter.FIND_EDGES)
-        enhanced = __apply_filter_and_do_operations(
+        edges = _apply_filter_and_do_operations(im, ImageFilter.FIND_EDGES)
+        enhanced = _apply_filter_and_do_operations(
             im, ImageFilter.EDGE_ENHANCE_MORE)
         # im = __apply_filter_and_do_operation(im, None)
 
