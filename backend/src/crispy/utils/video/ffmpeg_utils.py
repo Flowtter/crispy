@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from typing import Optional, Any
 
 import ffmpeg
@@ -71,3 +73,75 @@ def extract_images(video_path: str, save_path: str) -> None:
         final.paste(enhanced, (0, 40))
 
         final.save(im_path)
+
+
+def find_available_path(video_path: str) -> str:
+    """
+    Find available path to store the scaled video temporarily.
+    """
+    dirname, basename = os.path.split(video_path)
+    h = str(hash(basename)) + ".mp4"
+    while (os.path.exists(os.path.join(dirname, h))):
+        h = random.choice(string.ascii_letters) + h
+
+    return os.path.join(dirname, h)
+
+
+def scale_video(video_path: str) -> None:
+    """
+    Scale (up or down) a video.
+    """
+    if os.path.exists(video_path):
+        save_path = find_available_path(video_path)
+        (
+            ffmpeg
+            .input(video_path)
+            .filter('scale', w=1920, h=1080)
+            .output(save_path, start_number=0)
+            .overwrite_output()
+            .run()
+        ) # yapf: disable
+
+        os.remove(video_path)
+        os.rename(save_path, video_path)
+        # check if image has to be upscaled or downscaled ?
+
+
+def create_new_path(video_path: str) -> str:
+    """
+    Create new path based on the original one.
+    """
+    drive, tail = os.path.split(video_path)
+    name, ext = os.path.splitext(tail)
+    nb = 1
+    cur_name = name + "_" + str(nb)
+    while os.path.exists(os.path.join(drive, cur_name + ext)):
+        nb = nb + 1
+        cur_name = name + "_" + str(nb)
+
+    tail = cur_name + ext
+    res = os.path.join(drive, cur_name + ext)
+
+    return res
+
+
+def split_video_once(video_path: str, split: tuple) -> None:
+    """
+    Split a video between 2 timestamp
+    """
+    save_path = create_new_path(video_path)
+    if split[1] - split[0] > 0:
+        (
+            ffmpeg
+            .input(video_path)
+            .trim(start_frame=split[0], end_frame=split[1])
+            .output(save_path)
+            .overwrite_output()
+            .run(quiet=True)
+        ) # yapf: disable
+
+
+def _split_video(video_path: str, splits: list) -> None:
+    if os.path.exists(video_path):
+        for split in splits:
+            split_video_once(video_path, split)
