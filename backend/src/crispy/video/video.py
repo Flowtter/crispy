@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Tuple
 import os
 
 from PIL import Image
 import numpy as np
 
-from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO
+from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT
 import utils.ffmpeg_utils as ff
 from utils.IO import io
 from AI.network import NeuralNetwork
@@ -14,9 +14,7 @@ def get_saving_path(video: str) -> str:
     """
     Get the saving path for the video
     """
-    video_no_ext = io.remove_extension(video)
-    video_clean_name = io.generate_clean_name(video_no_ext)
-    return os.path.join(TMP_PATH, video_clean_name, IMAGE)
+    return os.path.join(TMP_PATH, video, IMAGE)
 
 
 def extract_frames_from_video(video: str, fps: int = 6) -> str:
@@ -24,13 +22,12 @@ def extract_frames_from_video(video: str, fps: int = 6) -> str:
     Extract frames from the video
     return: saving location
     """
+    loading_path = os.path.join(RESOURCE_PATH, VIDEO, video)
+
     video_no_ext = io.remove_extension(video)
     video_clean_name = io.generate_clean_name(video_no_ext)
+    saving_path = os.path.join(TMP_PATH, video_clean_name, CUT)
 
-    io.generate_folder_clip(video_clean_name)
-
-    loading_path = os.path.join(RESOURCE_PATH, VIDEO, video)
-    saving_path = os.path.join(TMP_PATH, video_clean_name, IMAGE)
     ff.extract_images(loading_path, saving_path, fps)
 
     return saving_path
@@ -70,3 +67,19 @@ def get_query_array_from_video(neural_network: NeuralNetwork,
             query_array.append(i)
 
     return query_array
+
+
+def segment_video_with_kill_array(video: str,
+                                  kill_array: List[Tuple[int, int]],
+                                  frame_duration: int = 4) -> None:
+    """
+    Segment the video with the given kill array
+    """
+
+    loading_path = os.path.join(RESOURCE_PATH, VIDEO, video)
+
+    video_no_ext = io.remove_extension(video)
+    video_clean_name = io.generate_clean_name(video_no_ext)
+    save_path = os.path.join(TMP_PATH, video_clean_name, CUT)
+
+    ff.segment_video(loading_path, save_path, kill_array, frame_duration)

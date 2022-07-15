@@ -70,3 +70,13 @@ def remove_extension(name: str) -> str:
     Remove the extension from the file name
     """
     return name.split(".")[0]
+
+
+def clean_cuts(folder: str) -> None:
+    """
+    Clean the cuts folder
+    """
+    path = os.path.join(TMP_PATH, folder, CUT)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.makedirs(path)
