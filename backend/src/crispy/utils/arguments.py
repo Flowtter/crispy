@@ -16,6 +16,11 @@ _parser.add_argument("--no-extract",
                      help="Do not extract frames",
                      action="store_true")
 
+_parser.add_argument("--no-segmentation",
+                     default=False,
+                     help="Do not extract frames",
+                     action="store_true")
+
 args = _parser.parse_args()
 
 if args.debug:

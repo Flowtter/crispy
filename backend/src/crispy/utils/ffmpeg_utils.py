@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Any
+from typing import Optional, Any, List, Tuple
 
 import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
@@ -73,3 +73,23 @@ def extract_images(video_path: str, save_path: str, fps: int = 4) -> None:
         final.paste(enhanced, (0, 40))
 
         final.save(im_path)
+
+
+def segment_video(video_path: str, save_path: str,
+                  frames: List[Tuple[int, int]], frame_duration: int) -> None:
+    """
+    Segment a video on multiple smaller video using the frames array
+    """
+    for frame in frames:
+        start = frame[0] / frame_duration
+        end = frame[1] / frame_duration
+        # print(start, end, frame_duration, video_path, save_path)
+        (
+            ffmpeg
+            .input(video_path)
+            .output(os.path.join(save_path, f"{frame[0]}-{frame[1]}.mp4"),
+                    ss=f"{start}",
+                    to=f"{end}")
+            .overwrite_output()
+            .run(quiet=True)
+        ) # yapf: disable
