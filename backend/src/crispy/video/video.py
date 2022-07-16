@@ -17,7 +17,7 @@ def get_saving_path(video: str) -> str:
     return os.path.join(TMP_PATH, video, IMAGE)
 
 
-def extract_frames_from_video(video: str, fps: int = 6) -> str:
+def extract_frames_from_video(video: str, framerate: int = 6) -> str:
     """
     Extract frames from the video
     return: saving location
@@ -26,9 +26,9 @@ def extract_frames_from_video(video: str, fps: int = 6) -> str:
 
     video_no_ext = io.remove_extension(video)
     video_clean_name = io.generate_clean_name(video_no_ext)
-    saving_path = os.path.join(TMP_PATH, video_clean_name, CUT)
+    saving_path = os.path.join(TMP_PATH, video_clean_name, IMAGE)
 
-    ff.extract_images(loading_path, saving_path, fps)
+    ff.extract_images(loading_path, saving_path, framerate)
 
     return saving_path
 
@@ -83,3 +83,31 @@ def segment_video_with_kill_array(video: str,
     save_path = os.path.join(TMP_PATH, video_clean_name, CUT)
 
     ff.segment_video(loading_path, save_path, kill_array, frame_duration)
+
+
+# FIXME: Add post processing
+def get_kill_array_from_query_array(
+        query_array: List[int], frames_before: int,
+        frames_after: int) -> List[Tuple[int, int]]:
+    """
+    Get the kill array from the query array
+    """
+    kill_array: List[List[int]] = []
+    current_kill: List[int] = []
+    for q in query_array:
+        if len(current_kill) == 0:
+            current_kill.append(q)
+        elif q - current_kill[-1] == 1:
+            current_kill.append(q)
+        else:
+            kill_array.append(current_kill)
+            current_kill = [q]
+    kill_array.append(current_kill)
+
+    result = []
+    for kill in kill_array:
+        start = kill[0] - frames_before
+        end = kill[-1] + frames_after
+        result.append((start, end))
+
+    return result

@@ -33,17 +33,18 @@ def _apply_filter_and_do_operations(im: Image,
     return final
 
 
-def extract_images(video_path: str, save_path: str, fps: int = 4) -> None:
+def extract_images(video_path: str,
+                   save_path: str,
+                   framerate: int = 4) -> None:
     """
     Extract the images from the video
     """
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-
     (
         ffmpeg
         .input(video_path)
-        .filter("fps", fps=f"1/{round(1 / fps, 5)}")
+        .filter("framerate", framerate=f"1/{round(1 / framerate, 5)}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
         .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
