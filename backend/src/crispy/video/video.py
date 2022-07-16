@@ -4,7 +4,7 @@ import os
 from PIL import Image
 import numpy as np
 
-from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT
+from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT, SETTINGS
 import utils.ffmpeg_utils as ff
 from utils.IO import io
 from AI.network import NeuralNetwork
@@ -17,7 +17,7 @@ def get_saving_path(video: str) -> str:
     return os.path.join(TMP_PATH, video, IMAGE)
 
 
-def extract_frames_from_video(video: str, framerate: int = 6) -> str:
+def extract_frames_from_video(video: str) -> str:
     """
     Extract frames from the video
     return: saving location
@@ -28,7 +28,7 @@ def extract_frames_from_video(video: str, framerate: int = 6) -> str:
     video_clean_name = io.generate_clean_name(video_no_ext)
     saving_path = os.path.join(TMP_PATH, video_clean_name, IMAGE)
 
-    ff.extract_images(loading_path, saving_path, framerate)
+    ff.extract_images(loading_path, saving_path, SETTINGS["clip"]["framerate"])
 
     return saving_path
 
@@ -50,6 +50,7 @@ def get_query_array_from_video(neural_network: NeuralNetwork,
     images = os.listdir(images_path)
     images.sort()
     query_array = []
+    confidence = SETTINGS["neural-network"]["confidence"]
 
     for i, image in enumerate(images):
         image_path = os.path.join(images_path, image)
@@ -59,19 +60,14 @@ def get_query_array_from_video(neural_network: NeuralNetwork,
 
         query_result = neural_network.query(inputs)
 
-        # FIXME: confidence is not used
-        # Should be used instead of np.argmax
-        result = np.argmax(query_result)
-
-        if result == 1:
+        if query_result[1] >= confidence:
             query_array.append(i)
 
     return query_array
 
 
 def segment_video_with_kill_array(video: str,
-                                  kill_array: List[Tuple[int, int]],
-                                  frame_duration: int = 4) -> None:
+                                  kill_array: List[Tuple[int, int]]) -> None:
     """
     Segment the video with the given kill array
     """
@@ -82,18 +78,44 @@ def segment_video_with_kill_array(video: str,
     video_clean_name = io.generate_clean_name(video_no_ext)
     save_path = os.path.join(TMP_PATH, video_clean_name, CUT)
 
-    ff.segment_video(loading_path, save_path, kill_array, frame_duration)
+    ff.segment_video(loading_path, save_path, kill_array,
+                     SETTINGS["clip"]["framerate"])
 
 
-# FIXME: Add post processing
+def post_processing_kill_array(
+        kill_array: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    """
+    Post processing the kill array
+    """
+    found = True
+    offset = SETTINGS["clip"]["second-between-kills"] * SETTINGS["clip"][
+        "framerate"]
+    while found:
+        found = False
+        for i in range(len(kill_array) - 1):
+            if kill_array[i][1] + offset >= kill_array[i + 1][0]:
+                found = True
+                kill_array[i] = (kill_array[i][0], kill_array[i + 1][1])
+                kill_array.pop(i + 1)
+                break
+
+    return kill_array
+
+
 def get_kill_array_from_query_array(
-        query_array: List[int], frames_before: int,
-        frames_after: int) -> List[Tuple[int, int]]:
+        query_array: List[int]) -> List[Tuple[int, int]]:
     """
     Get the kill array from the query array
     """
     kill_array: List[List[int]] = []
     current_kill: List[int] = []
+
+    framerate = SETTINGS["clip"]["framerate"]
+    mul = lambda x: int(x * framerate)
+
+    frames_before = mul(SETTINGS["clip"]["second-before"])
+    frames_after = mul(SETTINGS["clip"]["second-after"])
+
     for q in query_array:
         if len(current_kill) == 0:
             current_kill.append(q)
@@ -106,8 +128,10 @@ def get_kill_array_from_query_array(
 
     result = []
     for kill in kill_array:
+        if len(kill) < framerate // 2:
+            continue
+
         start = kill[0] - frames_before
         end = kill[-1] + frames_after
         result.append((start, end))
-
     return result
