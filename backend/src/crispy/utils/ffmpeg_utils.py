@@ -44,7 +44,7 @@ def extract_images(video_path: str,
     (
         ffmpeg
         .input(video_path)
-        .filter("framerate", framerate=f"1/{round(1 / framerate, 5)}")
+        .filter("framerate", fps=f"1/{round(1 / framerate, 5)}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
         .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
@@ -92,5 +92,5 @@ def segment_video(video_path: str, save_path: str,
                     ss=f"{start}",
                     to=f"{end}")
             .overwrite_output()
-            .run(quiet=True)
+            .run(quiet=False)
         ) # yapf: disable

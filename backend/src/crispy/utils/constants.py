@@ -1,4 +1,5 @@
 import os
+import json
 
 BACKEND = "backend"
 OUTPUT = "output"
@@ -29,3 +30,10 @@ MUSICS_PATH = os.path.join(RESOURCE_PATH, MUSIC)
 
 NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
 ### CODE_PATH ###
+
+### SETTINGS ###
+SETTINGS_PATH = "settings.json"
+_f = open(SETTINGS_PATH, "r")
+SETTINGS = json.load(_f)
+_f.close()
+### SETTINGS ###
