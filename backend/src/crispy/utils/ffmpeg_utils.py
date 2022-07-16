@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from typing import Optional, Any, List, Tuple
 
 import ffmpeg
@@ -93,4 +95,56 @@ def segment_video(video_path: str, save_path: str,
                     to=f"{end}")
             .overwrite_output()
             .run(quiet=False)
+        ) # yaPf: disable
+
+
+def find_available_path(video_path: str) -> str:
+    """
+    Find available path to store the scaled video temporarily.
+    """
+    dirname, basename = os.path.split(video_path)
+    h = str(hash(basename)) + ".mp4"
+    while (os.path.exists(os.path.join(dirname, h))):
+        h = random.choice(string.ascii_letters) + h
+
+    return os.path.join(dirname, h)
+
+
+def scale_video(video_path: str) -> None:
+    """
+    Scale (up or down) a video.
+    """
+    if os.path.exists(video_path):
+        save_path = find_available_path(video_path)
+        (
+            ffmpeg
+            .input(video_path)
+            .filter("scale", w=1920, h=1080)
+            .output(save_path, start_number=0)
+            .overwrite_output()
+            .run()
         ) # yapf: disable
+
+        os.remove(video_path)
+        os.rename(save_path, video_path)
+        # check if image has to be upscaled or downscaled ?
+    else:
+        raise FileNotFoundError(f"{video_path} not found")
+
+
+def create_new_path(video_path: str) -> str:
+    """
+    Create new path based on the original one.
+    """
+    drive, tail = os.path.split(video_path)
+    name, ext = os.path.splitext(tail)
+    nb = 1
+    cur_name = name + "_" + str(nb)
+    while os.path.exists(os.path.join(drive, cur_name + ext)):
+        nb = nb + 1
+        cur_name = name + "_" + str(nb)
+
+    tail = cur_name + ext
+    res = os.path.join(drive, cur_name + ext)
+
+    return res
