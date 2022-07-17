@@ -128,10 +128,29 @@ def get_kill_array_from_query_array(
 
     result = []
     for kill in kill_array:
-        if len(kill) < framerate // 2:
+        # Remove fake-positives
+        if len(kill) <= 2:
             continue
 
         start = kill[0] - frames_before
         end = kill[-1] + frames_after
         result.append((start, end))
     return result
+
+
+def merge_cuts() -> None:
+    """
+    Merge the cuts
+    """
+    folders = os.listdir(TMP_PATH)
+    folders = [f for f in folders if os.path.isdir(os.path.join(TMP_PATH, f))]
+    folders.sort()
+    cuts: List[str] = []
+    for folder in folders:
+        cut = os.listdir(os.path.join(TMP_PATH, folder, CUT))
+        cut.sort()
+        for i in range(len(cut)):
+            cut[i] = os.path.join(TMP_PATH, folder, CUT, cut[i])
+        cuts.extend(cut)
+
+    ff.merge_videos(cuts, os.path.join(TMP_PATH, "merged.mp4"))

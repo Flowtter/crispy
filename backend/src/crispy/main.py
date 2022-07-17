@@ -40,6 +40,9 @@ def main(videos: List[str]) -> None:
             l.debug(kill_array)
             vid.segment_video_with_kill_array(video, kill_array)
 
+    if not args.no_merge:
+        vid.merge_cuts()
+
 
 if __name__ == "__main__":
     l = logging.getLogger()
@@ -50,7 +53,7 @@ if __name__ == "__main__":
 
     l.debug(f"Arguments: {args}")
 
-    videos_path = ["4.mp4"]
+    videos_path = ["4.mp4", "quadra chrlie mice.mp4"]
 
     # FIXME: should be sort with the frontend ?
     videos_path.sort()
