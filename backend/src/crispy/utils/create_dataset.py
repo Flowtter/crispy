@@ -4,15 +4,17 @@ import argparse
 
 from PIL import Image
 
-from video import ffmpeg_utils
+import ffmpeg_utils
 
-from constants import *  # pylint: disable=wildcard-import
+from constants import DATASET_PATH, DATASET_VALUES_PATH, VIDEOS_PATH
 
 INDEX = 0
 
 
 def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
-    """Convert the images to a csv file"""
+    """
+    Convert the images to a csv file
+    """
     global INDEX
 
     if not file in values:
@@ -76,13 +78,15 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
 
 
 def concat_csv(folder: str) -> None:
-    """Merge all the csv files into one"""
+    """
+    Merge all the csv files into one
+    """
     result = []
     files = os.listdir(folder)
     files.sort()
     for file in files:
         if file.split(".")[-1] == "csv":
-            if file in ('result.csv', 'test.csv'):
+            if file in ("result.csv", "test.csv"):
                 continue
             with open(os.path.join(folder, file), "r") as f:
                 lines = f.readlines()
@@ -96,20 +100,18 @@ def main(ext: bool, csv: bool) -> None:
     if not os.path.exists(DATASET_PATH):
         os.makedirs(DATASET_PATH)
 
-    with open(VALUES_PATH, "r") as f:
+    with open(DATASET_VALUES_PATH, "r") as f:
         values = json.load(f)
 
     videos = os.listdir(VIDEOS_PATH)
     videos.sort()
-    videos = ["test.mp4"]
-    print(videos)
 
     if not os.path.exists(os.path.join(DATASET_PATH, "result")):
         os.makedirs(os.path.join(DATASET_PATH, "result"))
 
     for video in videos:
         print("Doing:", video)
-        video_no_ext = video.split('.', maxsplit=1)[0]
+        video_no_ext = video.split(".", maxsplit=1)[0]
         if ext:
             ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),
