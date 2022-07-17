@@ -17,6 +17,7 @@ ffmpeg-python==0.2.0
 yapf==0.32.0
 mypy==0.961
 pylint==2.14.3
+pylint-quotes==0.2.3
 
 # Tests
 pytube==12.1.0

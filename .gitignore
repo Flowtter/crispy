@@ -22,3 +22,5 @@ build/
 tmp/
 outputs/
 issues/
+
+settings.json

@@ -1,7 +1,8 @@
 import os
 import random
 import string
-from typing import Optional, Any
+import shutil
+from typing import Optional, Any, List, Tuple
 
 import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
@@ -10,8 +11,8 @@ BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
 
 
-def __apply_filter_and_do_operations(im: Image,
-                                     im_filter: Optional[Any]) -> Image:
+def _apply_filter_and_do_operations(im: Image,
+                                    im_filter: Optional[Any]) -> Image:
 
     if im_filter is not None:
         im = im.filter(im_filter)
@@ -35,18 +36,21 @@ def __apply_filter_and_do_operations(im: Image,
     return final
 
 
-def extract_images(video_path: str, save_path: str) -> None:
-    """Extract the images from the video"""
+def extract_images(video_path: str,
+                   save_path: str,
+                   framerate: int = 4) -> None:
+    """
+    Extract the images from the video
+    """
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-
     (
         ffmpeg
         .input(video_path)
-        .filter('fps', fps='1/0.25')
+        .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
-        .output(os.path.join(save_path, "%5d.bmp"), start_number=0)
+        .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
         .overwrite_output()
         .run(quiet=True)
     ) # yapf: disable
@@ -60,8 +64,8 @@ def extract_images(video_path: str, save_path: str) -> None:
 
         im = ImageOps.grayscale(im)
 
-        edges = __apply_filter_and_do_operations(im, ImageFilter.FIND_EDGES)
-        enhanced = __apply_filter_and_do_operations(
+        edges = _apply_filter_and_do_operations(im, ImageFilter.FIND_EDGES)
+        enhanced = _apply_filter_and_do_operations(
             im, ImageFilter.EDGE_ENHANCE_MORE)
         # im = __apply_filter_and_do_operation(im, None)
 
@@ -73,6 +77,26 @@ def extract_images(video_path: str, save_path: str) -> None:
         final.paste(enhanced, (0, 40))
 
         final.save(im_path)
+
+
+def segment_video(video_path: str, save_path: str,
+                  frames: List[Tuple[int, int]], frame_duration: int) -> None:
+    """
+    Segment a video on multiple smaller video using the frames array
+    """
+    for frame in frames:
+        start = frame[0] / frame_duration
+        end = frame[1] / frame_duration
+        # print(start, end, frame_duration, video_path, save_path)
+        (
+            ffmpeg
+            .input(video_path)
+            .output(os.path.join(save_path, f"{frame[0]}-{frame[1]}.mp4"),
+                    ss=f"{start}",
+                    to=f"{end}")
+            .overwrite_output()
+            .run(quiet=True)
+        ) # yaPf: disable
 
 
 def find_available_path(video_path: str) -> str:
@@ -96,7 +120,7 @@ def scale_video(video_path: str) -> None:
         (
             ffmpeg
             .input(video_path)
-            .filter('scale', w=1920, h=1080)
+            .filter("scale", w=1920, h=1080)
             .output(save_path, start_number=0)
             .overwrite_output()
             .run()
@@ -105,6 +129,8 @@ def scale_video(video_path: str) -> None:
         os.remove(video_path)
         os.rename(save_path, video_path)
         # check if image has to be upscaled or downscaled ?
+    else:
+        raise FileNotFoundError(f"{video_path} not found")
 
 
 def create_new_path(video_path: str) -> str:
@@ -125,23 +151,21 @@ def create_new_path(video_path: str) -> str:
     return res
 
 
-def split_video_once(video_path: str, split: tuple) -> None:
+# FIXME: audio
+def merge_videos(videos_path: List[str], save_path: str) -> None:
     """
-    Split a video between 2 timestamp
+    Merge videos together.
     """
-    save_path = create_new_path(video_path)
-    if split[1] - split[0] > 0:
+    if len(videos_path) > 1:
+        videos: List[Any] = []
+        for video_path in videos_path:
+            videos.append(ffmpeg.input(video_path))
         (
             ffmpeg
-            .input(video_path)
-            .trim(start_frame=split[0], end_frame=split[1])
+            .concat(*videos)
             .output(save_path)
             .overwrite_output()
             .run(quiet=True)
         ) # yapf: disable
-
-
-def _split_video(video_path: str, splits: list) -> None:
-    if os.path.exists(video_path):
-        for split in splits:
-            split_video_once(video_path, split)
+    else:
+        shutil.copyfile(videos_path[0], save_path)
