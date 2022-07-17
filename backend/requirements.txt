@@ -20,3 +20,4 @@ pylint==2.14.3
 
 # Tests
 pytube==12.1.0
+pylint-quotes==0.2.3
