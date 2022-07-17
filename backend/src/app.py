@@ -79,7 +79,7 @@ def new_json() -> None:
     save_json()
 
 
-@app.get('/')
+@app.get("/")
 async def main_root():
     return JSON_INFO
 
