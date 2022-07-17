@@ -11,14 +11,6 @@ logging.getLogger("PIL").setLevel(logging.ERROR)
 
 
 def main(videos: List[str]) -> None:
-    ### FIXME: should be settings in settings.json
-    framerate = 8
-    second_before = 2.5
-    second_after = 1.5
-    #### FIXME: should not be parameters to function
-    frames_before = int(second_before * framerate)
-    frames_after = int(second_after * framerate)
-
     io.generate_tmp_folder(not args.no_extract)
 
     nn = NeuralNetwork([4000, 120, 15, 2], 0.01)
@@ -33,7 +25,7 @@ def main(videos: List[str]) -> None:
 
         if not args.no_extract:
             io.generate_folder_clip(video_clean_name)
-            images_path = vid.extract_frames_from_video(video, framerate)
+            images_path = vid.extract_frames_from_video(video)
         else:
             images_path = vid.get_saving_path(video_clean_name)
 
@@ -41,10 +33,15 @@ def main(videos: List[str]) -> None:
             io.clean_cuts(video_clean_name)
 
             query_array = vid.get_query_array_from_video(nn, images_path)
-            kill_array = vid.get_kill_array_from_query_array(
-                query_array, frames_before, frames_after)
+            l.debug(query_array)
+            kill_array = vid.get_kill_array_from_query_array(query_array)
+            l.debug(kill_array)
+            kill_array = vid.post_processing_kill_array(kill_array)
+            l.debug(kill_array)
+            vid.segment_video_with_kill_array(video, kill_array)
 
-            vid.segment_video_with_kill_array(video, kill_array, framerate)
+    if not args.no_merge:
+        vid.merge_cuts()
 
 
 if __name__ == "__main__":

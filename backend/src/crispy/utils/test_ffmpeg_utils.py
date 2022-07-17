@@ -1,48 +1,48 @@
 import os
 import cv2
 from pytube import YouTube
-from ffmpeg_utils import scale_video, _split_video
+from ffmpeg_utils import scale_video, segment_video
 
 
 def test_basic() -> None:
-    os.mkdir('./test_mp4')
-    yt = YouTube('https://www.youtube.com/watch?v=6A-hTKYBkC4')
-    yt.streams.order_by('resolution').desc().first().download(
-        filename='./test_mp4/test_basic.mp4')
-    vid = cv2.VideoCapture('./test_mp4/test_basic.mp4')
+    os.mkdir("./test_mp4")
+    yt = YouTube("https://www.youtube.com/watch?v=6A-hTKYBkC4")
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_mp4/test_basic.mp4")
+    vid = cv2.VideoCapture("./test_mp4/test_basic.mp4")
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-    os.remove('./test_mp4/test_basic.mp4')
+    os.remove("./test_mp4/test_basic.mp4")
     assert width == 1920 and height == 1080
 
 
 def test_upscale() -> None:
-    yt = YouTube('https://www.youtube.com/watch?v=6A-hTKYBkC4')
-    yt.streams.order_by('resolution').asc().first().download(
-        filename='./test_mp4/test_upscale.mp4')
+    yt = YouTube("https://www.youtube.com/watch?v=6A-hTKYBkC4")
+    yt.streams.order_by("resolution").asc().first().download(
+        filename="./test_mp4/test_upscale.mp4")
 
-    scale_video('./test_mp4/test_upscale.mp4')
-    vid = cv2.VideoCapture('./test_mp4/test_upscale.mp4')
+    scale_video("./test_mp4/test_upscale.mp4")
+    vid = cv2.VideoCapture("./test_mp4/test_upscale.mp4")
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-    os.remove('./test_mp4/test_upscale.mp4')
+    os.remove("./test_mp4/test_upscale.mp4")
     assert width == 1920 and height == 1080
 
 
 def test_downscale() -> None:
-    yt = YouTube('https://www.youtube.com/watch?v=wZI9is9Ix90')
-    yt.streams.order_by('resolution').desc().first().download(
-        filename='./test_mp4/test_downscale.mp4')
+    yt = YouTube("https://www.youtube.com/watch?v=wZI9is9Ix90")
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_mp4/test_downscale.mp4")
 
-    scale_video('./test_mp4/test_downscale.mp4')
-    vid = cv2.VideoCapture('./test_mp4/test_downscale.mp4')
+    scale_video("./test_mp4/test_downscale.mp4")
+    vid = cv2.VideoCapture("./test_mp4/test_downscale.mp4")
     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-    os.remove('./test_mp4/test_downscale.mp4')
-    os.rmdir('./test_mp4')
+    os.remove("./test_mp4/test_downscale.mp4")
+    os.rmdir("./test_mp4")
     assert width == 1920 and height == 1080
 
 
@@ -75,27 +75,28 @@ def split_check(video_path: str, frames: int) -> bool:
 
 
 def cut_1_100(video_path: str) -> bool:
-    _split_video(video_path, [(0, 100)])
+    segment_video(video_path, video_path, [(0, 100)], 1)
     return split_check(video_path, 100)
 
 
 def cut_10_100(video_path: str) -> bool:
-    _split_video(video_path, [(0, 100), (100, 200), (200, 300), (300, 400),
-                              (400, 500), (500, 600), (600, 700), (700, 800),
-                              (800, 900), (900, 1000)])
+    segment_video(video_path, video_path, [(0, 100), (100, 200), (200, 300),
+                                           (300, 400), (400, 500), (500, 600),
+                                           (600, 700), (700, 800), (800, 900),
+                                           (900, 1000)], 1)
     return split_check(video_path, 100)
 
 
 def test_split() -> None:
-    os.mkdir('test_split')
-    yt = YouTube('https://www.youtube.com/watch?v=6A-hTKYBkC4')
-    yt.streams.order_by('resolution').desc().first().download(
-        filename='./test_split/test_basic.mp4')
+    os.mkdir("test_split")
+    yt = YouTube("https://www.youtube.com/watch?v=6A-hTKYBkC4")
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_split/test_basic.mp4")
 
-    assert cut_1_100('./test_split/test_basic.mp4')
+    assert cut_1_100("./test_split/test_basic.mp4")
 
-    yt.streams.order_by('resolution').desc().first().download(
-        filename='./test_split/test_basic.mp4')
-    assert cut_10_100('./test_split/test_basic.mp4')
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_split/test_basic.mp4")
+    assert cut_10_100("./test_split/test_basic.mp4")
 
-    abort('./test_split/test_basic.mp4')
+    abort("./test_split/test_basic.mp4")
