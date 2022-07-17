@@ -1,6 +1,7 @@
 import os
 import random
 import string
+import shutil
 from typing import Optional, Any, List, Tuple
 
 import ffmpeg
@@ -148,3 +149,23 @@ def create_new_path(video_path: str) -> str:
     res = os.path.join(drive, cur_name + ext)
 
     return res
+
+
+# FIXME: audio
+def merge_videos(videos_path: List[str], save_path: str) -> None:
+    """
+    Merge videos together.
+    """
+    if len(videos_path) > 1:
+        videos: List[Any] = []
+        for video_path in videos_path:
+            videos.append(ffmpeg.input(video_path))
+        (
+            ffmpeg
+            .concat(*videos)
+            .output(save_path)
+            .overwrite_output()
+            .run(quiet=True)
+        ) # yapf: disable
+    else:
+        shutil.copyfile(videos_path[0], save_path)
