@@ -1,57 +1,61 @@
+from typing import Union
 import ffmpeg
 
 
 def crop(
-        _option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
-    video = video.crop(x=960, y=540)
+    if option:
+        video = video.crop(x=960, y=540)
     return video
 
 
 def blur(
-        option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
     video = video.filter("boxblur", option)  # "luma_radius=2:luma_power=1"
     return video
 
 
 def scale(
-        option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
     video = video.filter("scale", option)  # "w=1280:h=720"
     return video
 
 
 def hflip(
-        _option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
-    video = video.hflip()
+    if option:
+        video = video.hflip()
     return video
 
 
 def vflip(
-        _option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
-    video = video.vflip()
+    if option:
+        video = video.vflip()
     return video
 
 
 def brightness(
-        option: int,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
     video = video.hue(b=option)
     return video
 
 
 def saturation(
-        option: int,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
     video = video.hue(s=option)
     return video
 
 
 def zoom(
-        option: int,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
     video = video.zoompan(z=option,
                           fps=60,
@@ -62,7 +66,8 @@ def zoom(
 
 
 def grayscale(
-        _option: str,
+        option: Union[str, bool, int],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
-    video = video.hue(s=0)
+    if option:
+        video = video.hue(s=0)
     return video
