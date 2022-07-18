@@ -4,7 +4,7 @@ import string
 import shutil
 from typing import Optional, Any, List, Tuple
 import ffmpeg
-from utils.constants import SETTINGS
+from utils.constants import SETTINGS, L
 from utils.filter import Filters
 from PIL import Image, ImageFilter, ImageOps
 
@@ -186,6 +186,7 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream,
 
     find_specific_filters(global_filters, video_path)
     for filt in global_filters:
+        L.debug(f"Applying filter {filt.filter.name} {filt.option}")
         video = filt(video)
 
     return video
