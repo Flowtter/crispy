@@ -1,7 +1,5 @@
-import os
-from filter import filters
-from ffmpeg_utils import apply_filter
-from constants import TMP_PATH, CUT
+from utils.filter import filters
+from pytube import YouTube
 
 
 def test_class() -> None:
@@ -21,10 +19,11 @@ def test_class() -> None:
 
 
 def test_filter() -> None:
-    folders = os.listdir(TMP_PATH)
-    folders = [f for f in folders if os.path.isdir(os.path.join(TMP_PATH, f))]
-    for fold in folders:
-        cut = os.listdir(os.path.join(TMP_PATH, fold, CUT))
-        for i in range(len(cut)):
-            cut[i] = os.path.join(TMP_PATH, fold, CUT, cut[i])
-            apply_filter(cut[i], os.path.join(TMP_PATH, "test_brightness.mp4"))
+    """
+    Load youtube video to test filters. Needs to call main.py manually to check
+    """
+    yt = YouTube(
+        "https://www.youtube.com/watch?v=vWj6NxN7PsI&feature=youtu.be")
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="backend/resources/video/0.mp4")
+    print("Video downloaded")

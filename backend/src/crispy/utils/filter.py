@@ -1,6 +1,6 @@
 from enum import Enum
-import re
-import ffmpeg_filters
+from utils import ffmpeg_filters
+import ffmpeg
 
 
 class no_value(Enum):
@@ -18,14 +18,14 @@ class filter_value(no_value):
     """
 
     CROP = "crop"  # "crop"
-    BLUR = "Blur"  # "boxblur"
-    SCALE = "Scale"  # "scale"
-    HFLIP = "Hflip"  # "horizontal flip"
-    VFLIP = "Vflip"  # "vertical flip"
-    BRIGHTNESS = "Brightness"  # "b"
-    SATURATION = "Saturation"  # "s"
-    ZOOM = "Zoom"  # "zoom"
-    GRAYSCALE = "Grayscale"  # "hue=s=0"
+    BLUR = "blur"  # "boxblur"
+    SCALE = "scale"  # "scale"
+    HFLIP = "hflip"  # "horizontal flip"
+    VFLIP = "vflip"  # "vertical flip"
+    BRIGHTNESS = "brightness"  # "b"
+    SATURATION = "saturation"  # "s"
+    ZOOM = "zoom"  # "zoom"
+    GRAYSCALE = "grayscale"  # "hue=s=0"
     NONE = "none"
 
 
@@ -35,40 +35,14 @@ class filters():
     """
 
     def __init__(self, name: str, option: str) -> None:
-        # Add other parameter for different filters later ?
-        self.option = option
-        if re.search(r"^[\s]*crop[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.CROP
-            self.f = "crop"
-        elif re.search(r"^[\s]*blur[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.BLUR
-            self.f = "blur"
-        elif re.search(r"^[\s]*scale[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.SCALE
-            self.f = "scale"
-        elif re.search(r"^[\s]*hflip[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.HFLIP
-            self.f = "hflip"
-        elif re.search(r"^[\s]*vflip[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.VFLIP
-            self.f = "vflip"
-        elif re.search(r"^[\s]*brightness[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.BRIGHTNESS
-            self.f = "brightness"
-        elif re.search(r"^[\s]*saturation[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.SATURATION
-            self.f = "saturation"
-        elif re.search(r"^[\s]*zoom[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.ZOOM
-            self.f = "zoom"
-        elif re.search(r"^[\s]*grayscale[\s]*$", name, re.IGNORECASE):
-            self.filter = filter_value.GRAYSCALE
-            self.f = "grayscale"
+        if name in filter_value._value2member_map_:
+            self.filter = filter_value._value2member_map_[name]
         else:
             self.filter = filter_value.NONE
+        self.option = option
 
-    def __call__(self, video_path: str, save_path: str) -> None:
+    def __call__(self, video: ffmpeg.nodes.FilterableStream) -> None:
         if self.filter == filter_value.NONE:
-            return None
-        func = getattr(ffmpeg_filters, self.f)
-        return func(video_path, save_path, self.option)
+            return video
+        func = getattr(ffmpeg_filters, self.filter.value)
+        return func(self.option, video)
