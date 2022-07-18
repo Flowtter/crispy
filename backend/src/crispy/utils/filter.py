@@ -1,7 +1,10 @@
 from typing import Union
 from enum import Enum
-from utils import ffmpeg_filters
+
 import ffmpeg
+
+from utils import ffmpeg_filters
+from utils.constants import L
 
 
 class NoValue(Enum):
@@ -39,6 +42,7 @@ class Filters():
         if name in FilterValue._value2member_map_:
             self.filter = FilterValue._value2member_map_[name]
         else:
+            L.error(f"{name} is not a valid filter")
             self.filter = FilterValue.NONE
         self.option = option
 
