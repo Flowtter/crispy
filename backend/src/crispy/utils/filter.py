@@ -1,9 +1,10 @@
+from typing import Union
 from enum import Enum
 from utils import ffmpeg_filters
 import ffmpeg
 
 
-class no_value(Enum):
+class NoValue(Enum):
     """
     Super class for filtes enum
     """
@@ -12,7 +13,7 @@ class no_value(Enum):
         return f"<{self.__class__.__name__}.{self.name}>"
 
 
-class filter_value(no_value):
+class FilterValue(NoValue):
     """
     Enum class containing all possible filters
     """
@@ -29,20 +30,20 @@ class filter_value(no_value):
     NONE = "none"
 
 
-class filters():
+class Filters():
     """
     Class holding all filters
     """
 
-    def __init__(self, name: str, option: str) -> None:
-        if name in filter_value._value2member_map_:
-            self.filter = filter_value._value2member_map_[name]
+    def __init__(self, name: str, option: Union[str, bool, int]) -> None:
+        if name in FilterValue._value2member_map_:
+            self.filter = FilterValue._value2member_map_[name]
         else:
-            self.filter = filter_value.NONE
+            self.filter = FilterValue.NONE
         self.option = option
 
     def __call__(self, video: ffmpeg.nodes.FilterableStream) -> None:
-        if self.filter == filter_value.NONE:
+        if self.filter == FilterValue.NONE:
             return video
         func = getattr(ffmpeg_filters, self.filter.value)
         return func(self.option, video)

@@ -5,7 +5,7 @@ import shutil
 from typing import Optional, Any, List, Tuple
 import ffmpeg
 from utils.constants import SETTINGS
-from utils.filter import filters
+from utils.filter import Filters
 from PIL import Image, ImageFilter, ImageOps
 
 BACKEND = "backend"
@@ -95,11 +95,11 @@ def segment_video(video_path: str, save_path: str,
         ) # yapf: disable
         video = apply_filter(video, video_path)
 
-        video = video.overwrite_output()
         video = video.output(os.path.join(save_path,
                                           f"{frame[0]}-{frame[1]}.mp4"),
                              ss=f"{start}",
                              to=f"{end}")
+        video = video.overwrite_output()
         video.run(quiet=True)
 
 
@@ -180,9 +180,9 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream,
     """
     Apply a list of filter to a video.
     """
-    global_filters: List[filters] = []
+    global_filters: List[Filters] = []
     for filt in SETTINGS["filters"].items():
-        global_filters.append(filters(filt[0], filt[1]))
+        global_filters.append(Filters(filt[0], filt[1]))
 
     find_specific_filters(global_filters, video_path)
     for filt in global_filters:
@@ -191,15 +191,20 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream,
     return video
 
 
-def find_specific_filters(global_filters: List[filters],
+def find_specific_filters(global_filters: List[Filters],
                           video_path: str) -> None:
     """
-    Find specific filters for a video in Settings.json
+    Find specificFilters for a video in Settings.json
     """
-    video_name = os.path.split(video_path)[1]
+    video_name = os.path.split(video_path)
+    video_name = video_name[len(video_name) - 1]
     if "clips" in SETTINGS:
         if video_name in SETTINGS["clips"]:
             for filt, value in SETTINGS["clips"][video_name].items():
+                found = False
                 for i in range(len(global_filters)):
-                    if filt == global_filters[i].filter.value:
-                        global_filters[i] = filters(filt, value)
+                    if global_filters[i].filter.value == filt:
+                        found = True
+                        global_filters[i] = Filters(filt, value)
+                if not found:
+                    global_filters.append(Filters(filt, value))
