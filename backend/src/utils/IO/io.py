@@ -69,7 +69,7 @@ def remove_extension(name: str) -> str:
     """
     Remove the extension from the file name
     """
-    return name.split(".")[0]
+    return ".".join(name.split(".")[:-1])
 
 
 def clean_cuts(folder: str) -> None:
