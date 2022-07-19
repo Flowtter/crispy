@@ -29,3 +29,9 @@ to do so, you'll need another resource folder
 
 - `cd frontend && npm install && npm run dev`
 - `cd backend && pip install -r requirements.txt && uvicorn src.app:app --reload --host 127.0.0.1 --port 1337`
+
+# ffmpeg filters
+- crop / hflip / vflip / grayscale : boolean
+- blur / brightness / saturation : int (between -10 and 10)
+- scale: str (ex: "w=1280:h=720")
+- zoom: int (>= 1)

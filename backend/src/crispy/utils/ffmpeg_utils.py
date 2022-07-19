@@ -3,8 +3,9 @@ import random
 import string
 import shutil
 from typing import Optional, Any, List, Tuple
-
 import ffmpeg
+from utils.constants import SETTINGS, L
+from utils.filter import Filters
 from PIL import Image, ImageFilter, ImageOps
 
 BACKEND = "backend"
@@ -82,21 +83,24 @@ def extract_images(video_path: str,
 def segment_video(video_path: str, save_path: str,
                   frames: List[Tuple[int, int]], frame_duration: int) -> None:
     """
-    Segment a video on multiple smaller video using the frames array
+    Segment a video on multiple smaller video using the frames array.
     """
     for frame in frames:
         start = frame[0] / frame_duration
         end = frame[1] / frame_duration
         # print(start, end, frame_duration, video_path, save_path)
-        (
+        video = (
             ffmpeg
             .input(video_path)
-            .output(os.path.join(save_path, f"{frame[0]}-{frame[1]}.mp4"),
-                    ss=f"{start}",
-                    to=f"{end}")
-            .overwrite_output()
-            .run(quiet=True)
-        ) # yaPf: disable
+        ) # yapf: disable
+        video = apply_filter(video, video_path)
+
+        video = video.output(os.path.join(save_path,
+                                          f"{frame[0]}-{frame[1]}.mp4"),
+                             ss=f"{start}",
+                             to=f"{end}")
+        video = video.overwrite_output()
+        video.run(quiet=True)
 
 
 def find_available_path(video_path: str) -> str:
@@ -166,6 +170,42 @@ def merge_videos(videos_path: List[str], save_path: str) -> None:
             .output(save_path)
             .overwrite_output()
             .run(quiet=True)
-        ) # yapf: disable
+        ) # yaPf: disable
     else:
         shutil.copyfile(videos_path[0], save_path)
+
+
+def apply_filter(video: ffmpeg.nodes.FilterableStream,
+                 video_path: str) -> ffmpeg.nodes.FilterableStream:
+    """
+    Apply a list of filter to a video.
+    """
+    global_filters: List[Filters] = []
+    for filt in SETTINGS["filters"].items():
+        global_filters.append(Filters(filt[0], filt[1]))
+
+    find_specific_filters(global_filters, video_path)
+    for filt in global_filters:
+        L.debug(f"Applying filter {filt.filter.name} {filt.option}")
+        video = filt(video)
+
+    return video
+
+
+def find_specific_filters(global_filters: List[Filters],
+                          video_path: str) -> None:
+    """
+    Find specificFilters for a video in Settings.json
+    """
+    video_name = os.path.split(video_path)
+    video_name = video_name[len(video_name) - 1]
+    if "clips" in SETTINGS:
+        if video_name in SETTINGS["clips"]:
+            for filt, value in SETTINGS["clips"][video_name].items():
+                found = False
+                for i in range(len(global_filters)):
+                    if global_filters[i].filter.value == filt:
+                        found = True
+                        global_filters[i] = Filters(filt, value)
+                if not found:
+                    global_filters.append(Filters(filt, value))

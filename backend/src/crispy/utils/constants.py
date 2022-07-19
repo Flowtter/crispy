@@ -1,5 +1,10 @@
 import os
+import logging
 import json
+
+L = logging.getLogger("crispy")
+
+logging.getLogger("PIL").setLevel(logging.ERROR)
 
 BACKEND = "backend"
 OUTPUT = "output"
