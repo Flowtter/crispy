@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     L.debug(f"Arguments: {args}")
 
-    videos_path = ["0.mp4"]
+    videos_path = ["4.mp4", "quadra chrlie mice.mp4"]
 
     # FIXME: should be sort with the frontend ?
     videos_path.sort()
