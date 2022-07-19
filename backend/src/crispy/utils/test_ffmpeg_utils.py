@@ -1,7 +1,7 @@
 import os
 import cv2
 from pytube import YouTube
-from ffmpeg_utils import scale_video
+from ffmpeg_utils import scale_video, segment_video
 
 
 def test_basic() -> None:
@@ -72,3 +72,31 @@ def split_check(video_path: str, frames: int) -> bool:
                 abort(video_path)
                 return False
     return True
+
+
+def cut_1_100(video_path: str) -> bool:
+    segment_video(video_path, video_path, [(0, 100)], 1)
+    return split_check(video_path, 100)
+
+
+def cut_10_100(video_path: str) -> bool:
+    segment_video(video_path, video_path, [(0, 100), (100, 200), (200, 300),
+                                           (300, 400), (400, 500), (500, 600),
+                                           (600, 700), (700, 800), (800, 900),
+                                           (900, 1000)], 1)
+    return split_check(video_path, 100)
+
+
+def test_split() -> None:
+    os.mkdir("test_split")
+    yt = YouTube("https://www.youtube.com/watch?v=6A-hTKYBkC4")
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_split/test_basic.mp4")
+
+    assert cut_1_100("./test_split/test_basic.mp4")
+
+    yt.streams.order_by("resolution").desc().first().download(
+        filename="./test_split/test_basic.mp4")
+    assert cut_10_100("./test_split/test_basic.mp4")
+
+    abort("./test_split/test_basic.mp4")
