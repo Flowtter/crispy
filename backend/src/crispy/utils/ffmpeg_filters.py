@@ -6,6 +6,9 @@ import ffmpeg
 def crop(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Crop a video in 960 x 540 pixels
+    """
     if type(option) == bool and option:
         video = video.crop(960, 540)
     else:
@@ -17,6 +20,9 @@ def crop(
 def blur(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Increase or decrease the blur of the video based on the option
+    """
     if type(option) == int or type(option) == float:
         video = video.filter("boxblur", option)
     else:
@@ -29,6 +35,9 @@ def blur(
 def scale(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Scale a video based on the option (e.g 'w=1920:h=1280')
+    """
     if type(option) == str:
         video = video.filter("scale", option)
     else:
@@ -40,6 +49,9 @@ def scale(
 def hflip(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Flip horizontally the video
+    """
     if type(option) == bool and option:
         video = video.hflip()
     else:
@@ -51,6 +63,9 @@ def hflip(
 def vflip(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Flip vertically the video
+    """
     if type(option) == bool and option:
         video = video.hflip()
     else:
@@ -62,6 +77,9 @@ def vflip(
 def brightness(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Increase or decrease the brightness of the video based on the option
+    """
     if type(option) == int or type(option) == float:
         video = video.hue(b=option)
     else:
@@ -74,6 +92,9 @@ def brightness(
 def saturation(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Increase or decrease the saturation of the video based on the option
+    """
     if type(option) == int or type(option) == float:
         video = video.hue(s=option)
     else:
@@ -86,6 +107,9 @@ def saturation(
 def zoom(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Zoom the video based on the option (can only be positive)
+    """
     if type(option) == int or type(option) == float:
         video = video.zoompan(z=option,
                               fps=60,
@@ -102,6 +126,9 @@ def zoom(
 def grayscale(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
+    """
+    Turn the video into grayscale
+    """
     if type(option) == bool and option:
         video = video.hue(s=0)
     else:
