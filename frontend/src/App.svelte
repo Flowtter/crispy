@@ -1,8 +1,5 @@
 <script>
-	import FinalVideo from "./lib/components/FinalVideo.svelte";
 	import Gallery from "./lib/components/Gallery.svelte";
-	import LeftBar from "./lib/components/LeftBar/LeftBar.svelte";
-	import Log from "./lib/components/Log.svelte";
 	import Video from "./lib/components/Video.svelte";
 
 	var display = "hide";
@@ -29,18 +26,14 @@
 </script>
 
 <main class={display}>
-	{#if !log}
-		<LeftBar on:message={handleReload} on:send={startLogging} />
-	{/if}
-	<Gallery />
-	{#if log}
-		<Log on:video={startVideo} />
-	{/if}
-	{#if video}
-		<FinalVideo />
-	{/if}
+	<!-- <Gallery /> -->
+	<div class="list-item" draggable={true}>
+		<!-- <Image src={API_URL + "/images/" + n.fullname} /> -->
+		<Video
+			src={"/home/coby/projects/crispy-2/backend/resources/video/0.mp4"}
+		/>
+	</div>
 </main>
-<div class={init} />
 
 <style>
 	main {
