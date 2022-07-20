@@ -3,10 +3,11 @@ import os
 import ffmpeg
 import progressbar
 
-from utils.constants import FRONTEND_PATH, SESSION, app, L, VIDEOS_PATH, IMAGES_PATH
+from utils.constants import app, L, FRONTEND_PATH, SESSION, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
+import video.video as vid
 
-from backend.json_handling import new_json, load_json
+from backend.json_handling import new_json
 
 
 def extract_first_image_of_video(video_path: str, output: str) -> None:
@@ -16,17 +17,18 @@ def extract_first_image_of_video(video_path: str, output: str) -> None:
     image.run(quiet=True)
 
 
-def extract_first_seconds_in_240p(video_path: str, output: str) -> None:
+def extract_first_seconds_in_lower_res(video_path: str, output: str) -> None:
     """Extract the 5 first secondes of a video"""
+    w, h = 640, 360
     try:
         video = ffmpeg.input(video_path, sseof="-20")
-        video = video.filter("scale", w=240, h=180)
+        video = video.filter("scale", w=w, h=h)
         video = video.output(f"{output}.mp4", t="00:00:10")
         video.run(quiet=True)
     except ffmpeg.Error as e:
         L.error(f"For video {video_path}, ffmpeg error: {e}")
         video = ffmpeg.input(video_path)
-        video = video.filter("scale", w=240, h=180)
+        video = video.filter("scale", w=w, h=h)
         video = video.output(f"{output}.mp4")
         video.run(quiet=True)
 
@@ -39,16 +41,17 @@ def startup() -> None:
 
     if not os.path.exists(FRONTEND_PATH):
         os.mkdir(FRONTEND_PATH)
+    if not os.path.exists(IMAGES_PATH):
+        os.mkdir(IMAGES_PATH)
+    if not os.path.exists(TMP_PATH):
+        os.mkdir(TMP_PATH)
 
     if not os.path.exists(SESSION):
         os.mkdir(SESSION)
         new_json()
-    else:
-        load_json()
 
-    print(
-        "Extracting thumbnails and snippets, might take a while if it's the first time you start the program..."
-    )
+    print("Extracting thumbnails, snippets and frames")
+    print("This may take a while if it's the first time you run the app")
     progress = progressbar.ProgressBar(max_value=len(files))
     for i, file in enumerate(files):
         progress.update(i)
@@ -56,9 +59,15 @@ def startup() -> None:
         im = os.path.join(IMAGES_PATH, no_ext)
         snip = os.path.join(FRONTEND_PATH, no_ext)
 
-        if not os.path.exists(im + ".jpg"):
-            extract_first_image_of_video(os.path.join(VIDEOS_PATH, file), im)
         if not os.path.exists(snip + ".mp4"):
-            extract_first_seconds_in_240p(os.path.join(VIDEOS_PATH, file),
-                                          snip)
+            extract_first_seconds_in_lower_res(os.path.join(VIDEOS_PATH, file),
+                                               snip)
+        if not os.path.exists(im + ".jpg"):
+            extract_first_image_of_video(snip + ".mp4", im)
+
+        video_clean_name = io.generate_clean_name(no_ext)
+        if not os.path.exists(os.path.join(TMP_PATH, video_clean_name)):
+            io.generate_folder_clip(video_clean_name)
+            vid.extract_frames_from_video(file)
+
     progress.finish()

@@ -28,7 +28,7 @@ def main(videos: List[str]) -> None:
 
         if not args.no_segmentation:
             io.clean_cuts(video_clean_name)
-
+            print(images_path)
             query_array = vid.get_query_array_from_video(nn, images_path)
             L.debug(query_array)
             kill_array = vid.get_kill_array_from_query_array(query_array)
