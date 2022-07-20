@@ -1,37 +1,17 @@
 <script>
+	import "./constants";
 	import Gallery from "./lib/components/Gallery.svelte";
+	import Menubar from "./lib/components/menubar.svelte";
 	import Video from "./lib/components/Video.svelte";
-
-	var display = "hide";
-	var init = "init";
-	setTimeout(() => {
-		display = "";
-		init = "hide";
-	}, 500);
-
-	function handleReload(event) {
-		location.reload();
-	}
-
-	let log;
-
-	function startLogging() {
-		log = true;
-	}
-
-	let video;
-	function startVideo() {
-		video = true;
-	}
 </script>
 
-<main class={display}>
-	<!-- <Gallery /> -->
-	<div class="list-item" draggable={true}>
-		<!-- <Image src={API_URL + "/images/" + n.fullname} /> -->
-		<Video
-			src={"/home/coby/projects/crispy-2/backend/resources/video/0.mp4"}
-		/>
+<main>
+	<div class="main-container" draggable={true}>
+		<!-- <Video filename={"0"} shortname={"0"} /> -->
+		<Menubar />
+		<div class="content">
+			<Gallery />
+		</div>
 	</div>
 </main>
 
@@ -39,8 +19,14 @@
 	main {
 		background-color: var(--primary);
 		color: var(--white-text);
-		min-width: 100%;
-		min-height: 100%;
+	}
+	.main-container {
+		max-width: 1600px;
+		margin: 0 auto;
+	}
+	.content {
+		background-color: var(--secondary);
+		border-radius: 20px 20px 0 0;
 	}
 	:global(body) {
 		margin: 0;
@@ -58,13 +44,5 @@
 		--exit-selected: #c0392b;
 
 		--white-text: #f0f0f0;
-	}
-	.hide {
-		display: none;
-	}
-	.init {
-		height: 100vh;
-		width: 100vw;
-		background-color: var(--primary);
 	}
 </style>

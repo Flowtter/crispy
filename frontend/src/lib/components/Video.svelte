@@ -1,14 +1,14 @@
 <script>
     import axios from "axios";
     import { onMount } from "svelte";
-    import { API_URL } from "../../variables";
+    import { API_URL } from "../../constants";
 
-    export let src;
+    export let filename;
+    export let shortname;
 
-    // $: basename = src.split("/").pop();
     const fetch = () => {
         axios
-            .get(API_URL + "/images/" + src.split("/").pop() + "/info")
+            .get(API_URL + "/objects/" + filename + "/info")
             .then((response) => {
                 const res = response.data;
                 enabled = res.enabled ? "enabled" : "disabled";
@@ -18,14 +18,15 @@
 
     let enabled;
 
-    function handleClick() {
-        axios.get(API_URL + "/images/" + src.split("/").pop() + "/switch");
+    function handleSwitch() {
+        axios.get(API_URL + "/objects/" + filename + "/switch");
         enabled = enabled == "disabled" ? "enabled" : "disabled";
     }
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
+
+    ///////////
+    // https://svelte.dev/repl/7bf3c9308bc941a682ac92b9bec0a653?version=3.23.2
+    ///////////
+
     // These values are bound to properties of the video
     let time = 0;
     let duration;
@@ -46,84 +47,67 @@
             else e.target.pause();
         }
     }
-
-    function format(seconds) {
-        if (isNaN(seconds)) return "...";
-
-        const minutes = Math.floor(seconds / 60);
-        seconds = Math.floor(seconds % 60);
-        if (seconds < 10) seconds = "0" + seconds;
-
-        return `${minutes}:${seconds}`;
-    }
 </script>
 
-<div class="photo">
-    <div class="holder">
-        <div class={enabled}>
-            <video
-                poster={src}
-                src={API_URL + "/video/" + src.split("/").pop()}
-                on:mousedown={handleMousedown}
-                on:mouseup={handleMouseup}
-                bind:currentTime={time}
-                bind:duration
-                bind:paused
-            >
-                <track kind="captions" />
-            </video>
-            {#if !duration}
-                <div class="loader">
-                    <div class="lds-roller">
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                    </div>
-                </div>
-            {/if}
-        </div>
+<div class="object">
+    <div class="title">
+        {shortname}.mp4
     </div>
+    <div class={enabled}>
+        <video
+            poster={API_URL + "/objects/" + filename + "/image"}
+            src={API_URL + "/objects/" + filename + "/video"}
+            on:mousedown={handleMousedown}
+            on:mouseup={handleMouseup}
+            bind:currentTime={time}
+            bind:duration
+            bind:paused
+        >
+            <track kind="captions" />
+        </video>
 
-    <button class="info" on:click={handleClick}>&times</button>
+        {#if !duration}
+            <div class="loader">
+                <div class="lds-roller">
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                </div>
+            </div>
+        {/if}
+    </div>
+    <div class="trailing-menu">
+        <button>FILTER</button>
+        <p>|</p>
+        <button>TRANSITION</button>
+        <p>|</p>
+        <button on:click={handleSwitch}>HIDE</button>
+    </div>
 </div>
 
 <style>
-    .controls {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        transition: opacity 1s;
-    }
-
-    .info {
-        display: flex;
-        width: 100%;
+    .title {
         justify-content: space-between;
-    }
-
-    .time {
-        width: 3em;
-    }
-
-    .time:last-child {
-        text-align: right;
+        align-items: center;
+        padding: 0.5rem;
+        text-align: center;
+        font-weight: bold;
     }
 
     .disabled {
         filter: brightness(40%);
     }
-    .photo {
-        width: calc(1920px / 5 - 20px);
-        height: calc(1080px / 5);
+    .object {
+        width: calc(1600px / 4 - 80px);
         background-color: var(--terciary);
-        display: flex;
+        /* display: flex; */
         justify-content: center;
-        border-radius: 2vh;
+        border-radius: 20px;
         position: relative;
         margin: 1vh;
     }
@@ -132,28 +116,31 @@
         height: 90%;
         object-fit: cover;
         display: block;
-        border-radius: 2vh;
+        border-radius: 20px;
         margin: auto;
-        margin-top: 3%;
     }
-    .info {
-        position: absolute;
-        right: 0px;
-        bottom: 0px;
-        height: 50px;
-        width: 50px;
-        border-radius: 15px 0 15px 0;
-        font-size: 3em;
+    .trailing-menu {
+        /* background-color: red; */
+
+        height: 100%;
+        width: 100%;
         display: flex;
-        justify-content: center;
-        align-items: center;
     }
+    .trailing-menu > button {
+        width: 100%;
+    }
+    .trailing-menu > button:first-child {
+        border-radius: 0 0 0 20px;
+    }
+    .trailing-menu > button:last-child {
+        border-radius: 0 0 20px 0;
+    }
+
     button {
         text-align: center;
-        padding: 12px 20px;
-        box-sizing: border-box;
+        /* padding: 12px 20px; */
         border: none;
-        border-radius: 1vh;
+        border-radius: 0px;
         background-color: var(--terciary);
         outline: none;
         cursor: pointer;

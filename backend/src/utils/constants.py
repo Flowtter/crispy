@@ -2,6 +2,7 @@ import os
 import logging
 import json
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 L = logging.getLogger("crispy")
 
@@ -32,10 +33,11 @@ GLOBAL_PATH = BACKEND  #FIXME: This is a temporary solution
 TMP_PATH = os.path.join(GLOBAL_PATH, "tmp")
 
 RESOURCE_PATH = os.path.join(GLOBAL_PATH, "resources")
-IMAGES_PATH = os.path.join(RESOURCE_PATH, IMAGE)
 VIDEOS_PATH = os.path.join(RESOURCE_PATH, VIDEO)
 MUSICS_PATH = os.path.join(RESOURCE_PATH, MUSIC)
-FRONTEND_PATH = os.path.join(RESOURCE_PATH, FRONTEND)
+
+IMAGES_PATH = os.path.join(TMP_PATH, IMAGE)
+FRONTEND_PATH = os.path.join(TMP_PATH, FRONTEND)
 
 NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
 ### CODE_PATH ###
@@ -49,7 +51,15 @@ _f.close()
 
 ### BACKEND ###
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 SESSION = "session"
 JSON_PATH = os.path.join(SESSION, "info.json")
-JSON_INFO = None
 ###
