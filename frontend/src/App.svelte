@@ -1,16 +1,26 @@
 <script>
 	import "./constants";
-	import Gallery from "./lib/components/Gallery.svelte";
+	import Cut from "./lib/components/cut.svelte";
+	import Gallery from "./lib/components/gallery.svelte";
 	import Menubar from "./lib/components/menubar.svelte";
-	import Video from "./lib/components/Video.svelte";
+	import Video from "./lib/components/video.svelte";
+
+	let cuts = {};
+
+	function addCut(event) {
+		console.log(cuts);
+		cuts[event.detail.file] = event.detail.cuts;
+		console.log("add cut:", cuts);
+	}
 </script>
 
 <main>
-	<div class="main-container" draggable={true}>
+	<div class="main-container">
 		<!-- <Video filename={"0"} shortname={"0"} /> -->
-		<Menubar />
+		<Menubar mode="clips" on:cuts={addCut} />
 		<div class="content">
-			<Gallery />
+			<!-- <Gallery /> -->
+			<Cut {cuts} />
 		</div>
 	</div>
 </main>
