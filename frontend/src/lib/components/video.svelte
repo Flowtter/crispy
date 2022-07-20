@@ -4,7 +4,9 @@
     import { API_URL } from "../../constants";
 
     export let filename;
+    export let videoUrl;
     export let shortname;
+    export let editable = true;
 
     const fetch = () => {
         axios
@@ -56,7 +58,7 @@
     <div class={enabled}>
         <video
             poster={API_URL + "/objects/" + filename + "/image"}
-            src={API_URL + "/objects/" + filename + "/video"}
+            src={videoUrl}
             on:mousedown={handleMousedown}
             on:mouseup={handleMouseup}
             bind:currentTime={time}
@@ -82,11 +84,15 @@
         {/if}
     </div>
     <div class="trailing-menu">
-        <button>FILTER</button>
-        <p>|</p>
-        <button>TRANSITION</button>
-        <p>|</p>
-        <button on:click={handleSwitch}>HIDE</button>
+        {#if editable}
+            <button>FILTER</button>
+            <p>|</p>
+            <button>TRANSITION</button>
+            <p>|</p>
+            <button on:click={handleSwitch}>HIDE</button>
+        {:else}
+            <button class="only" on:click={handleSwitch}>HIDE</button>
+        {/if}
     </div>
 </div>
 
@@ -122,7 +128,7 @@
     .trailing-menu {
         /* background-color: red; */
 
-        height: 100%;
+        height: 50px;
         width: 100%;
         display: flex;
     }
@@ -134,6 +140,9 @@
     }
     .trailing-menu > button:last-child {
         border-radius: 0 0 20px 0;
+    }
+    .only {
+        border-radius: 0 0 20px 20px !important;
     }
 
     button {

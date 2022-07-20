@@ -1,25 +1,52 @@
 <script>
-    export let endUrl;
+    import "../../constants";
+    import axios from "axios";
+    import { API_URL } from "../../constants";
+    import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher();
+
+    export let mode;
+    let cuts = false;
+    let result = false;
+
+    async function generateCuts() {
+        cuts = true;
+        let objects = await axios.get(API_URL);
+
+        for (let object of objects.data.objects) {
+            if (object.enabled) {
+                let cuts = await axios.get(
+                    API_URL + "/objects/" + object.name + "/generate-cuts"
+                );
+                cuts = cuts.data;
+                dispatch("cuts", {
+                    file: object.name,
+                    cuts: cuts,
+                });
+            }
+        }
+    }
 </script>
 
 <div class="main">
     <div class="menu">
         <button>CLIPS</button>
         <p>|</p>
-        <button>CUTS</button>
+        <button class={cuts ? "" : "grey"}>CUTS</button>
         <p>|</p>
         <button>MUSIC</button>
         <p>|</p>
         <button>EFFECTS</button>
         <p>|</p>
-        <button>RESULT</button>
+        <button class={result ? "" : "grey"}>RESULT</button>
     </div>
-    {#key endUrl}
-        {#if endUrl}
-            <div class="end">
-                <button>end</button>
-            </div>
-        {/if}
+    {#key mode}
+        <div class="end">
+            {#if mode === "clips"}
+                <button on:click={generateCuts}>GENERATE CUTS</button>
+            {/if}
+        </div>
     {/key}
 </div>
 
@@ -72,5 +99,8 @@
     button:hover {
         transition: all 0.2s;
         background-color: var(--primary);
+    }
+    .grey {
+        color: grey;
     }
 </style>

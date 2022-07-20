@@ -4,7 +4,7 @@
     import { flip } from "svelte/animate";
 
     import { API_URL } from "../../constants.js";
-    import Video from "./Video.svelte";
+    import Video from "./video.svelte";
     export const fetch = () => {
         axios
             .get(API_URL)
@@ -26,7 +26,6 @@
                         id: i,
                     });
                 }
-                console.log(list);
             })
             .catch((error) => {
                 console.log(error);
@@ -84,7 +83,11 @@
                 on:dragenter={() => (hovering = index)}
                 class:is-active={hovering === index}
             >
-                <Video filename={n.fullname} shortname={n.name} />
+                <Video
+                    filename={n.fullname}
+                    shortname={n.name}
+                    videoUrl={API_URL + "/objects/" + n.name + "/video"}
+                />
             </div>
         {/each}
     </div>
@@ -92,8 +95,6 @@
 
 <style>
     .gallery {
-        display: flex;
-        flex-wrap: wrap;
         justify-content: center;
         border-radius: 4px;
 
