@@ -1,38 +1,5 @@
 <script>
-    import axios from "axios";
-    import { onMount } from "svelte";
     import { API_URL } from "../../constants";
-
-    export let filename;
-    export let videoUrl;
-    export let shortname;
-    export let editable = true;
-    export let cuts = undefined;
-
-    const fetch = () => {
-        let c = "";
-        if (cuts) {
-            c = "/" + cuts;
-        }
-        let url = API_URL + "/objects/" + filename + c + "/info";
-        axios.get(url).then((response) => {
-            const res = response.data;
-            enabled = res.enabled ? "enabled" : "disabled";
-        });
-    };
-    onMount(fetch);
-
-    let enabled;
-
-    function handleSwitch() {
-        let c = "";
-        if (cuts) {
-            c = "/" + cuts;
-        }
-        let url = API_URL + "/objects/" + filename + c + "/switch";
-        axios.get(url);
-        enabled = enabled == "disabled" ? "enabled" : "disabled";
-    }
 
     ///////////
     // https://svelte.dev/repl/7bf3c9308bc941a682ac92b9bec0a653?version=3.23.2
@@ -61,52 +28,34 @@
 </script>
 
 <div class="object">
-    <div class="title">
-        {shortname}.mp4
-    </div>
-    <div class={enabled}>
-        <video
-            poster={API_URL + "/objects/" + filename + "/image"}
-            src={videoUrl}
-            on:mousedown={handleMousedown}
-            on:mouseup={handleMouseup}
-            bind:currentTime={time}
-            bind:duration
-            bind:paused
-        >
-            <track kind="captions" />
-        </video>
+    <div class="title">merged.mp4</div>
+    <video
+        poster={API_URL + "/result/image"}
+        src={API_URL + "/result/video"}
+        on:mousedown={handleMousedown}
+        on:mouseup={handleMouseup}
+        bind:currentTime={time}
+        bind:duration
+        bind:paused
+    >
+        <track kind="captions" />
+    </video>
+    <br />
 
-        {#if !duration}
-            <div class="loader">
-                <div class="lds-roller">
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                </div>
+    {#if !duration}
+        <div class="loader">
+            <div class="lds-roller">
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
             </div>
-        {/if}
-    </div>
-    <div class="trailing-menu">
-        {#if editable}
-            <button>FILTER</button>
-            <p>|</p>
-            <button>TRANSITION</button>
-            <p>|</p>
-            <button on:click={handleSwitch}
-                >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
-            >
-        {:else}
-            <button class="only" on:click={handleSwitch}
-                >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
-            >
-        {/if}
-    </div>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -118,11 +67,7 @@
         font-weight: bold;
     }
 
-    .disabled {
-        filter: brightness(35%);
-    }
     .object {
-        width: calc(1600px / 4 - 80px);
         background-color: var(--terciary);
         /* display: flex; */
         justify-content: center;
@@ -131,50 +76,12 @@
         margin: 1vh;
     }
     video {
-        width: 94%;
-        height: 90%;
+        width: 98%;
+        height: 94%;
         object-fit: cover;
         display: block;
         border-radius: 20px;
         margin: auto;
-    }
-    .trailing-menu {
-        /* background-color: red; */
-        margin-top: 5px;
-        height: 50px;
-        width: 100%;
-        display: flex;
-    }
-    .trailing-menu > button {
-        width: 100%;
-    }
-    .trailing-menu > button:first-child {
-        border-radius: 0 0 0 20px;
-    }
-    .trailing-menu > button:last-child {
-        border-radius: 0 0 20px 0;
-    }
-    .only {
-        border-radius: 0 0 20px 20px !important;
-    }
-
-    button {
-        text-align: center;
-        /* padding: 12px 20px; */
-        border: none;
-        border-radius: 0px;
-        background-color: var(--terciary);
-        outline: none;
-        cursor: pointer;
-        border: none;
-        color: var(--white-text);
-        margin-bottom: 0;
-        font-size: large;
-        /* width: 2vw !important; */
-    }
-    button:hover {
-        transition: all 0.2s;
-        background-color: var(--terciary-hover);
     }
 
     /*  */

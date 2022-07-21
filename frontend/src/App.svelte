@@ -3,31 +3,90 @@
 	import Cut from "./lib/components/cut.svelte";
 	import Gallery from "./lib/components/gallery.svelte";
 	import Menubar from "./lib/components/menubar.svelte";
+	import Result from "./lib/components/result.svelte";
 	import Video from "./lib/components/video.svelte";
 
-	let cuts = {};
+	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
+	import Music from "./lib/components/music.svelte";
+
+	let cuts = [];
+	let last_cut = null;
+
+	let mode = "clips";
 
 	function addCut(event) {
+		let file = event.detail.file;
+		let cut = event.detail.cuts;
+		last_cut = cut;
+		for (let i = 0; i < cuts.length; i++) {
+			let f = cuts[i].file;
+			if (f === file) {
+				cuts[i] = { file, cut };
+				return;
+			}
+		}
+		cuts.push({ file, cut });
 		console.log(cuts);
-		cuts[event.detail.file] = event.detail.cuts;
-		console.log("add cut:", cuts);
 	}
+
+	function changeMode(event) {
+		mode = event.detail;
+	}
+
+	function clearCuts(event) {
+		console.log("clearCuts");
+		cuts = [];
+	}
+	toast.push("Thanks for using Crispy!", {
+		duration: 5000,
+	});
+	toast.push(
+		"Activate the videos you want in your montage, then generate cuts!",
+		{
+			duration: 15000,
+			theme: {
+				"--toastBackground": "#4299E1",
+				"--toastBarBackground": "#2B6CB0",
+			},
+			pausable: true,
+		}
+	);
 </script>
 
 <main>
+	<SvelteToast />
 	<div class="main-container">
-		<!-- <Video filename={"0"} shortname={"0"} /> -->
-		<Menubar mode="clips" on:cuts={addCut} />
+		<Menubar
+			{mode}
+			on:cuts={addCut}
+			on:mode={changeMode}
+			on:clear={clearCuts}
+		/>
 		<div class="content">
-			<!-- <Gallery /> -->
-			<Cut {cuts} />
+			<br />
+			{#key mode}
+				{#if mode === "clips"}
+					<Gallery />
+				{:else if mode === "cuts"}
+					{#key last_cut}
+						<Cut {cuts} />
+					{/key}
+				{:else if mode === "result"}
+					<Result />
+				{:else if mode === "music"}
+					<Music />
+				{/if}
+			{/key}
 		</div>
 	</div>
 </main>
 
 <style>
+	:root {
+		--toastContainerTop: 60px;
+	}
 	main {
-		background-color: var(--primary);
+		background-color: var(--background);
 		color: var(--white-text);
 	}
 	.main-container {
@@ -35,23 +94,24 @@
 		margin: 0 auto;
 	}
 	.content {
-		background-color: var(--secondary);
+		background-color: var(--content);
 		border-radius: 20px 20px 0 0;
+		min-height: calc(100vh - 70px);
 	}
 	:global(body) {
 		margin: 0;
 		padding: 0;
 	}
 	* {
-		--primary: #141b23;
-		--secondary: #1b222f;
-		--terciary: #f5a52a;
-		--terciary-variant: #c57f15;
-		--terciary-hover: #d48c1f;
+		--background: #131d35;
 
-		--exit: #e74c3c;
-		--exit-hover: #dd4332;
-		--exit-selected: #c0392b;
+		--content: #242d44;
+
+		--primary: #2e364a;
+		--secondary: #404b62;
+
+		--terciary: #404b62;
+		--terciary-hover: #2e364a;
 
 		--white-text: #f0f0f0;
 	}
