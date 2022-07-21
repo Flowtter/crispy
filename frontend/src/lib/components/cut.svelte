@@ -3,27 +3,39 @@
     import Video from "./video.svelte";
 
     export let cuts;
-    console.log(cuts);
 </script>
 
-{#if cuts}
-    <div class="gallery">
-        {#each Object.entries(cuts) as [filename, cuts]}
-            <div class="group">
-                {#each cuts as cut}
-                    <Video
-                        {filename}
-                        shortname={filename + "-" + cut}
-                        videoUrl={API_URL + "/objects/" + filename + "/" + cut}
-                        editable={false}
-                    />
-                {/each}
-            </div>
-        {/each}
-    </div>
-{/if}
+{#key cuts}
+    {#if cuts}
+        <div class="gallery">
+            {#each cuts as vid}
+                <div class="content">
+                    <p>{vid.file}.mp4</p>
+                    <div class="group">
+                        {#each Object.entries(vid.cut) as [index]}
+                            <Video
+                                filename={vid.file}
+                                shortname={vid.cut[index][0]}
+                                videoUrl={API_URL +
+                                    "/objects/" +
+                                    vid.file +
+                                    "/" +
+                                    vid.cut[index][0]}
+                                editable={false}
+                                cuts={vid.cut[index][0]}
+                            />
+                        {/each}
+                    </div>
+                </div>
+            {/each}
+        </div>
+    {/if}
+{/key}
 
 <style>
+    p {
+        padding-top: 10px;
+    }
     .gallery {
         justify-content: center;
         border-radius: 4px;
@@ -34,11 +46,15 @@
         margin: auto;
     }
     .group {
-        background-color: red;
-        width: 100%;
-
         display: flex;
         flex-wrap: wrap;
-        margin-bottom: 100px;
+        margin-bottom: 20px;
+        /* center */
+        justify-content: center;
+    }
+    .content {
+        background-color: var(--background);
+        border-radius: 10px;
+        width: auto;
     }
 </style>

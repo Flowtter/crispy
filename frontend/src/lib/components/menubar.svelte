@@ -3,17 +3,28 @@
     import axios from "axios";
     import { API_URL } from "../../constants";
     import { createEventDispatcher } from "svelte";
+    import { toast } from "@zerodevx/svelte-toast";
 
     const dispatch = createEventDispatcher();
 
     export let mode;
     let cuts = false;
+    let cutsDone = false;
     let result = false;
 
-    async function generateCuts() {
-        cuts = true;
-        let objects = await axios.get(API_URL);
+    let greenOptions = {
+        "--toastBackground": "#48BB78",
+        "--toastBarBackground": "#2F855A",
+    };
 
+    async function generateCuts() {
+        cutsDone = false;
+        cuts = true;
+        dispatch("clear", {});
+        let objects = await axios.get(API_URL);
+        toast.push("Generating cuts! Check the cut menu to see them", {
+            duration: 5000,
+        });
         for (let object of objects.data.objects) {
             if (object.enabled) {
                 let cuts = await axios.get(
@@ -24,27 +35,97 @@
                     file: object.name,
                     cuts: cuts,
                 });
+                // allow the backend to send the videos to the browser
+                // before rendering the next video
+                toast.push("Cuts for " + object.name + " generated", {
+                    theme: greenOptions,
+                });
+                await new Promise((resolve) => setTimeout(resolve, 500));
             }
         }
+        toast.push(
+            "All cuts generated! You can now generate the montage in the cut menu > Generate result",
+            {
+                duration: 15000,
+                theme: {
+                    "--toastBackground": "#4299E1",
+                    "--toastBarBackground": "#2B6CB0",
+                },
+            }
+        );
+        cutsDone = true;
+        console.log(cutsDone);
+    }
+    async function generateResult() {
+        if (!cutsDone) return;
+        result = false;
+        toast.push("Generating result! This may take a while...", {
+            duration: 15000,
+        });
+        console.log("generate result");
+        await axios.get(API_URL + "/generate-result");
+        toast.push("Result generated!", {
+            theme: greenOptions,
+        });
+        result = true;
+    }
+
+    function changeMenu(newMode) {
+        console.log("changeMenu", newMode, cuts, result);
+        if (newMode === mode) {
+            return;
+        }
+        if (newMode === "cuts" && !cuts) {
+            return;
+        }
+        if (newMode === "result" && !result) {
+            return;
+        }
+
+        mode = newMode;
+        dispatch("mode", newMode);
     }
 </script>
 
 <div class="main">
     <div class="menu">
-        <button>CLIPS</button>
+        <button
+            class={mode === "clips" ? "selected" : ""}
+            on:click={() => changeMenu("clips")}>CLIPS</button
+        >
         <p>|</p>
-        <button class={cuts ? "" : "grey"}>CUTS</button>
+        <button
+            class={(mode === "cuts" ? "selected" : "") +
+                " " +
+                (cuts ? "" : "grey")}
+            on:click={() => changeMenu("cuts")}>CUTS</button
+        >
         <p>|</p>
-        <button>MUSIC</button>
+        <button
+            class={mode === "music" ? "selected" : ""}
+            on:click={() => changeMenu("music")}>MUSIC</button
+        >
         <p>|</p>
-        <button>EFFECTS</button>
+        <button
+            class={mode === "effects" ? "selected" : ""}
+            on:click={() => changeMenu("effects")}>EFFECTS</button
+        >
         <p>|</p>
-        <button class={result ? "" : "grey"}>RESULT</button>
+        <button
+            class={(mode === "result" ? "selected" : "") +
+                " " +
+                (result ? "" : "grey")}
+            on:click={() => changeMenu("result")}>RESULT</button
+        >
     </div>
     {#key mode}
         <div class="end">
             {#if mode === "clips"}
                 <button on:click={generateCuts}>GENERATE CUTS</button>
+            {:else if mode === "cuts"}
+                <button class={cutsDone ? "" : "grey"} on:click={generateResult}
+                    >GENERATE RESULT</button
+                >
             {/if}
         </div>
     {/key}
@@ -98,9 +179,12 @@
     }
     button:hover {
         transition: all 0.2s;
-        background-color: var(--primary);
+        background-color: var(--terciary-hover);
     }
     .grey {
-        color: grey;
+        color: #8c8c8c;
+    }
+    .selected {
+        background-color: var(--primary);
     }
 </style>

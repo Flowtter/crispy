@@ -86,7 +86,7 @@
                 <Video
                     filename={n.fullname}
                     shortname={n.name}
-                    videoUrl={API_URL + "/objects/" + n.name + "/video"}
+                    videoUrl={API_URL + "/objects/" + n.fullname + "/video"}
                 />
             </div>
         {/each}
