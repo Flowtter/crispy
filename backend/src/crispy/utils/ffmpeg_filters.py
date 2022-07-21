@@ -67,7 +67,7 @@ def vflip(
     Flip vertically the video
     """
     if type(option) == bool and option:
-        video = video.hflip()
+        video = video.vflip()
     else:
         L.error(
             f"expected type({bool}) got ({type(option)}) for filter ('vflip')")

@@ -1,7 +1,9 @@
+import json
 import os
 import random
 import string
 import shutil
+import datetime
 from typing import Optional, Any, List, Tuple
 import ffmpeg
 from utils.constants import SETTINGS, L
@@ -85,22 +87,41 @@ def segment_video(video_path: str, save_path: str,
     """
     Segment a video on multiple smaller video using the frames array.
     """
+    video_json = []
     for frame in frames:
+        frame_json: dict = {"metadata": {}}
         start = frame[0] / frame_duration
         end = frame[1] / frame_duration
+        frame_json["metadata"]["start"] = frame[0]
+        frame_json["metadata"]["end"] = frame[1]
+        frame_json["metadata"]["date"] = datetime.datetime.now().timestamp()
+        frame_json["filters"] = {}
         # print(start, end, frame_duration, video_path, save_path)
         video = (
             ffmpeg
             .input(video_path)
         ) # yapf: disable
-        video = apply_filter(video, video_path)
+        old = video
+        video, filter_json = apply_filter(video, video_path, frame_json,
+                                          save_path)
 
-        video = video.output(os.path.join(save_path,
-                                          f"{frame[0]}-{frame[1]}.mp4"),
-                             ss=f"{start}",
-                             to=f"{end}")
-        video = video.overwrite_output()
-        video.run(quiet=True)
+        if video != old or not check_exists((frame[0], frame[1]), save_path):
+            video = video.output(os.path.join(save_path,
+                                              f"{frame[0]}-{frame[1]}.mp4"),
+                                 ss=f"{start}",
+                                 to=f"{end}")
+            video = video.overwrite_output()
+            video.run(quiet=True)
+            L.debug(f"{frame[0]}-{frame[1]}.mp4 created or modified")
+        else:
+            L.debug(f"no modifications made to {frame[0]}-{frame[1]}.mp4")
+            frame_json["filters"] = filter_json["filters"]
+
+        video_json.append(frame_json)
+
+    dir_path = os.path.split(save_path)[0]
+    with open(os.path.join(dir_path, "info.json"), "w") as f:
+        json.dump(video_json, f, indent=4, sort_keys=True)
 
 
 def find_available_path(video_path: str) -> str:
@@ -175,28 +196,36 @@ def merge_videos(videos_path: List[str], save_path: str) -> None:
         shutil.copyfile(videos_path[0], save_path)
 
 
-def apply_filter(video: ffmpeg.nodes.FilterableStream,
-                 video_path: str) -> ffmpeg.nodes.FilterableStream:
+def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
+                 frame_json: dict,
+                 save_path: str) -> ffmpeg.nodes.FilterableStream:
     """
     Apply a list of filter to a video.
     """
-    global_filters: List[Filters] = []
-    for filt in SETTINGS["filters"].items():
-        global_filters.append(Filters(filt[0], filt[1]))
+    global_filters: List[Filters] = find_filters(video_path)
+    start = frame_json["metadata"]["start"]
+    end = frame_json["metadata"]["end"]
 
-    find_specific_filters(global_filters, video_path)
+    check, json_ = check_recompile(save_path, (start, end), global_filters)
+    if not check:
+        return video, json_
+
     for filt in global_filters:
-        L.debug(f"Applying filter {filt.filter.name} {filt.option}")
+        old = video
         video = filt(video)
+        if old != video:
+            L.debug(f"Applying filter {filt.filter.name} {filt.option}")
+            frame_json["filters"][filt.filter.value] = filt.option
 
-    return video
+    return video, json_
 
 
-def find_specific_filters(global_filters: List[Filters],
-                          video_path: str) -> None:
-    """
-    Find specificFilters for a video in Settings.json
-    """
+def find_filters(video_path: str) -> List[Filters]:
+    global_filters: List[Filters] = []
+    if "filters" in SETTINGS:
+        for filt in SETTINGS["filters"].items():
+            global_filters.append(Filters(filt[0], filt[1]))
+
     video_name = os.path.split(video_path)
     video_name = video_name[len(video_name) - 1]
     if "clips" in SETTINGS:
@@ -209,3 +238,62 @@ def find_specific_filters(global_filters: List[Filters],
                         global_filters[i] = Filters(filt, value)
                 if not found:
                     global_filters.append(Filters(filt, value))
+    return global_filters
+
+
+def check_exists(frame: Tuple[int, int], save_path: str) -> bool:
+    """
+    Check if the clip already exists
+    """
+    dir_path = os.path.split(save_path)[0]
+    path = os.path.join(dir_path, "info.json")
+    if not os.path.exists(path):
+        return False
+    with open(path) as f:
+        video_json = json.load(f)
+    for clip in video_json:
+        if clip["metadata"]["start"] == frame[0] and clip["metadata"][
+                "end"] == frame[1]:
+            return True
+    return False
+
+
+def check_recompile(save_path: str, frame: Tuple[int, int],
+                    filter_list: List[Filters]) -> Tuple[bool, dict]:
+    """
+    Check if modifications has to be done to a video
+    True if has to recompile, False otherwise
+    """
+    dir_path = os.path.split(save_path)[0]
+    path = os.path.join(dir_path, "info.json")
+    if not os.path.exists(path):
+        return True, {}
+    with open(os.path.join(dir_path, "info.json")) as f:
+        video_json = json.load(f)
+
+    count = 0
+    clip: dict = {}
+
+    if not check_exists(frame, save_path):
+        return True, {}
+
+    for clip_json in video_json:
+        if clip_json["metadata"]["start"] == frame[0] and clip_json[
+                "metadata"]["end"] == frame[1]:
+            clip = clip_json
+    length = len(clip["filters"])
+
+    for filt in filter_list:
+        if filt.filter.value in clip["filters"]:
+            if filt.option != clip["filters"][filt.filter.value]:
+                # filter different, video has to be recompiled
+                return True, clip
+            count += 1
+        elif type(filt.option) == bool and not filt.option:
+            continue
+        else:
+            return True, clip
+
+    if count == length:
+        return False, clip
+    return True, clip
