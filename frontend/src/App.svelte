@@ -37,20 +37,20 @@
 		console.log("clearCuts");
 		cuts = [];
 	}
-	toast.push("Thanks for using Crispy!", {
-		duration: 5000,
-	});
-	toast.push(
-		"Activate the videos you want in your montage, then generate cuts!",
-		{
-			duration: 15000,
-			theme: {
-				"--toastBackground": "#4299E1",
-				"--toastBarBackground": "#2B6CB0",
-			},
-			pausable: true,
-		}
-	);
+	// toast.push("Thanks for using Crispy!", {
+	// 	duration: 5000,
+	// });
+	// toast.push(
+	// 	"Activate the videos you want in your montage, then generate cuts!",
+	// 	{
+	// 		duration: 15000,
+	// 		theme: {
+	// 			"--toastBackground": "#4299E1",
+	// 			"--toastBarBackground": "#2B6CB0",
+	// 		},
+	// 		pausable: true,
+	// 	}
+	// );
 </script>
 
 <main>
