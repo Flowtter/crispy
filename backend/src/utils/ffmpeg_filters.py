@@ -3,20 +3,6 @@ from utils.constants import L
 import ffmpeg
 
 
-def crop(
-        option: Union[str, bool, int, float],
-        video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:
-    """
-    Crop a video in 960 x 540 pixels
-    """
-    if type(option) == bool and option:
-        video = video.crop(960, 540)
-    else:
-        L.error(
-            f"expected type({bool}) got ({type(option)}) for filter ('crop')")
-    return video
-
-
 def blur(
         option: Union[str, bool, int, float],
         video: ffmpeg.nodes.FilterableStream) -> ffmpeg.nodes.FilterableStream:

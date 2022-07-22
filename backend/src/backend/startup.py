@@ -38,12 +38,12 @@ def startup() -> None:
     files = os.listdir(VIDEOS_PATH)
     files.sort()
 
+    if not os.path.exists(TMP_PATH):
+        os.mkdir(TMP_PATH)
     if not os.path.exists(FRONTEND_PATH):
         os.mkdir(FRONTEND_PATH)
     if not os.path.exists(IMAGES_PATH):
         os.mkdir(IMAGES_PATH)
-    if not os.path.exists(TMP_PATH):
-        os.mkdir(TMP_PATH)
 
     print("Extracting thumbnails, snippets and frames")
     print("This may take a while if it's the first time you run the app")

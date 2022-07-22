@@ -1,7 +1,4 @@
 {
-    "crop": {
-        "box": false
-    },
     "scale": {
         "box": false,
         "w": null,

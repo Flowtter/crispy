@@ -26,7 +26,16 @@
             duration: 5000,
         });
         for (let object of objects.data.objects) {
+            let first = true;
             if (object.enabled) {
+                if (first) first = false;
+                else await new Promise((resolve) => setTimeout(resolve, 1500));
+
+                const id = toast.push("Generating cut for " + object.name, {
+                    dismissable: false,
+                    initial: 0,
+                    next: 0,
+                });
                 let cuts = await axios.get(
                     API_URL + "/objects/" + object.name + "/generate-cuts"
                 );
@@ -37,10 +46,10 @@
                 });
                 // allow the backend to send the videos to the browser
                 // before rendering the next video
+                toast.pop(id);
                 toast.push("Cuts for " + object.name + " generated", {
                     theme: greenOptions,
                 });
-                await new Promise((resolve) => setTimeout(resolve, 500));
             }
         }
         toast.push(
@@ -60,10 +69,38 @@
         if (!cutsDone) return;
         result = false;
         toast.push("Generating result! This may take a while...", {
-            duration: 15000,
+            duration: 10000,
         });
-        console.log("generate result");
+        const id = toast.push("Loading, please wait...", {
+            duration: 300,
+            initial: 0,
+            next: 0,
+            dismissable: false,
+        });
+
+        let objects = await axios.get(API_URL);
+        objects = objects.data.objects.filter((object) => object.enabled);
+
+        let length = objects.length + 1;
+        for (var i = 0; i < length - 1; i++) {
+            let object = objects[i];
+            if (object.enabled) {
+                toast.set(id, {
+                    msg: "Generating final clip for " + object.name,
+                    next: i / length,
+                });
+                await axios.get(API_URL + "/generate-result/" + object.name);
+            }
+            console.log(i, length);
+        }
+
+        toast.set(id, {
+            msg: "Generating final montage",
+            next: length - 1 / length,
+        });
         await axios.get(API_URL + "/generate-result");
+
+        toast.pop(id);
         toast.push("Result generated!", {
             theme: greenOptions,
         });

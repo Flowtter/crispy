@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+from typing import Any, Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -45,9 +46,13 @@ NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
 
 ### SETTINGS ###
 SETTINGS_PATH = "settings.json"
-_f = open(SETTINGS_PATH, "r")
-SETTINGS = json.load(_f)
-_f.close()
+
+
+def get_settings() -> Dict[Any, Any]:
+    with open(SETTINGS_PATH, "r") as f:
+        return json.load(f)
+
+
 ### SETTINGS ###
 
 ### BACKEND ###

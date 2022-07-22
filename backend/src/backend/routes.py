@@ -21,6 +21,7 @@ NN.load(NEURAL_NETWORK_PATH)
 JSON_INFO = load_json()
 
 # FIXME: rename image in obj
+# TODO: Split file in multiple sub files
 
 
 @app.get("/")
@@ -212,17 +213,23 @@ async def single_video_generate_cuts(
         images_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext),
                                    IMAGE)
         # DEBUG
-        c = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), CUT)
-        if len(os.listdir(c)) == 0:
-            query_array = vid.get_query_array_from_video(NN, images_path)
-            kill_array = vid.get_kill_array_from_query_array(query_array)
-            kill_array = vid.post_processing_kill_array(kill_array)
-            vid.segment_video_with_kill_array(no_ext + ".mp4", kill_array)
+        # c = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), CUT)
+        # if len(os.listdir(c)) == 0:
+
+        query_array = vid.get_query_array_from_video(NN, images_path)
+        kill_array = vid.get_kill_array_from_query_array(query_array)
+        kill_array = vid.post_processing_kill_array(kill_array)
+        vid.segment_video_with_kill_array(no_ext + ".mp4", kill_array)
 
         cut_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), CUT)
         cuts = os.listdir(cut_path)
         cuts.sort()
+        old_cuts = JSON_INFO["objects"][objects.index(obj)]["cuts"]
         cuts = [(io.remove_extension(cut), True) for cut in cuts]
+        if old_cuts:
+            for i in range(len(cuts)):
+                if cuts[i][0] == old_cuts[i][0]:
+                    cuts[i] = old_cuts[i]
         JSON_INFO["objects"][objects.index(obj)]["cuts"] = cuts
 
         save_json(JSON_INFO)
@@ -232,10 +239,46 @@ async def single_video_generate_cuts(
 
 
 @app.get("/objects/{filename}/{cut}")
-def get_cut(filename: str, cut: str) -> FileResponse:
+async def get_cut(filename: str, cut: str) -> FileResponse:
     return FileResponse(
         os.path.join(TMP_PATH, io.generate_clean_name(filename), CUT,
                      cut + ".mp4"))
+
+
+@app.get("/generate-result/{filename}")
+async def generate_result_for_file(
+        filename: str) -> Union[HTTPException, None]:
+    objects = JSON_INFO["objects"]
+    obj = next(filter(lambda x: x["name"] == filename, objects), None)
+
+    if not obj:
+        return HTTPException(status_code=404, detail="Object not found")
+    if not obj["enabled"]:
+        return HTTPException(status_code=403)
+
+    cuts = []
+    used = []
+    for cut in obj["cuts"]:
+        used.append(cut[1])
+        if cut[1]:
+            cn = io.generate_clean_name(obj["name"])
+            cuts.append(os.path.join(TMP_PATH, cn, CUT, cut[0] + ".mp4"))
+    folder = os.path.join(TMP_PATH, io.generate_clean_name(obj["name"]))
+    save_path = os.path.join(folder, "merged.mp4")
+
+    with open(os.path.join(folder, "info.json"), "r") as f:
+        info = json.load(f)
+
+    # print(info["used"], used)
+
+    if info["recompile"] or not "used" in info or info["used"] != used:
+        vid.merge_cuts_with_files(cuts, save_path)
+        info["recompile"] = False
+        info["used"] = used
+        with open(os.path.join(folder, "info.json"), "w") as f:
+            json.dump(info, f, indent=4)
+
+    return None
 
 
 @app.get("/generate-result")
@@ -243,17 +286,11 @@ async def generate_result() -> None:
     clips = []
     for obj in JSON_INFO["objects"]:
         if obj["enabled"]:
-            clips.append(obj)
+            cn = io.generate_clean_name(obj["name"])
+            clips.append(os.path.join(TMP_PATH, cn, "merged.mp4"))
 
-    cuts = []
-    for obj in clips:
-        for cut in obj["cuts"]:
-            if cut[1]:
-                cn = io.generate_clean_name(obj["name"])
-                cuts.append(os.path.join(TMP_PATH, cn, CUT, cut[0] + ".mp4"))
-
-    print(cuts)
-    vid.merge_cuts_with_files(cuts)
+    print("final clips", clips)
+    vid.merge_cuts_with_files(clips)
     if os.path.exists("merged.jpg"):
         os.remove("merged.jpg")
     extract_first_image_of_video("merged.mp4", "merged")
@@ -310,7 +347,7 @@ async def music_reorder(data: List[Reorder]) -> Dict[Any, Any]:
 
 
 @app.get("/objects/filters/{filename}/read")
-def filters_read(filename: str) -> Union[Dict[Any, Any], HTTPException]:
+async def filters_read(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
     if not obj:
@@ -320,8 +357,8 @@ def filters_read(filename: str) -> Union[Dict[Any, Any], HTTPException]:
 
 
 @app.post("/objects/filters/{filename}/save")
-def filters_save(data: Filters,
-                 filename: str) -> Union[Dict[Any, Any], HTTPException]:
+async def filters_save(data: Filters,
+                       filename: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
     if not obj:
@@ -336,7 +373,7 @@ def filters_save(data: Filters,
 
 
 @app.get("/objects/filters/{filename}/update")
-def update(filename: str) -> Union[bool, HTTPException]:
+async def update(filename: str) -> Union[bool, HTTPException]:
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
     if not obj:
@@ -353,7 +390,7 @@ def update(filename: str) -> Union[bool, HTTPException]:
 
 
 @app.get("/filters/read")
-def global_filters_read() -> Union[Dict[Any, Any], HTTPException]:
+async def global_filters_read() -> Union[Dict[Any, Any], HTTPException]:
     filters = JSON_INFO["filters"]
     if not filters:
         return HTTPException(status_code=404, detail="Object not found")
@@ -362,7 +399,8 @@ def global_filters_read() -> Union[Dict[Any, Any], HTTPException]:
 
 
 @app.post("/filters/save")
-def global_filters_save(data: Filters) -> Union[Dict[Any, Any], HTTPException]:
+async def global_filters_save(
+        data: Filters) -> Union[Dict[Any, Any], HTTPException]:
     filters = JSON_INFO["filters"]
     if not filters:
         return HTTPException(status_code=404, detail="Object not found")
