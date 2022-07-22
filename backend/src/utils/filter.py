@@ -21,7 +21,6 @@ class FilterValue(NoValue):
     Enum class containing all possible filters
     """
 
-    CROP = "crop"  # "crop"
     BLUR = "blur"  # "boxblur"
     SCALE = "scale"  # "scale"
     HFLIP = "hflip"  # "horizontal flip"

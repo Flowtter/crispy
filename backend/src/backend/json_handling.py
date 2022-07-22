@@ -3,7 +3,7 @@ import json
 
 from typing import Dict, Any
 
-from utils.constants import IMAGES_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS
+from utils.constants import JSON_PATH, MUSICS_PATH, SESSION, ASSETS, VIDEOS_PATH
 from utils.IO import io
 
 with open(os.path.join(ASSETS, "filters.json"), "r") as js:
@@ -16,12 +16,13 @@ def save_json(JSON_INFO: Dict[Any, Any]) -> None:
 
 
 def new_json() -> None:
-    files = os.listdir(IMAGES_PATH)
+    files = os.listdir(VIDEOS_PATH)
     files.sort()
     JSON_INFO: Dict[Any, Any] = {}
+    JSON_INFO["filters"] = filters
     JSON_INFO["objects"] = []
     for file in files:
-        if not file.endswith(".jpg"):
+        if not file.endswith(".mp4"):
             continue
         obj = {}
 

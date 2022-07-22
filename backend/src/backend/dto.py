@@ -27,7 +27,6 @@ class Scale(BaseModel):
 
 class Filters(BaseModel):
     """DTO for filters"""
-    crop: NoProp
     scale: Scale
     blur: Single
     hflip: NoProp

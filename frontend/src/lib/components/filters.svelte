@@ -75,7 +75,6 @@
 {#if filters}
     <div>
         <p>{name}</p>
-        <Filter bind:activated={filters["crop"].box} text="crop" />
         <Filter
             bind:activated={filters["blur"].box}
             text="blur"

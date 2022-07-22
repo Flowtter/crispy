@@ -11,7 +11,7 @@ import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
 import cv2
 
-from utils.constants import BACKUP, SETTINGS, L
+from utils.constants import BACKUP, L, get_settings
 from utils.filter import Filters
 from utils.IO import io
 
@@ -93,6 +93,7 @@ def segment_video(video_path: str, save_path: str,
     Segment a video on multiple smaller video using the frames array.
     """
     video_json = []
+    recompile = False
     for frame in frames:
         frame_json: dict = {"metadata": {}}
         start = frame[0] / frame_duration
@@ -111,10 +112,12 @@ def segment_video(video_path: str, save_path: str,
                                           save_path)
 
         if video != old or not check_exists((frame[0], frame[1]), save_path):
+            recompile = True
             video = video.output(os.path.join(save_path,
                                               f"{frame[0]}-{frame[1]}.mp4"),
                                  ss=f"{start}",
-                                 to=f"{end}")
+                                 to=f"{end}",
+                                 preset="ultrafast")
             video = video.overwrite_output()
             video.run(quiet=True)
             L.debug(f"{frame[0]}-{frame[1]}.mp4 created or modified")
@@ -125,8 +128,23 @@ def segment_video(video_path: str, save_path: str,
         video_json.append(frame_json)
 
     dir_path = os.path.split(save_path)[0]
+
+    with open(os.path.join(dir_path, "info.json"), "r") as f:
+        r = json.load(f)
+        if "used" in r:
+            used = r["used"]
+        else:
+            used = []
+
     with open(os.path.join(dir_path, "info.json"), "w") as f:
-        json.dump(video_json, f, indent=4, sort_keys=True)
+        json.dump({
+            "recompile": recompile,
+            "cuts": video_json,
+            "used": used
+        },
+                  f,
+                  indent=4,
+                  sort_keys=True)
 
 
 def find_available_path(video_path: str) -> str:
@@ -243,6 +261,7 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
 
 
 def find_filters(video_path: str) -> List[Filters]:
+    SETTINGS = get_settings()
     global_filters: List[Filters] = []
     if "filters" in SETTINGS:
         for filt in SETTINGS["filters"].items():
@@ -272,7 +291,7 @@ def check_exists(frame: Tuple[int, int], save_path: str) -> bool:
     if not os.path.exists(path):
         return False
     with open(path) as f:
-        video_json = json.load(f)
+        video_json = json.load(f)["cuts"]
     for clip in video_json:
         if clip["metadata"]["start"] == frame[0] and clip["metadata"][
                 "end"] == frame[1]:
@@ -291,7 +310,7 @@ def check_recompile(save_path: str, frame: Tuple[int, int],
     if not os.path.exists(path):
         return True, {}
     with open(os.path.join(dir_path, "info.json")) as f:
-        video_json = json.load(f)
+        video_json = json.load(f)["cuts"]
 
     count = 0
     clip: dict = {}
