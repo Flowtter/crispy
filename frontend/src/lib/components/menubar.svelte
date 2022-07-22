@@ -13,8 +13,8 @@
     let result = false;
 
     let greenOptions = {
-        "--toastBackground": "#48BB78",
-        "--toastBarBackground": "#2F855A",
+        "--toastBackground": "#2ecc71",
+        "--toastBarBackground": "#27ae60",
     };
 
     async function generateCuts() {

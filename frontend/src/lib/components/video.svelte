@@ -3,6 +3,10 @@
     import { onMount } from "svelte";
     import { API_URL } from "../../constants";
 
+    import Filters from "./filters.svelte";
+
+    import { toast } from "@zerodevx/svelte-toast";
+
     export let filename;
     export let videoUrl;
     export let shortname;
@@ -58,6 +62,55 @@
             else e.target.pause();
         }
     }
+    function clickFilter() {
+        toast.push({
+            component: {
+                src: Filters,
+                props: {
+                    name: filename,
+                    filterRoute: "objects/filters/" + filename,
+                },
+                sendIdTo: "toastId",
+            },
+            target: "new",
+            dismissable: false,
+            initial: 0,
+            intro: { y: -192 },
+            theme: {
+                "--toastBackground": "#323c53",
+                "--toastBorderRadius": "1rem",
+            },
+        });
+        filtersInterval = setInterval(async () => {
+            await timeReadFilters();
+        }, 300);
+    }
+
+    let filtersInterval = undefined;
+    async function timeReadFilters() {
+        let url = API_URL + "/objects/filters/" + filename + "/update";
+        let response = await axios.get(url);
+        if (response.data) {
+            await readFilters();
+            clearInterval(filtersInterval);
+        }
+    }
+
+    let anyFilter = false;
+    async function readFilters() {
+        let read = await axios.get(
+            API_URL + "/objects/filters/" + filename + "/read"
+        );
+        for (let filter in read.data) {
+            if (read.data[filter].box) {
+                anyFilter = true;
+                break;
+            }
+        }
+    }
+    onMount(readFilters);
+
+    let anyTransition = false;
 </script>
 
 <div class="object">
@@ -94,9 +147,11 @@
     </div>
     <div class="trailing-menu">
         {#if editable}
-            <button>FILTER</button>
+            <button on:click={clickFilter} class={anyFilter ? "green" : ""}
+                >FILTER</button
+            >
             <p>|</p>
-            <button>TRANSITION</button>
+            <button class={anyTransition ? "green" : ""}>TRANSITION</button>
             <p>|</p>
             <button on:click={handleSwitch}
                 >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
@@ -110,6 +165,13 @@
 </div>
 
 <style>
+    .green {
+        background: rgb(15, 185, 177, 0.5);
+    }
+    .green:hover {
+        transition: all 0.2s;
+        background: rgb(15, 185, 177, 0.8);
+    }
     .title {
         justify-content: space-between;
         align-items: center;

@@ -153,4 +153,11 @@ def merge_cuts() -> None:
             cut[i] = os.path.join(TMP_PATH, folder, CUT, cut[i])
         cuts.extend(cut)
 
-    ff.merge_videos(cuts, os.path.join(TMP_PATH, "merged.mp4"))
+    ff.merge_videos(cuts, "merged.mp4")
+
+
+def merge_cuts_with_files(cuts: List[str]) -> None:
+    """
+    Merge the cuts
+    """
+    ff.merge_videos(cuts, "merged.mp4")

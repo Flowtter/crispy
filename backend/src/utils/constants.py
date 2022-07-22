@@ -28,7 +28,7 @@ DOT_PATH = os.path.join(ASSETS, "dot.png")
 ### DATASET_PATH ###
 
 ### CODE_PATH ###
-GLOBAL_PATH = BACKEND  #FIXME: This is a temporary solution
+GLOBAL_PATH = ""
 
 TMP_PATH = os.path.join(GLOBAL_PATH, "tmp")
 
