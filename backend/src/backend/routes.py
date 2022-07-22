@@ -136,6 +136,7 @@ async def switch_cut(filename: str,
     return image["enabled"]
 
 
+# TODO: Merge two next functions
 def convert_filters(name: str) -> Dict[Any, Any]:
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == name, objects), None)
@@ -156,6 +157,24 @@ def convert_filters(name: str) -> Dict[Any, Any]:
     return result
 
 
+def convert_global_filters() -> Dict[Any, Any]:
+    obj = JSON_INFO
+
+    result: Dict[Any, Any] = {"filters": {}}
+    for f in obj["filters"]:
+        if not obj["filters"][f]["box"]:
+            continue
+        if f == "scale":
+            result["filters"][f] = "w=" + str(int(
+                obj["filters"][f]["w"])) + ":h=" + str(
+                    int(obj["filters"][f]["h"]))
+        elif "value" in obj["filters"][f]:
+            result["filters"][f] = obj["filters"][f]["value"]
+        else:
+            result["filters"][f] = True
+    return result
+
+
 def convert_session_to_settings() -> None:
     videos = os.listdir(VIDEOS_PATH)
     videos.sort()
@@ -169,6 +188,8 @@ def convert_session_to_settings() -> None:
 
     with open(SETTINGS_PATH, "r") as f:
         settings = json.load(f)
+
+    settings["filters"] = convert_global_filters()["filters"]
 
     settings["clips"] = filters
 
@@ -329,3 +350,25 @@ def update(filename: str) -> Union[bool, HTTPException]:
     save_json(JSON_INFO)
 
     return save
+
+
+@app.get("/filters/read")
+def global_filters_read() -> Union[Dict[Any, Any], HTTPException]:
+    filters = JSON_INFO["filters"]
+    if not filters:
+        return HTTPException(status_code=404, detail="Object not found")
+
+    return filters
+
+
+@app.post("/filters/save")
+def global_filters_save(data: Filters) -> Union[Dict[Any, Any], HTTPException]:
+    filters = JSON_INFO["filters"]
+    if not filters:
+        return HTTPException(status_code=404, detail="Object not found")
+
+    f = jsonable_encoder(data)
+    JSON_INFO["filters"] = f
+    save_json(JSON_INFO)
+
+    return filters
