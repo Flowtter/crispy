@@ -7,8 +7,9 @@ from typing import Optional, Any, List, Tuple
 
 import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
+import cv2
 
-from utils.constants import SETTINGS, L
+from utils.constants import BACKUP, SETTINGS, L
 from utils.filter import Filters
 from utils.IO import io
 
@@ -124,6 +125,21 @@ def scale_video(video_path: str) -> None:
     Scale (up or down) a video.
     """
     if os.path.exists(video_path):
+        vid = cv2.VideoCapture(video_path)
+        width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
+        if width == 1920 and height == 1080:
+            return
+
+        L.warning(f"\nWARNING:Scaling video {video_path}, saving a backup")
+
+        if not os.path.exists(BACKUP):
+            os.makedirs(BACKUP)
+
+        shutil.copy(video_path,
+                    os.path.join(BACKUP, os.path.basename(video_path)))
+
         save_path = find_available_path(video_path)
         (
             ffmpeg
@@ -131,7 +147,7 @@ def scale_video(video_path: str) -> None:
             .filter("scale", w=1920, h=1080)
             .output(save_path, start_number=0)
             .overwrite_output()
-            .run()
+            .run(quiet=True)
         ) # yapf: disable
 
         os.remove(video_path)

@@ -8,6 +8,7 @@ L = logging.getLogger("crispy")
 
 logging.getLogger("PIL").setLevel(logging.ERROR)
 
+BACKUP = "backup"
 BACKEND = "backend"
 FRONTEND = "frontend"
 OUTPUT = "output"

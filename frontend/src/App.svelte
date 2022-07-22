@@ -4,6 +4,7 @@
 	import Gallery from "./lib/components/gallery.svelte";
 	import Menubar from "./lib/components/menubar.svelte";
 	import Result from "./lib/components/result.svelte";
+	import Effects from "./lib/components/effects.svelte";
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
 	import Music from "./lib/components/music.svelte";
@@ -79,6 +80,8 @@
 					<Result />
 				{:else if mode === "music"}
 					<Music />
+				{:else if mode === "effects"}
+					<Effects />
 				{/if}
 			{/key}
 		</div>
