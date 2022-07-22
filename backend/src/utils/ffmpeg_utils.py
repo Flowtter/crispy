@@ -2,11 +2,15 @@ import os
 import random
 import string
 import shutil
+
 from typing import Optional, Any, List, Tuple
+
 import ffmpeg
+from PIL import Image, ImageFilter, ImageOps
+
 from utils.constants import SETTINGS, L
 from utils.filter import Filters
-from PIL import Image, ImageFilter, ImageOps
+from utils.IO import io
 
 BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
@@ -172,7 +176,9 @@ def merge_videos(videos_path: List[str], save_path: str) -> None:
             .run(quiet=True)
         ) # yaPf: disable
     else:
+        print("Only one video, no need to merge, copying...")
         shutil.copyfile(videos_path[0], save_path)
+        print("Copy done")
 
 
 def apply_filter(video: ffmpeg.nodes.FilterableStream,
@@ -197,11 +203,12 @@ def find_specific_filters(global_filters: List[Filters],
     """
     Find specificFilters for a video in Settings.json
     """
-    video_name = os.path.split(video_path)
-    video_name = video_name[len(video_name) - 1]
+    video_name = os.path.split(video_path)[-1]
+    no_ext = io.remove_extension(video_name)
+    print("Looking for specific filters for", no_ext)
     if "clips" in SETTINGS:
-        if video_name in SETTINGS["clips"]:
-            for filt, value in SETTINGS["clips"][video_name].items():
+        if no_ext in SETTINGS["clips"]:
+            for filt, value in SETTINGS["clips"][no_ext].items():
                 found = False
                 for i in range(len(global_filters)):
                     if global_filters[i].filter.value == filt:

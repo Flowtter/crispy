@@ -29,6 +29,7 @@
                 </div>
             {/each}
         </div>
+        <br />
     {/if}
 {/key}
 

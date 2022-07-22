@@ -1,15 +1,13 @@
 import os
-import sys
 import json
 
 from typing import Dict, Any
 
-from utils.constants import IMAGES_PATH, JSON_PATH
+from utils.constants import IMAGES_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS
 from utils.IO import io
 
-
-def positive_hash(string: str) -> int:
-    return (hash(string) + sys.maxsize + 1) % sys.maxsize
+with open(os.path.join(ASSETS, "filters.json"), "r") as js:
+    filters = json.load(js)
 
 
 def save_json(JSON_INFO: Dict[Any, Any]) -> None:
@@ -28,17 +26,34 @@ def new_json() -> None:
         obj = {}
 
         obj["name"] = io.remove_extension(file)
-        obj["hash"] = positive_hash(file)
         obj["enabled"] = True
+        obj["filters"] = filters
+        obj["cuts"] = []
 
         JSON_INFO["objects"].append(obj)
+
+    music = os.listdir(MUSICS_PATH)
+    music.sort()
+    JSON_INFO["musics"] = []
+    for music_file in music:
+        if not music_file.endswith(".mp3"):
+            continue
+        obj = {}
+
+        obj["name"] = io.remove_extension(music_file)
+        obj["enabled"] = True
+
+        JSON_INFO["musics"].append(obj)
 
     save_json(JSON_INFO)
 
 
 def load_json() -> Dict[Any, Any]:
+    if not os.path.exists(SESSION):
+        os.mkdir(SESSION)
     if not os.path.exists(JSON_PATH):
         new_json()
+
     with open(JSON_PATH, "r") as f:
         JSON_INFO = json.load(f)
     return JSON_INFO

@@ -1,5 +1,6 @@
 import uvicorn
 
+from utils.constants import app  # pylint: disable=W0611
 import backend.startup  # pylint: disable=W0611
 import backend.routes  # pylint: disable=W0611
 

@@ -4,7 +4,6 @@
 	import Gallery from "./lib/components/gallery.svelte";
 	import Menubar from "./lib/components/menubar.svelte";
 	import Result from "./lib/components/result.svelte";
-	import Video from "./lib/components/video.svelte";
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
 	import Music from "./lib/components/music.svelte";
@@ -52,6 +51,11 @@
 	// 	}
 	// );
 </script>
+
+<!-- <Demo /> -->
+<div class="top">
+	<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
+</div>
 
 <main>
 	<SvelteToast />
@@ -114,5 +118,29 @@
 		--terciary-hover: #2e364a;
 
 		--white-text: #f0f0f0;
+	}
+	.top {
+		--toastContainerTop: 0.5rem;
+		--toastContainerRight: 0.5rem;
+		--toastContainerBottom: auto;
+		--toastContainerLeft: 0.5rem;
+		--toastWidth: 100%;
+		--toastMinHeight: 2rem;
+		--toastPadding: 0 0.5rem;
+		font-size: 0.9em;
+	}
+	@media (min-width: 40rem) {
+		.top {
+			--toastContainerRight: auto;
+			--toastContainerLeft: calc(50vw - 20rem);
+			--toastWidth: 40rem;
+		}
+	}
+
+	@media (max-width: 1000px) {
+		.top {
+			--toastWidth: 90vw;
+			--toastContainerLeft: 3vw;
+		}
 	}
 </style>

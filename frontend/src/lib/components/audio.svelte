@@ -51,7 +51,8 @@
         text-align: center;
         margin: auto;
         width: 100%;
-        padding: 10px;
+        padding-top: 10px;
+        padding-bottom: 10px;
         color: var(--white-text);
     }
     .trailing-menu {

@@ -3,11 +3,9 @@ import os
 import ffmpeg
 import progressbar
 
-from utils.constants import app, L, FRONTEND_PATH, SESSION, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
+from utils.constants import app, L, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
 import video.video as vid
-
-from backend.json_handling import new_json
 
 
 def extract_first_image_of_video(video_path: str, output: str) -> None:
@@ -45,10 +43,6 @@ def startup() -> None:
         os.mkdir(IMAGES_PATH)
     if not os.path.exists(TMP_PATH):
         os.mkdir(TMP_PATH)
-
-    if not os.path.exists(SESSION):
-        os.mkdir(SESSION)
-        new_json()
 
     print("Extracting thumbnails, snippets and frames")
     print("This may take a while if it's the first time you run the app")
