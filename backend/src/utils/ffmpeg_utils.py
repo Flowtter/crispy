@@ -129,12 +129,15 @@ def segment_video(video_path: str, save_path: str,
 
     dir_path = os.path.split(save_path)[0]
 
-    with open(os.path.join(dir_path, "info.json"), "r") as f:
-        r = json.load(f)
-        if "used" in r:
-            used = r["used"]
-        else:
-            used = []
+    if os.path.exists(os.path.join(dir_path, "info.json")):
+        with open(os.path.join(dir_path, "info.json"), "r") as f:
+            r = json.load(f)
+            if "used" in r:
+                used = r["used"]
+            else:
+                used = []
+    else:
+        used = []
 
     with open(os.path.join(dir_path, "info.json"), "w") as f:
         json.dump({
