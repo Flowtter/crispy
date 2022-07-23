@@ -45,6 +45,9 @@ async def reorder(data: List[Reorder]) -> Dict[Any, Any]:
         new_objects.append(image)
     JSON_INFO["objects"] = new_objects
 
+    with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
+        f.write("{}")
+
     save_json(JSON_INFO)
     return JSON_INFO
 
@@ -377,6 +380,9 @@ async def music_reorder(data: List[Reorder]) -> Dict[Any, Any]:
         music = next(filter(lambda x: x["name"] == datum.name, musics), None)
         new_musics.append(music)
     JSON_INFO["musics"] = new_musics
+
+    with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
+        f.write("{}")
 
     save_json(JSON_INFO)
     return JSON_INFO
