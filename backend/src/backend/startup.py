@@ -49,6 +49,9 @@ def startup() -> None:
     print("This may take a while if it's the first time you run the app")
     progress = progressbar.ProgressBar(max_value=len(files))
     for i, file in enumerate(files):
+        if not file.endswith(".mp4"):
+            continue
+
         progress.update(i)
         no_ext = io.remove_extension(file)
         im = os.path.join(IMAGES_PATH, no_ext)

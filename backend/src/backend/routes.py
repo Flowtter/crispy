@@ -230,6 +230,7 @@ async def single_video_generate_cuts(
             for i in range(len(cuts)):
                 if cuts[i][0] == old_cuts[i][0]:
                     cuts[i] = old_cuts[i]
+        cuts.sort(key=lambda x: int(x[0].split("-")[0]))
         JSON_INFO["objects"][objects.index(obj)]["cuts"] = cuts
 
         save_json(JSON_INFO)
