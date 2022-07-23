@@ -140,6 +140,8 @@ def get_kill_array_from_query_array(
             continue
 
         start = kill[0] - frames_before
+        start = max(start, 0)
+
         end = kill[-1] + frames_after
         result.append((start, end))
     return result

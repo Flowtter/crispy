@@ -327,6 +327,21 @@ def check_recompile(save_path: str, frame: Tuple[int, int],
             clip = clip_json
     length = len(clip["filters"])
 
+    union = []
+    converted = []
+    for filt in clip["filters"]:
+        converted.append(filt)
+        for filt_ in filter_list:
+            if filt_.filter.value == filt:
+                union.append(filt_.filter.value)
+                break
+
+    union.sort()
+    converted.sort()
+    print(union, converted)
+    if union != converted:
+        return True, clip
+
     for filt in filter_list:
         if filt.filter.value in clip["filters"]:
             if filt.option != clip["filters"][filt.filter.value]:
