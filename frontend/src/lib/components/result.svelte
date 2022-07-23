@@ -56,6 +56,7 @@
             </div>
         </div>
     {/if}
+    <br />
 </div>
 
 <style>
@@ -73,7 +74,7 @@
         justify-content: center;
         border-radius: 20px;
         position: relative;
-        margin: 1vh;
+        margin: 5vh;
     }
     video {
         width: 98%;

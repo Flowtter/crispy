@@ -18,7 +18,9 @@ disable=
     W0614,
     W1203,
     C3001,
-    C0123
+    C0123,
+    R0911,
+    R0912
 
 
 string-quote=double

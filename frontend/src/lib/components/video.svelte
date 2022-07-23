@@ -98,6 +98,7 @@
 
     let anyFilter = false;
     async function readFilters() {
+        anyFilter = false;
         let read = await axios.get(
             API_URL + "/objects/filters/" + filename + "/read"
         );

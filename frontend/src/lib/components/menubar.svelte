@@ -16,8 +16,31 @@
         "--toastBackground": "#2ecc71",
         "--toastBarBackground": "#27ae60",
     };
+    let redOptions = {
+        "--toastBackground": "#F56565",
+        "--toastBarBackground": "#C53030",
+    };
+    let generating = false;
+
+    async function lock() {
+        let gen = await axios.get(API_URL + "/generating");
+        console.log("generating rn", gen.data, generating);
+        gen = gen.data || generating;
+        if (gen) {
+            console.log("pushing already");
+            toast.push("Already generating", {
+                duration: 3000,
+                theme: redOptions,
+            });
+        }
+        console.log("so gen is", gen);
+        return gen;
+    }
 
     async function generateCuts() {
+        toast.pop(0);
+        if (await lock()) return;
+        generating = true;
         cutsDone = false;
         cuts = true;
         dispatch("clear", {});
@@ -31,11 +54,14 @@
                 if (first) first = false;
                 else await new Promise((resolve) => setTimeout(resolve, 1500));
 
-                const id = toast.push("Generating cut for " + object.name, {
-                    dismissable: false,
-                    initial: 0,
-                    next: 0,
-                });
+                const id = toast.push(
+                    'Generating cut for "<strong>' + object.name + '</strong>"',
+                    {
+                        dismissable: false,
+                        initial: 0,
+                        next: 0,
+                    }
+                );
                 let cuts = await axios.get(
                     API_URL + "/objects/" + object.name + "/generate-cuts"
                 );
@@ -47,9 +73,12 @@
                 // allow the backend to send the videos to the browser
                 // before rendering the next video
                 toast.pop(id);
-                toast.push("Cuts for " + object.name + " generated", {
-                    theme: greenOptions,
-                });
+                toast.push(
+                    'Cuts for "<strong>' + object.name + '</strong>" generated',
+                    {
+                        theme: greenOptions,
+                    }
+                );
             }
         }
         toast.push(
@@ -63,10 +92,13 @@
             }
         );
         cutsDone = true;
-        console.log(cutsDone);
+        generating = false;
     }
     async function generateResult() {
+        toast.pop(0);
+        if (await lock()) return;
         if (!cutsDone) return;
+        generating = true;
         result = false;
         toast.push("Generating result! This may take a while...", {
             duration: 10000,
@@ -86,7 +118,10 @@
             let object = objects[i];
             if (object.enabled) {
                 toast.set(id, {
-                    msg: "Generating final clip for " + object.name,
+                    msg:
+                        'Generating final clip for "<strong>' +
+                        object.name +
+                        '</strong>"',
                     next: i / length,
                 });
                 await axios.get(API_URL + "/generate-result/" + object.name);
@@ -105,6 +140,7 @@
             theme: greenOptions,
         });
         result = true;
+        generating = false;
     }
 
     function changeMenu(newMode) {

@@ -193,14 +193,26 @@ def convert_session_to_settings() -> None:
     settings["filters"] = convert_global_filters()["filters"]
 
     settings["clips"] = filters
-
     with open(SETTINGS_PATH, "w") as f:
         json.dump(settings, f, indent=4)
+
+
+#FIXME: bad usage of a "thread lock"
+GENERATING = False
+
+
+@app.get("/generating")
+def get_generating() -> bool:
+    return GENERATING
 
 
 @app.get("/objects/{filename}/generate-cuts")
 async def single_video_generate_cuts(
         filename: str) -> Union[List[Tuple[Any, bool]], HTTPException]:
+    global GENERATING
+    if GENERATING:
+        return HTTPException(status_code=503, detail="Generating")
+    GENERATING = True
     convert_session_to_settings()
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
@@ -235,7 +247,10 @@ async def single_video_generate_cuts(
 
         save_json(JSON_INFO)
 
+        GENERATING = False
         return cuts
+
+    GENERATING = False
     return HTTPException(status_code=403)
 
 
@@ -249,6 +264,10 @@ async def get_cut(filename: str, cut: str) -> FileResponse:
 @app.get("/generate-result/{filename}")
 async def generate_result_for_file(
         filename: str) -> Union[HTTPException, None]:
+    global GENERATING
+    if GENERATING:
+        return HTTPException(status_code=503, detail="Generating")
+    GENERATING = True
     objects = JSON_INFO["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
 
@@ -273,17 +292,32 @@ async def generate_result_for_file(
     # print(info["used"], used)
 
     if info["recompile"] or not "used" in info or info["used"] != used:
+        with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
+            f.write(json.dumps({"filename": obj["name"]}))
+
         vid.merge_cuts_with_files(cuts, save_path)
         info["recompile"] = False
         info["used"] = used
         with open(os.path.join(folder, "info.json"), "w") as f:
             json.dump(info, f, indent=4)
 
+    GENERATING = False
     return None
 
 
 @app.get("/generate-result")
-async def generate_result() -> None:
+async def generate_result() -> Union[HTTPException, None]:
+    global GENERATING
+    if GENERATING:
+        return HTTPException(status_code=503, detail="Generating")
+    GENERATING = True
+
+    if not os.path.exists(os.path.join(TMP_PATH, "recompile.json")):
+        GENERATING = False
+        return None
+
+    os.remove(os.path.join(TMP_PATH, "recompile.json"))
+
     clips = []
     for obj in JSON_INFO["objects"]:
         if obj["enabled"]:
@@ -295,7 +329,8 @@ async def generate_result() -> None:
     if os.path.exists("merged.jpg"):
         os.remove("merged.jpg")
     extract_first_image_of_video("merged.mp4", "merged")
-    print("Done")
+    GENERATING = False
+    return None
 
 
 @app.get("/result/video")
