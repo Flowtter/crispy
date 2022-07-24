@@ -5,7 +5,7 @@ import progressbar
 
 from utils.constants import app, L, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
-import utils.ffmpeg_utils as ff
+# import utils.ffmpeg_utils as ff
 import video.video as vid
 
 
@@ -57,7 +57,7 @@ def startup() -> None:
         im = os.path.join(IMAGES_PATH, no_ext)
         snip = os.path.join(FRONTEND_PATH, no_ext)
 
-        ff.scale_video(os.path.join(VIDEOS_PATH, file))
+        # ff.scale_video(os.path.join(VIDEOS_PATH, file))
 
         if not os.path.exists(snip + ".mp4"):
             extract_first_seconds_in_lower_res(os.path.join(VIDEOS_PATH, file),

@@ -6,7 +6,7 @@ python-dotenv==0.10.3
 
 # Crispy
 numpy==1.21.0 # crdaignore
-opencv-python==4.5.5.62 # TODO: use ffprobe instead
+# opencv-python==4.5.5.62 # TODO: use ffprobe instead
 librosa==0.9.1
 moviepy==1.0.3
 IPython==7.13.0
