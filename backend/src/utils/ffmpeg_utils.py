@@ -9,9 +9,8 @@ from typing import Optional, Any, List, Tuple
 
 import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
-import cv2
 
-from utils.constants import BACKUP, L, get_settings
+from utils.constants import L, get_settings
 from utils.filter import Filters
 from utils.IO import io
 
@@ -162,41 +161,41 @@ def find_available_path(video_path: str) -> str:
     return os.path.join(dirname, h)
 
 
-def scale_video(video_path: str) -> None:
-    """
-    Scale (up or down) a video.
-    """
-    if os.path.exists(video_path):
-        vid = cv2.VideoCapture(video_path)
-        width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
-        height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+# def scale_video(video_path: str) -> None:
+#     """
+#     Scale (up or down) a video.
+#     """
+# if os.path.exists(video_path):
+#     vid = cv2.VideoCapture(video_path)
+#     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+#     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        if width == 1920 and height == 1080:
-            return
+#     if width == 1920 and height == 1080:
+#         return
 
-        L.warning(f"\nWARNING:Scaling video {video_path}, saving a backup")
+#     L.warning(f"\nWARNING:Scaling video {video_path}, saving a backup")
 
-        if not os.path.exists(BACKUP):
-            os.makedirs(BACKUP)
+#     if not os.path.exists(BACKUP):
+#         os.makedirs(BACKUP)
 
-        shutil.copy(video_path,
-                    os.path.join(BACKUP, os.path.basename(video_path)))
+#     shutil.copy(video_path,
+#                 os.path.join(BACKUP, os.path.basename(video_path)))
 
-        save_path = find_available_path(video_path)
-        (
-            ffmpeg
-            .input(video_path)
-            .filter("scale", w=1920, h=1080)
-            .output(save_path, start_number=0)
-            .overwrite_output()
-            .run(quiet=True)
-        ) # yapf: disable
+#     save_path = find_available_path(video_path)
+#     (
+#         ffmpeg
+#         .input(video_path)
+#         .filter("scale", w=1920, h=1080)
+#         .output(save_path, start_number=0)
+#         .overwrite_output()
+#         .run(quiet=True)
+#     ) # yapf: disable
 
-        os.remove(video_path)
-        os.rename(save_path, video_path)
-        # check if image has to be upscaled or downscaled ?
-    else:
-        raise FileNotFoundError(f"{video_path} not found")
+#     os.remove(video_path)
+#     os.rename(save_path, video_path)
+#     # check if image has to be upscaled or downscaled ?
+# else:
+#     raise FileNotFoundError(f"{video_path} not found")
 
 
 def create_new_path(video_path: str) -> str:
