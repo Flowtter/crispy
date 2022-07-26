@@ -1,7 +1,7 @@
 <script>
     import axios from "axios";
     import { onMount } from "svelte";
-    import { API_URL } from "../../constants";
+    import { API_URL, globalError } from "../../constants.js";
 
     import Filters from "./filters.svelte";
 
@@ -19,10 +19,15 @@
             c = "/" + cuts;
         }
         let url = API_URL + "/objects/" + filename + c + "/info";
-        axios.get(url).then((response) => {
-            const res = response.data;
-            enabled = res.enabled ? "enabled" : "disabled";
-        });
+        axios
+            .get(url)
+            .then((response) => {
+                const res = response.data;
+                enabled = res.enabled ? "enabled" : "disabled";
+            })
+            .catch((error) => {
+                globalError(error);
+            });
     };
     onMount(fetch);
 

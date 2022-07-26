@@ -169,4 +169,8 @@ def merge_cuts_with_files(cuts: List[str], pth: str = "merged.mp4") -> None:
     """
     Merge the cuts
     """
-    ff.merge_videos(cuts, pth)
+    real_cuts = []
+    for cut in cuts:
+        if os.path.exists(cut):
+            real_cuts.append(cut)
+    ff.merge_videos(real_cuts, pth)

@@ -3,14 +3,21 @@
     import { onMount } from "svelte";
     import { flip } from "svelte/animate";
 
-    import { API_URL } from "../../constants.js";
+    import { API_URL, globalError, globalWarning } from "../../constants.js";
     import Video from "./video.svelte";
+
     export const fetch = () => {
         axios
             .get(API_URL)
             .then((response) => {
                 const res = response.data;
                 list = [];
+
+                if (res.objects.length >= 15) {
+                    globalWarning(
+                        "You have more than 70 clips. Some browser won't accept it."
+                    );
+                }
                 for (let i = 0; i < res.objects.length; i++) {
                     var name = res.objects[i].name;
                     var fullname = name;
@@ -28,7 +35,7 @@
                 }
             })
             .catch((error) => {
-                console.log(error);
+                globalError(error);
             });
     };
     onMount(fetch);
@@ -57,9 +64,13 @@
             tmp.push({ name: list[i].fullname });
         }
 
-        axios.post(API_URL + "/reorder", JSON.stringify(tmp), {
-            headers: { "Content-Type": "application/json" },
-        });
+        axios
+            .post(API_URL + "/reorder", JSON.stringify(tmp), {
+                headers: { "Content-Type": "application/json" },
+            })
+            .catch((error) => {
+                globalError(error);
+            });
     };
 
     const dragstart = (event, i) => {

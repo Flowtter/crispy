@@ -20,9 +20,6 @@ NN.load(NEURAL_NETWORK_PATH)
 
 JSON_INFO = load_json()
 
-# FIXME: rename image in obj
-# TODO: Split file in multiple sub files
-
 
 @app.get("/")
 def home() -> Dict[Any, Any]:
@@ -41,8 +38,8 @@ async def reorder(data: List[Reorder]) -> Dict[Any, Any]:
     objects = JSON_INFO["objects"]
     new_objects = []
     for datum in data:
-        image = next(filter(lambda x: x["name"] == datum.name, objects), None)
-        new_objects.append(image)
+        obj = next(filter(lambda x: x["name"] == datum.name, objects), None)
+        new_objects.append(obj)
     JSON_INFO["objects"] = new_objects
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
@@ -68,23 +65,23 @@ async def get_video(filename: str) -> FileResponse:
 async def get_object_info(
         filename: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
-    image = next(filter(lambda x: x["name"] == filename, objects), None)
+    obj = next(filter(lambda x: x["name"] == filename, objects), None)
 
-    if not image:
+    if not obj:
         return HTTPException(status_code=404, detail="Object not found")
 
-    return image
+    return obj
 
 
 @app.get("/objects/{filename}/{cut}/info")
 async def get_cut_info(filename: str,
                        cut: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
-    image = next(filter(lambda x: x["name"] == filename, objects), None)
+    obj = next(filter(lambda x: x["name"] == filename, objects), None)
 
-    if not image:
+    if not obj:
         return HTTPException(status_code=404, detail="Object not found")
-    cut = next(filter(lambda x: x[0] == cut, image["cuts"]), None)
+    cut = next(filter(lambda x: x[0] == cut, obj["cuts"]), None)
 
     if not cut:
         return HTTPException(status_code=404, detail="Cut not found")
@@ -95,49 +92,49 @@ async def get_cut_info(filename: str,
 @app.get("/objects/{filename}/switch")
 async def switch(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
-    image = next(filter(lambda x: x["name"] == filename, objects), None)
+    obj = next(filter(lambda x: x["name"] == filename, objects), None)
 
-    if not image:
+    if not obj:
         return HTTPException(status_code=404, detail="Object not found")
 
-    index = objects.index(image)
+    index = objects.index(obj)
 
-    image["enabled"] = not image["enabled"]
-    objects[index] = image
+    obj["enabled"] = not obj["enabled"]
+    objects[index] = obj
 
     JSON_INFO["objects"] = objects
 
     save_json(JSON_INFO)
 
-    return image["enabled"]
+    return obj["enabled"]
 
 
 @app.get("/objects/{filename}/{cut}/switch")
 async def switch_cut(filename: str,
                      cut: str) -> Union[Dict[Any, Any], HTTPException]:
     objects = JSON_INFO["objects"]
-    image = next(filter(lambda x: x["name"] == filename, objects), None)
+    obj = next(filter(lambda x: x["name"] == filename, objects), None)
 
-    if not image:
+    if not obj:
         return HTTPException(status_code=404, detail="Object not found")
 
-    found_cut = next(filter(lambda x: x[0] == cut, image["cuts"]), None)
+    found_cut = next(filter(lambda x: x[0] == cut, obj["cuts"]), None)
 
     if not found_cut:
         return HTTPException(status_code=404, detail="Cut not found")
 
-    index = objects.index(image)
-    objects[index] = image
+    index = objects.index(obj)
+    objects[index] = obj
 
-    c = image["cuts"].index(found_cut)
-    image["cuts"][c] = (image["cuts"][c][0], not image["cuts"][c][1])
-    objects[index] = image
+    c = obj["cuts"].index(found_cut)
+    obj["cuts"][c] = (obj["cuts"][c][0], not obj["cuts"][c][1])
+    objects[index] = obj
 
     JSON_INFO["objects"] = objects
 
     save_json(JSON_INFO)
 
-    return image["enabled"]
+    return obj["enabled"]
 
 
 # TODO: Merge two next functions
@@ -227,9 +224,6 @@ async def single_video_generate_cuts(
         no_ext = obj["name"]
         images_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext),
                                    IMAGE)
-        # DEBUG
-        # c = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), CUT)
-        # if len(os.listdir(c)) == 0:
 
         query_array = vid.get_query_array_from_video(NN, images_path)
         kill_array = vid.get_kill_array_from_query_array(query_array)
@@ -355,21 +349,21 @@ async def get_music(filename: str) -> FileResponse:
 @app.get("/musics/{filename}/switch")
 async def switch_music(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     musics = JSON_INFO["musics"]
-    image = next(filter(lambda x: x["name"] == filename, musics), None)
+    obj = next(filter(lambda x: x["name"] == filename, musics), None)
 
-    if not image:
+    if not obj:
         return HTTPException(status_code=404, detail="Object not found")
 
-    index = musics.index(image)
+    index = musics.index(obj)
 
-    image["enabled"] = not image["enabled"]
-    musics[index] = image
+    obj["enabled"] = not obj["enabled"]
+    musics[index] = obj
 
     JSON_INFO["musics"] = musics
 
     save_json(JSON_INFO)
 
-    return image["enabled"]
+    return obj["enabled"]
 
 
 @app.post("/musics/reorder")

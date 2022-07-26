@@ -2,8 +2,8 @@
     import { toast } from "@zerodevx/svelte-toast";
     import axios from "axios";
     import { onMount } from "svelte";
-    import { API_URL } from "../../constants";
-    import Filter from "./filter.svelte";
+    import { API_URL, globalError } from "../../constants";
+    import Filter from "./row.svelte";
 
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
@@ -59,14 +59,22 @@
 
     async function readFilters() {
         console.log(API_URL + "/" + filterRoute + "/read");
-        let read = await axios.get(API_URL + "/" + filterRoute + "/read");
+        let read = await axios
+            .get(API_URL + "/" + filterRoute + "/read")
+            .catch((error) => {
+                globalError(error);
+            });
         filters = read.data;
     }
     async function saveFilters() {
         let j = JSON.stringify(filters);
-        await axios.post(API_URL + "/" + filterRoute + "/save", j, {
-            headers: { "Content-Type": "application/json" },
-        });
+        await axios
+            .post(API_URL + "/" + filterRoute + "/save", j, {
+                headers: { "Content-Type": "application/json" },
+            })
+            .catch((error) => {
+                globalError(error);
+            });
     }
     onMount(readFilters);
     let filters = undefined;
