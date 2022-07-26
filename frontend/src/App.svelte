@@ -1,13 +1,13 @@
 <script>
 	import "./constants";
-	import Cut from "./lib/components/cut.svelte";
-	import Gallery from "./lib/components/gallery.svelte";
-	import Menubar from "./lib/components/menubar.svelte";
-	import Result from "./lib/components/result.svelte";
-	import Effects from "./lib/components/effects.svelte";
+	import Cut from "./lib/components/Cut.svelte";
+	import Gallery from "./lib/components/Gallery.svelte";
+	import Menubar from "./lib/components/Menubar.svelte";
+	import Result from "./lib/components/Result.svelte";
+	import Effects from "./lib/components/Effects.svelte";
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
-	import Music from "./lib/components/music.svelte";
+	import Music from "./lib/components/Music.svelte";
 	import { globalInfo } from "./constants";
 
 	let cuts = [];

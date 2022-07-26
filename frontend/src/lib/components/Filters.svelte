@@ -3,7 +3,7 @@
     import axios from "axios";
     import { onMount } from "svelte";
     import { API_URL, globalError } from "../../constants";
-    import Filter from "./row.svelte";
+    import Filter from "./Row.svelte";
 
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
