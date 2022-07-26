@@ -1,14 +1,13 @@
 <script>
     import "../../constants";
     import axios from "axios";
-    import { API_URL } from "../../constants";
+    import { API_URL, globalInfo } from "../../constants";
     import { createEventDispatcher } from "svelte";
     import { toast } from "@zerodevx/svelte-toast";
 
     const dispatch = createEventDispatcher();
 
     export let mode;
-    let cuts = false;
     let cutsDone = false;
     let result = false;
 
@@ -23,17 +22,18 @@
     let generating = false;
 
     async function lock() {
-        let gen = await axios.get(API_URL + "/generating");
+        let gen = await axios.get(API_URL + "/generating").catch((error) => {
+            globalError(error);
+            return;
+        });
         console.log("generating rn", gen.data, generating);
         gen = gen.data || generating;
         if (gen) {
-            console.log("pushing already");
             toast.push("Already generating", {
                 duration: 3000,
                 theme: redOptions,
             });
         }
-        console.log("so gen is", gen);
         return gen;
     }
 
@@ -42,18 +42,18 @@
         if (await lock()) return;
         generating = true;
         cutsDone = false;
-        cuts = true;
         dispatch("clear", {});
-        let objects = await axios.get(API_URL);
+        let objects = await axios.get(API_URL).catch((error) => {
+            globalError(error);
+            generating = false;
+            retun;
+        });
         toast.push("Generating cuts! Check the cut menu to see them", {
             duration: 5000,
         });
         for (let object of objects.data.objects) {
-            let first = true;
+            // console.log("loop:", first);
             if (object.enabled) {
-                if (first) first = false;
-                else await new Promise((resolve) => setTimeout(resolve, 1500));
-
                 const id = toast.push(
                     'Generating cut for "<strong>' + object.name + '</strong>"',
                     {
@@ -62,9 +62,13 @@
                         next: 0,
                     }
                 );
-                let cuts = await axios.get(
-                    API_URL + "/objects/" + object.name + "/generate-cuts"
-                );
+                let cuts = await axios
+                    .get(API_URL + "/objects/" + object.name + "/generate-cuts")
+                    .catch((error) => {
+                        generating = false;
+                        globalError(error);
+                        return;
+                    });
                 cuts = cuts.data;
                 dispatch("cuts", {
                     file: object.name,
@@ -81,15 +85,8 @@
                 );
             }
         }
-        toast.push(
-            "All cuts generated! You can now generate the montage in the cut menu > Generate result",
-            {
-                duration: 15000,
-                theme: {
-                    "--toastBackground": "#4299E1",
-                    "--toastBarBackground": "#2B6CB0",
-                },
-            }
+        globalInfo(
+            "All cuts generated! You can now generate the montage in the cut menu > Generate result"
         );
         cutsDone = true;
         generating = false;
@@ -110,7 +107,12 @@
             dismissable: false,
         });
 
-        let objects = await axios.get(API_URL);
+        let objects = await axios.get(API_URL).catch((error) => {
+            generating = false;
+            globalError(error);
+            return;
+        });
+
         objects = objects.data.objects.filter((object) => object.enabled);
 
         let length = objects.length + 1;
@@ -124,16 +126,25 @@
                         '</strong>"',
                     next: i / length,
                 });
-                await axios.get(API_URL + "/generate-result/" + object.name);
+                await axios
+                    .get(API_URL + "/generate-result/" + object.name)
+                    .catch((error) => {
+                        generating = false;
+                        globalError(error);
+                        return;
+                    });
             }
-            console.log(i, length);
         }
 
         toast.set(id, {
             msg: "Generating final montage",
             next: length - 1 / length,
         });
-        await axios.get(API_URL + "/generate-result");
+        await axios.get(API_URL + "/generate-result").catch((error) => {
+            generating = false;
+            globalError(error);
+            return;
+        });
 
         toast.pop(id);
         toast.push("Result generated!", {
@@ -144,11 +155,10 @@
     }
 
     function changeMenu(newMode) {
-        console.log("changeMenu", newMode, cuts, result);
         if (newMode === mode) {
             return;
         }
-        if (newMode === "cuts" && !cuts) {
+        if (newMode === "cuts" && !cutsDone) {
             return;
         }
         if (newMode === "result" && !result) {
@@ -170,7 +180,7 @@
         <button
             class={(mode === "cuts" ? "selected" : "") +
                 " " +
-                (cuts ? "" : "grey")}
+                (cutsDone ? "" : "grey")}
             on:click={() => changeMenu("cuts")}>CUTS</button
         >
         <p>|</p>

@@ -1,16 +1,10 @@
 <script>
     import AudioPlayer from "./audio.svelte";
-    import { API_URL } from "../../constants.js";
+    import { API_URL, globalError } from "../../constants.js";
 
-    let audioTracks = [
-        "https://sveltejs.github.io/assets/music/strauss.mp3",
-        "https://sveltejs.github.io/assets/music/holst.mp3",
-        "https://sveltejs.github.io/assets/music/satie.mp3",
-    ];
     //
     import axios from "axios";
     import { onMount } from "svelte";
-    import { flip } from "svelte/animate";
 
     export const fetch = () => {
         axios
@@ -28,7 +22,7 @@
                 console.log(list);
             })
             .catch((error) => {
-                console.log(error);
+                globalError(error);
             });
     };
     onMount(fetch);

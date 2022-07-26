@@ -1,4 +1,5 @@
 import os
+import time
 
 import ffmpeg
 import progressbar
@@ -47,7 +48,15 @@ def startup() -> None:
 
     print("Extracting thumbnails, snippets and frames")
     print("This may take a while if it's the first time you run the app")
+
+    if len(files) > 70:
+        print(
+            "Due to some browser restrictions, having more than 70 clips may produce errors"
+        )
+        time.sleep(3)
+
     progress = progressbar.ProgressBar(max_value=len(files))
+
     for i, file in enumerate(files):
         if not file.endswith(".mp4"):
             continue

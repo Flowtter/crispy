@@ -221,6 +221,9 @@ def merge_videos(videos_path: List[str], save_path: str) -> None:
     """
     Merge videos together.
     """
+    if len(videos_path) == 0:
+        return
+
     if len(videos_path) > 1:
         videos: List[Any] = []
         for video_path in videos_path:
@@ -337,7 +340,6 @@ def check_recompile(save_path: str, frame: Tuple[int, int],
 
     union.sort()
     converted.sort()
-    print(union, converted)
     if union != converted:
         return True, clip
 

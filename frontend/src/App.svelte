@@ -8,6 +8,7 @@
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
 	import Music from "./lib/components/music.svelte";
+	import { globalInfo } from "./constants";
 
 	let cuts = [];
 	let last_cut = null;
@@ -26,7 +27,6 @@
 			}
 		}
 		cuts.push({ file, cut });
-		console.log(cuts);
 	}
 
 	function changeMode(event) {
@@ -34,23 +34,14 @@
 	}
 
 	function clearCuts(event) {
-		console.log("clearCuts");
 		cuts = [];
 	}
-	// toast.push("Thanks for using Crispy!", {
-	// 	duration: 5000,
-	// });
-	// toast.push(
-	// 	"Activate the videos you want in your montage, then generate cuts!",
-	// 	{
-	// 		duration: 15000,
-	// 		theme: {
-	// 			"--toastBackground": "#4299E1",
-	// 			"--toastBarBackground": "#2B6CB0",
-	// 		},
-	// 		pausable: true,
-	// 	}
-	// );
+	toast.push("Thanks for using Crispy!", {
+		duration: 5000,
+	});
+	globalInfo(
+		"Activate the videos you want in your montage, then generate cuts!"
+	);
 </script>
 
 <!-- <Demo /> -->
