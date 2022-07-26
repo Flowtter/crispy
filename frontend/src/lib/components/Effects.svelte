@@ -1,5 +1,5 @@
 <script>
-    import Filters from "./filters.svelte";
+    import Filters from "./Filters.svelte";
 </script>
 
 <div class="component">

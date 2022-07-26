@@ -1,5 +1,5 @@
 <script>
-    import AudioPlayer from "./audio.svelte";
+    import AudioPlayer from "./Audio.svelte";
     import { API_URL, globalError } from "../../constants.js";
 
     //

@@ -1,7 +1,7 @@
 <script>
     import { API_URL } from "../../constants.js";
-    import Video from "./video.svelte";
-    import ChangePage from "./changePage.svelte";
+    import Video from "./Video.svelte";
+    import ChangePage from "./ChangePage.svelte";
 
     export let cuts;
 

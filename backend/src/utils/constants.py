@@ -68,4 +68,9 @@ app.add_middleware(
 
 SESSION = "session"
 JSON_PATH = os.path.join(SESSION, "info.json")
+
+#FIXME: session/filters.json
+#FIXME: settings.json (read only once)
+#FIXME: Remove the global variable json.info
+#TODO: Read every time the session.json
 ###

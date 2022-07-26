@@ -74,7 +74,8 @@
         justify-content: center;
         border-radius: 20px;
         position: relative;
-        margin: 5vh;
+        margin-left: 10vh;
+        margin-right: 10vh;
     }
     video {
         width: 98%;

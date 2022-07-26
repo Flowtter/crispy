@@ -3,7 +3,7 @@
     import { onMount } from "svelte";
     import { API_URL, globalError } from "../../constants.js";
 
-    import Filters from "./filters.svelte";
+    import Filters from "./Filters.svelte";
 
     import { toast } from "@zerodevx/svelte-toast";
 

@@ -4,7 +4,7 @@
     import { flip } from "svelte/animate";
 
     import { API_URL, globalError, globalWarning } from "../../constants.js";
-    import Video from "./video.svelte";
+    import Video from "./Video.svelte";
 
     export const fetch = () => {
         axios
