@@ -64,7 +64,7 @@ def get_filters() -> Dict[Any, Any]:
         return json.load(f)
 
 
-def get_info() -> Dict[Any, Any]:
+def get_session_info() -> Dict[Any, Any]:
     with open(JSON_PATH, "r") as f:
         return json.load(f)
 
@@ -82,8 +82,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#FIXME: session/filters.json
-#FIXME: settings.json (read only once)
 #FIXME: Remove the global variable json.info
 #TODO: Read every time the session.json
 ###

@@ -6,14 +6,16 @@ import progressbar
 
 from utils.constants import app, L, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
-# import utils.ffmpeg_utils as ff
+import utils.ffmpeg_utils as ff
 import video.video as vid
+from PIL import Image
 
 
 def extract_first_image_of_video(video_path: str, output: str) -> None:
     """Extract the first image of a video"""
     video = ffmpeg.input(video_path)
     image = video.output(f"{output}.jpg", vframes=1)
+    image = image.overwrite_output()
     image.run(quiet=True)
 
 
@@ -31,6 +33,11 @@ def extract_first_seconds_in_lower_res(video_path: str, output: str) -> None:
         video = video.filter("scale", w=w, h=h)
         video = video.output(f"{output}.mp4")
         video.run(quiet=True)
+
+
+def check_image_is_1080p(image_path: str) -> bool:
+    size = Image.open(image_path).size
+    return size[0] == 1920 and size[1] == 1080
 
 
 # TODO: check that ffmpeg is installed firstly
@@ -60,19 +67,23 @@ def startup() -> None:
     for i, file in enumerate(files):
         if not file.endswith(".mp4"):
             continue
+        video = os.path.join(VIDEOS_PATH, file)
 
         progress.update(i)
         no_ext = io.remove_extension(file)
         im = os.path.join(IMAGES_PATH, no_ext)
         snip = os.path.join(FRONTEND_PATH, no_ext)
 
-        # ff.scale_video(os.path.join(VIDEOS_PATH, file))
+        extract_first_image_of_video(video, im)
+
+        if not check_image_is_1080p(im + ".jpg"):
+            ff.scale_video(video)
+
+        extract_first_image_of_video(snip + ".mp4", im)
 
         if not os.path.exists(snip + ".mp4"):
             extract_first_seconds_in_lower_res(os.path.join(VIDEOS_PATH, file),
                                                snip)
-        if not os.path.exists(im + ".jpg"):
-            extract_first_image_of_video(snip + ".mp4", im)
 
         video_clean_name = io.generate_clean_name(no_ext)
         if not os.path.exists(os.path.join(TMP_PATH, video_clean_name)):
