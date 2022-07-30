@@ -10,7 +10,7 @@ from typing import Optional, Any, List, Tuple
 import ffmpeg
 from PIL import Image, ImageFilter, ImageOps
 
-from utils.constants import L, get_settings
+from utils.constants import L, get_filters
 from utils.filter import Filters
 from utils.IO import io
 
@@ -161,6 +161,7 @@ def find_available_path(video_path: str) -> str:
     return os.path.join(dirname, h)
 
 
+# FIXME: use precondition
 # def scale_video(video_path: str) -> None:
 #     """
 #     Scale (up or down) a video.
@@ -266,17 +267,17 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
 
 
 def find_filters(video_path: str) -> List[Filters]:
-    SETTINGS = get_settings()
+    FILTERS = get_filters()
     global_filters: List[Filters] = []
-    if "filters" in SETTINGS:
-        for filt in SETTINGS["filters"].items():
+    if "filters" in FILTERS:
+        for filt in FILTERS["filters"].items():
             global_filters.append(Filters(filt[0], filt[1]))
 
     video_name = os.path.split(video_path)[-1]
     no_ext = io.remove_extension(video_name)
-    if "clips" in SETTINGS:
-        if no_ext in SETTINGS["clips"]:
-            for filt, value in SETTINGS["clips"][no_ext].items():
+    if "clips" in FILTERS:
+        if no_ext in FILTERS["clips"]:
+            for filt, value in FILTERS["clips"][no_ext].items():
                 found = False
                 for i in range(len(global_filters)):
                     if global_filters[i].filter.value == filt:
