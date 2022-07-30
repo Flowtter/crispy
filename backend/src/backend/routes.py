@@ -9,11 +9,20 @@ from fastapi.encoders import jsonable_encoder
 
 from AI.network import NeuralNetwork
 from utils.IO import io
-from utils.constants import CUT, MUSICS_PATH, SETTINGS_PATH, TMP_PATH, VIDEOS_PATH, app, FRONTEND_PATH, IMAGES_PATH, NEURAL_NETWORK_PATH, IMAGE
+from utils.constants import CUT, FILTERS_PATH, MUSICS_PATH, TMP_PATH, VIDEOS_PATH, app, FRONTEND_PATH, IMAGES_PATH, NEURAL_NETWORK_PATH, IMAGE
 import video.video as vid
 from backend.json_handling import load_json, save_json, new_json
 from backend.dto import Filters, Reorder
 from backend.startup import extract_first_image_of_video
+
+# FIXME: routes are taking too long
+# Should instead create a job in the bg
+# and ping it till it ends instead of
+# blocking the backend
+# But since ffmpeg uses 100% of the cpu
+# This might not be possible
+# We should then create a thread handling ffmpeg
+# and allocate only a fraction of the cpu's power
 
 NN = NeuralNetwork([4000, 120, 15, 2], 0.01)
 NN.load(NEURAL_NETWORK_PATH)
@@ -187,14 +196,13 @@ def convert_session_to_settings() -> None:
             if filt[no_ext]:
                 filters[no_ext] = filt[no_ext]
 
-    with open(SETTINGS_PATH, "r") as f:
-        settings = json.load(f)
+    final_filters = {}
 
-    settings["filters"] = convert_global_filters()["filters"]
+    final_filters["filters"] = convert_global_filters()["filters"]
 
-    settings["clips"] = filters
-    with open(SETTINGS_PATH, "w") as f:
-        json.dump(settings, f, indent=4)
+    final_filters["clips"] = filters
+    with open(FILTERS_PATH, "w") as f:
+        json.dump(final_filters, f, indent=4)
 
 
 #FIXME: bad usage of a "thread lock"

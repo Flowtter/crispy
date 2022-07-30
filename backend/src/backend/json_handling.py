@@ -3,7 +3,7 @@ import json
 
 from typing import Dict, Any
 
-from utils.constants import JSON_PATH, MUSICS_PATH, SESSION, ASSETS, VIDEOS_PATH
+from utils.constants import FILTERS_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS, VIDEOS_PATH
 from utils.IO import io
 
 with open(os.path.join(ASSETS, "filters.json"), "r") as js:
@@ -13,6 +13,11 @@ with open(os.path.join(ASSETS, "filters.json"), "r") as js:
 def save_json(JSON_INFO: Dict[Any, Any]) -> None:
     with open(JSON_PATH, "w") as f:
         json.dump(JSON_INFO, f, indent=4)
+
+
+def save_filters_json(FILTERS: Dict[Any, Any]) -> None:
+    with open(FILTERS_PATH, "w") as f:
+        json.dump(FILTERS, f, indent=4)
 
 
 def new_json() -> None:

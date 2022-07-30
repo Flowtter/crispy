@@ -45,11 +45,27 @@ NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
 ### CODE_PATH ###
 
 ### SETTINGS ###
+SESSION = "session"
+
 SETTINGS_PATH = "settings.json"
+FILTERS_PATH = os.path.join(SESSION, "filters.json")
+JSON_PATH = os.path.join(SESSION, "info.json")
+
+with open(SETTINGS_PATH, "r") as s:
+    settings = json.load(s)
 
 
 def get_settings() -> Dict[Any, Any]:
-    with open(SETTINGS_PATH, "r") as f:
+    return settings
+
+
+def get_filters() -> Dict[Any, Any]:
+    with open(FILTERS_PATH, "r") as f:
+        return json.load(f)
+
+
+def get_info() -> Dict[Any, Any]:
+    with open(JSON_PATH, "r") as f:
         return json.load(f)
 
 
@@ -65,9 +81,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-SESSION = "session"
-JSON_PATH = os.path.join(SESSION, "info.json")
 
 #FIXME: session/filters.json
 #FIXME: settings.json (read only once)
