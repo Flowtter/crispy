@@ -19,7 +19,7 @@ def extract_first_image_of_video(video_path: str, output: str) -> None:
     image.run(quiet=True)
 
 
-def extract_first_seconds_in_lower_res(video_path: str, output: str) -> None:
+def extract_snippet_in_lower_res(video_path: str, output: str) -> None:
     """Extract the 5 first secondes of a video"""
     w, h = 640, 360
     try:
@@ -74,17 +74,20 @@ def startup() -> None:
         im = os.path.join(IMAGES_PATH, no_ext)
         snip = os.path.join(FRONTEND_PATH, no_ext)
 
+        # check that the video is in 1080p
         extract_first_image_of_video(video, im)
-
         if not check_image_is_1080p(im + ".jpg"):
+            # convert if not the case (old video saved in /backup)
             ff.scale_video(video)
 
+        # create a snippet of the video
+        if not os.path.exists(snip + ".mp4"):
+            extract_snippet_in_lower_res(video, snip)
+
+        # create a thumbnail of the snippet
         extract_first_image_of_video(snip + ".mp4", im)
 
-        if not os.path.exists(snip + ".mp4"):
-            extract_first_seconds_in_lower_res(os.path.join(VIDEOS_PATH, file),
-                                               snip)
-
+        # extract frame of the 1080p video
         video_clean_name = io.generate_clean_name(no_ext)
         if not os.path.exists(os.path.join(TMP_PATH, video_clean_name)):
             io.generate_folder_clip(video_clean_name)
