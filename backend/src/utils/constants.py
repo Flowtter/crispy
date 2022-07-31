@@ -64,11 +64,6 @@ def get_filters() -> Dict[Any, Any]:
         return json.load(f)
 
 
-def get_session_info() -> Dict[Any, Any]:
-    with open(JSON_PATH, "r") as f:
-        return json.load(f)
-
-
 ### SETTINGS ###
 
 ### BACKEND ###

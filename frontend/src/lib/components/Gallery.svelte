@@ -65,7 +65,7 @@
         }
 
         axios
-            .post(API_URL + "/reorder", JSON.stringify(tmp), {
+            .post(API_URL + "/objects/reorder", JSON.stringify(tmp), {
                 headers: { "Content-Type": "application/json" },
             })
             .catch((error) => {

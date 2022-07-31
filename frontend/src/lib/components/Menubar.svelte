@@ -22,12 +22,12 @@
     let generating = false;
 
     async function lock() {
-        let gen = await axios.get(API_URL + "/generating").catch((error) => {
-            globalError(error);
-            return;
-        });
-        console.log("generating rn", gen.data, generating);
-        gen = gen.data || generating;
+        // let gen = await axios.get(API_URL + "/generating").catch((error) => {
+        //     globalError(error);
+        //     return;
+        // });
+        // gen = gen.data || generating;
+        let gen = generating;
         if (gen) {
             toast.push("Already generating", {
                 duration: 3000,
@@ -63,7 +63,7 @@
                     }
                 );
                 let cuts = await axios
-                    .get(API_URL + "/objects/" + object.name + "/generate-cuts")
+                    .get(API_URL + "/result/" + object.name + "/generate-cuts")
                     .catch((error) => {
                         generating = false;
                         globalError(error);
@@ -127,7 +127,7 @@
                     next: i / length,
                 });
                 await axios
-                    .get(API_URL + "/generate-result/" + object.name)
+                    .get(API_URL + "/result/generate-result/" + object.name)
                     .catch((error) => {
                         generating = false;
                         globalError(error);
@@ -140,7 +140,7 @@
             msg: "Generating final montage",
             next: length - 1 / length,
         });
-        await axios.get(API_URL + "/generate-result").catch((error) => {
+        await axios.get(API_URL + "/result/generate-result").catch((error) => {
             generating = false;
             globalError(error);
             return;

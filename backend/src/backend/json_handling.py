@@ -7,7 +7,7 @@ from utils.constants import FILTERS_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSET
 from utils.IO import io
 
 with open(os.path.join(ASSETS, "filters.json"), "r") as js:
-    filters = json.load(js)
+    template_filters = json.load(js)
 
 
 def save_json(JSON_INFO: Dict[Any, Any]) -> None:
@@ -24,7 +24,7 @@ def new_json() -> None:
     files = os.listdir(VIDEOS_PATH)
     files.sort()
     JSON_INFO: Dict[Any, Any] = {}
-    JSON_INFO["filters"] = filters
+    JSON_INFO["filters"] = template_filters
     JSON_INFO["objects"] = []
     for file in files:
         if not file.endswith(".mp4"):
@@ -33,7 +33,7 @@ def new_json() -> None:
 
         obj["name"] = io.remove_extension(file)
         obj["enabled"] = True
-        obj["filters"] = filters
+        obj["filters"] = template_filters
         obj["cuts"] = []
 
         JSON_INFO["objects"].append(obj)
@@ -54,7 +54,7 @@ def new_json() -> None:
     save_json(JSON_INFO)
 
 
-def load_json() -> Dict[Any, Any]:
+def get_session_json() -> Dict[Any, Any]:
     if not os.path.exists(SESSION):
         os.mkdir(SESSION)
     if not os.path.exists(JSON_PATH):

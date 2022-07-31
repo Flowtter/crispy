@@ -106,12 +106,10 @@ def segment_video(video_path: str, save_path: str,
             ffmpeg
             .input(video_path)
         ) # yapf: disable
-        old = video
-        video, filter_json = apply_filter(video, video_path, frame_json,
-                                          save_path)
+        video, filter_json, recompile = apply_filter(video, video_path,
+                                                     frame_json, save_path)
 
-        if video != old or not check_exists((frame[0], frame[1]), save_path):
-            recompile = True
+        if recompile or not check_exists((frame[0], frame[1]), save_path):
             video = video.output(os.path.join(save_path,
                                               f"{frame[0]}-{frame[1]}.mp4"),
                                  ss=f"{start}",
@@ -248,7 +246,7 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
 
     check, json_ = check_recompile(save_path, (start, end), global_filters)
     if not check:
-        return video, json_
+        return video, json_, False
 
     for filt in global_filters:
         old = video
@@ -257,7 +255,7 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
             L.debug(f"Applying filter {filt.filter.name} {filt.option}")
             frame_json["filters"][filt.filter.value] = filt.option
 
-    return video, json_
+    return video, json_, True
 
 
 def find_filters(video_path: str) -> List[Filters]:
@@ -335,6 +333,7 @@ def check_recompile(save_path: str, frame: Tuple[int, int],
 
     union.sort()
     converted.sort()
+    print("filters", union, converted)
     if union != converted:
         return True, clip
 
