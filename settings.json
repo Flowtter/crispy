@@ -1,0 +1,11 @@
+{
+    "neural-network": {
+        "confidence": 0.8
+    },
+    "clip": {
+        "framerate": 8,
+        "second-before": 3,
+        "second-after": 0.5,
+        "second-between-kills": 1
+    }
+}
