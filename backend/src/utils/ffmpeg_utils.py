@@ -217,32 +217,43 @@ def create_new_path(video_path: str) -> str:
 
 def merge_videos(videos_path: List[str],
                  save_path: str,
-                 add_music: bool = False) -> None:
+                 final_merge: bool = False) -> None:
     """
     Merge videos together.
     """
     if len(videos_path) == 0:
         return
 
-    print(videos_path, save_path, add_music)
+    # print(videos_path, save_path, final_merge)
 
-    if len(videos_path) > 1 or add_music:
+    if len(videos_path) > 1 or final_merge:
         clips = []
 
         for filename in videos_path:
             clips.append(mpe.VideoFileClip(filename))
 
+        # time = 1
+        # effects_clips = [
+        # mpe.CompositeVideoClip(
+        # [clip.fx(mpe.transfx.slide_in, time, "top")]) for clip in clips
+        # ]
+
         final_clip = mpe.concatenate_videoclips(clips)
 
-        if add_music:
+        # final_clip = mpe.CompositeVideoClip(clips)
+
+        if final_merge:
             music = mpe.AudioFileClip(
                 os.path.join(MUSIC_MERGE_FOLDER, "merged.mp3"))
 
             final_audio = mpe.CompositeAudioClip([final_clip.audio, music])
             final_audio = final_audio.subclip(0, final_clip.duration)
             final_clip.audio = final_audio
-
-        final_clip.write_videofile(save_path, verbose=False, logger=None)
+        final_clip.write_videofile(save_path,
+                                   preset="superfast",
+                                   verbose=False,
+                                   logger=None)
+        # ffmpeg_params=["-vcodec", "copy"])
     else:
         print("Only one video, no need to merge, copying...")
         shutil.copyfile(videos_path[0], save_path)

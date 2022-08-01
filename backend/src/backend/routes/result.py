@@ -178,7 +178,6 @@ def get_music_list() -> List[str]:
         if music["enabled"]:
             res.append(os.path.join(MUSICS_PATH, music["name"] + ".mp3"))
 
-    print("res", res)
     return res
 
 
