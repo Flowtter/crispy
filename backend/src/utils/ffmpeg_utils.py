@@ -8,9 +8,10 @@ import datetime
 from typing import Optional, Any, List, Tuple
 
 import ffmpeg
+import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
-from utils.constants import BACKUP, L, get_filters
+from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters
 from utils.filter import Filters
 from utils.IO import io
 
@@ -106,15 +107,20 @@ def segment_video(video_path: str, save_path: str,
             ffmpeg
             .input(video_path)
         ) # yapf: disable
+        audio = video.audio
+
         video, filter_json, recompile = apply_filter(video, video_path,
                                                      frame_json, save_path)
 
         if recompile or not check_exists((frame[0], frame[1]), save_path):
-            video = video.output(os.path.join(save_path,
-                                              f"{frame[0]}-{frame[1]}.mp4"),
-                                 ss=f"{start}",
-                                 to=f"{end}",
-                                 preset="ultrafast")
+            video_save_path = os.path.join(save_path,
+                                           f"{frame[0]}-{frame[1]}.mp4")
+            video = ffmpeg.output(video,
+                                  audio,
+                                  video_save_path,
+                                  ss=f"{start}",
+                                  to=f"{end}",
+                                  preset="ultrafast")
             video = video.overwrite_output()
             video.run(quiet=True)
             L.debug(f"{frame[0]}-{frame[1]}.mp4 created or modified")
@@ -209,29 +215,37 @@ def create_new_path(video_path: str) -> str:
     return res
 
 
-# FIXME: audio
-def merge_videos(videos_path: List[str], save_path: str) -> None:
+def merge_videos(videos_path: List[str],
+                 save_path: str,
+                 add_music: bool = False) -> None:
     """
     Merge videos together.
     """
     if len(videos_path) == 0:
         return
 
-    if len(videos_path) > 1:
-        videos: List[Any] = []
-        for video_path in videos_path:
-            videos.append(ffmpeg.input(video_path))
-        (
-            ffmpeg
-            .concat(*videos)
-            .output(save_path)
-            .overwrite_output()
-            .run(quiet=True)
-        ) # yaPf: disable
+    print(videos_path, save_path, add_music)
+
+    if len(videos_path) > 1 or add_music:
+        clips = []
+
+        for filename in videos_path:
+            clips.append(mpe.VideoFileClip(filename))
+
+        final_clip = mpe.concatenate_videoclips(clips)
+
+        if add_music:
+            music = mpe.AudioFileClip(
+                os.path.join(MUSIC_MERGE_FOLDER, "merged.mp3"))
+
+            final_audio = mpe.CompositeAudioClip([final_clip.audio, music])
+            final_audio = final_audio.subclip(0, final_clip.duration)
+            final_clip.audio = final_audio
+
+        final_clip.write_videofile(save_path, verbose=False, logger=None)
     else:
         print("Only one video, no need to merge, copying...")
         shutil.copyfile(videos_path[0], save_path)
-        print("Copy done")
 
 
 def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,

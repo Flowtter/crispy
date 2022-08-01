@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from AI.network import NeuralNetwork
 import video.video as vid
 from utils.IO import io
-from utils.constants import FILTERS_PATH, IMAGE, NEURAL_NETWORK_PATH, VIDEOS_PATH, app, CUT, TMP_PATH
+from utils.constants import FILTERS_PATH, IMAGE, MUSICS_PATH, NEURAL_NETWORK_PATH, VIDEOS_PATH, app, CUT, TMP_PATH
 from backend.json_handling import get_session_json, save_json
 from backend.startup import extract_first_image_of_video
 
@@ -40,8 +40,6 @@ async def generate_result_for_file(
 
     with open(os.path.join(folder, "info.json"), "r") as f:
         info = json.load(f)
-
-    # print(info["used"], used)
 
     if info["recompile"] or not "used" in info or info["used"] != used:
         with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
@@ -170,6 +168,20 @@ async def single_video_generate_cuts(
     return HTTPException(status_code=403)
 
 
+def get_music_list() -> List[str]:
+    session = get_session_json()
+    musics = session["musics"]
+
+    res = []
+
+    for music in musics:
+        if music["enabled"]:
+            res.append(os.path.join(MUSICS_PATH, music["name"] + ".mp3"))
+
+    print("res", res)
+    return res
+
+
 @app.get("/result/generate-result")
 async def generate_result() -> Union[HTTPException, None]:
     if not os.path.exists(os.path.join(TMP_PATH, "recompile.json")):
@@ -183,11 +195,14 @@ async def generate_result() -> Union[HTTPException, None]:
     clips = []
     for obj in objects:
         if obj["enabled"]:
-            cn = io.generate_clean_name(obj["name"])
-            clips.append(os.path.join(TMP_PATH, cn, "merged.mp4"))
+            for cut in obj["cuts"]:
+                if cut[1]:
+                    cn = io.generate_clean_name(obj["name"])
+                    clips.append(os.path.join(TMP_PATH, cn, "merged.mp4"))
+                    break
 
     print("final clips", clips)
-    vid.merge_cuts_with_files(clips)
+    vid.merge_cuts_with_files(clips, audio=get_music_list())
     if os.path.exists("merged.jpg"):
         os.remove("merged.jpg")
     extract_first_image_of_video("merged.mp4", "merged")

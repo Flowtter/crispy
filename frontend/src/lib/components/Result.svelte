@@ -25,13 +25,14 @@
             else e.target.pause();
         }
     }
+    let t = Date.now();
 </script>
 
 <div class="object">
     <div class="title">merged.mp4</div>
     <video
-        poster={API_URL + "/result/image"}
-        src={API_URL + "/result/video"}
+        poster={API_URL + "/result/image?t=" + t}
+        src={API_URL + "/result/video?t=" + t}
         on:mousedown={handleMousedown}
         on:mouseup={handleMouseup}
         bind:currentTime={time}

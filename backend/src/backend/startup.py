@@ -1,10 +1,11 @@
 import os
+import shutil
 import time
 
 import ffmpeg
 import progressbar
 
-from utils.constants import app, L, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
+from utils.constants import app, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
 import utils.ffmpeg_utils as ff
 import video.video as vid
@@ -19,20 +20,20 @@ def extract_first_image_of_video(video_path: str, output: str) -> None:
     image.run(quiet=True)
 
 
+# TODO: try excepte is **probably** not necessary
 def extract_snippet_in_lower_res(video_path: str, output: str) -> None:
     """Extract the 5 first secondes of a video"""
     w, h = 640, 360
+    output_path = f"{output}.mp4"
     try:
         video = ffmpeg.input(video_path, sseof="-20")
+        audio = video.audio
         video = video.filter("scale", w=w, h=h)
-        video = video.output(f"{output}.mp4", t="00:00:10")
+        video = ffmpeg.output(video, audio, output_path, t="00:00:10")
         video.run(quiet=True)
     except ffmpeg.Error as e:
-        L.error(f"For video {video_path}, ffmpeg error: {e}")
-        video = ffmpeg.input(video_path)
-        video = video.filter("scale", w=w, h=h)
-        video = video.output(f"{output}.mp4")
-        video.run(quiet=True)
+        print("exctract snippet in lower res failed", e)
+        shutil.copy(video_path, output_path)
 
 
 def check_image_is_1080p(image_path: str) -> bool:

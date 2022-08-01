@@ -15,6 +15,19 @@ async def get_music(filename: str) -> FileResponse:
     return FileResponse(os.path.join(MUSICS_PATH, filename + ".mp3"))
 
 
+@app.get("/musics/{filename}/info")
+async def info_music(filename: str) -> Union[bool, HTTPException]:
+    session = get_session_json()
+    musics = session["musics"]
+
+    music = next(filter(lambda x: x["name"] == filename, musics), None)
+
+    if not music:
+        return HTTPException(status_code=404, detail="Music not found")
+
+    return music["enabled"]
+
+
 @app.get("/musics/{filename}/switch")
 async def switch_music(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
@@ -37,6 +50,9 @@ async def switch_music(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
         f.write("{\"switch\":true}")
 
+    with open(os.path.join(TMP_PATH, "music.json"), "w") as f:
+        f.write("{\"switch\":true}")
+
     return music["enabled"]
 
 
@@ -53,6 +69,9 @@ async def music_reorder(data: List[Reorder]) -> Dict[Any, Any]:
     session["musics"] = new_musics
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
+        f.write("{\"reorder\":true}")
+
+    with open(os.path.join(TMP_PATH, "music.json"), "w") as f:
         f.write("{\"reorder\":true}")
 
     save_json(session)

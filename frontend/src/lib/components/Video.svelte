@@ -126,7 +126,7 @@
     <div class={enabled}>
         <video
             poster={API_URL + "/objects/" + filename + "/image"}
-            src={videoUrl}
+            src={videoUrl + "?t=" + Date.now()}
             on:mousedown={handleMousedown}
             on:mouseup={handleMouseup}
             bind:currentTime={time}
@@ -157,8 +157,8 @@
                 >FILTER</button
             >
             <p>|</p>
-            <button class={anyTransition ? "green" : ""}>TRANSITION</button>
-            <p>|</p>
+            <!-- <button class={anyTransition ? "green" : ""}>TRANSITION</button>
+            <p>|</p> -->
             <button on:click={handleSwitch}
                 >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
             >
