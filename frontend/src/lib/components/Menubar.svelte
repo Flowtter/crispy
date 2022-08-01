@@ -42,6 +42,7 @@
         if (await lock()) return;
         generating = true;
         cutsDone = false;
+        result = false;
         dispatch("clear", {});
         let objects = await axios.get(API_URL).catch((error) => {
             globalError(error);

@@ -37,6 +37,7 @@ TMP_PATH = os.path.join(GLOBAL_PATH, "tmp")
 RESOURCE_PATH = os.path.join(GLOBAL_PATH, "resources")
 VIDEOS_PATH = os.path.join(RESOURCE_PATH, VIDEO)
 MUSICS_PATH = os.path.join(RESOURCE_PATH, MUSIC)
+MUSIC_MERGE_FOLDER = os.path.join(TMP_PATH, MUSIC)
 
 IMAGES_PATH = os.path.join(TMP_PATH, IMAGE)
 FRONTEND_PATH = os.path.join(TMP_PATH, FRONTEND)

@@ -1,6 +1,8 @@
 <script>
-    import { API_URL } from "../../constants.js";
+    import { API_URL, globalError } from "../../constants.js";
     import axios from "axios";
+    import { onMount } from "svelte";
+
     export let src;
     let basename = src.split("/").pop();
     let volume = 0.5;
@@ -11,6 +13,21 @@
         axios.get(url);
         enabled = enabled == "disabled" ? "enabled" : "disabled";
     }
+
+    const fetch = () => {
+        let url = API_URL + "/musics/" + basename + "/info";
+        axios
+            .get(url)
+            .then((response) => {
+                const res = response.data;
+                enabled = res ? "enabled" : "disabled";
+                // console.log("music", basename, enabled, res);
+            })
+            .catch((error) => {
+                globalError(error);
+            });
+    };
+    onMount(fetch);
 </script>
 
 <div class={enabled === "enabled" ? "" : "disabled"}>
@@ -19,7 +36,6 @@
         <audio {src} controls bind:volume>
             <track kind="captions" />
         </audio>
-        <br />
         <div class="trailing-menu">
             <button class="only" on:click={handleSwitch}
                 >{enabled === "enabled" ? "HIDE" : "SHOW"}</button

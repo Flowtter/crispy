@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import os
 
 from PIL import Image
@@ -8,6 +8,7 @@ from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT, get_sett
 import utils.ffmpeg_utils as ff
 from utils.IO import io
 from AI.network import NeuralNetwork
+import music.music as mu
 
 
 def get_saving_path(video: str) -> str:
@@ -165,7 +166,9 @@ def merge_cuts() -> None:
     ff.merge_videos(cuts, "merged.mp4")
 
 
-def merge_cuts_with_files(cuts: List[str], pth: str = "merged.mp4") -> None:
+def merge_cuts_with_files(cuts: List[str],
+                          pth: str = "merged.mp4",
+                          audio: Union[List[str], None] = None) -> None:
     """
     Merge the cuts
     """
@@ -173,4 +176,9 @@ def merge_cuts_with_files(cuts: List[str], pth: str = "merged.mp4") -> None:
     for cut in cuts:
         if os.path.exists(cut):
             real_cuts.append(cut)
-    ff.merge_videos(real_cuts, pth)
+
+    if audio:
+        mu.concat_musics(audio)
+        ff.merge_videos(real_cuts, pth, True)
+    else:
+        ff.merge_videos(real_cuts, pth)
