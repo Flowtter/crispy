@@ -1,4 +1,4 @@
 #!/bin/sh
 
-google-chrome frontend/index.html
+sensible-browser frontend/index.html
 python3 backend/src/app.py
