@@ -1,6 +1,8 @@
 import os
 import shutil
+import sys
 import time
+import subprocess
 
 import ffmpeg
 import progressbar
@@ -41,9 +43,23 @@ def check_image_is_1080p(image_path: str) -> bool:
     return size[0] == 1920 and size[1] == 1080
 
 
+def check_ffmpeg_is_installed() -> bool:
+    """Check if ffmpeg is installed"""
+    try:
+        subprocess.check_output(["ffmpeg", "-version"])
+        return True
+    except FileNotFoundError as e:
+        print("\n\nffmpeg is not installed\n\t\"", e, "\"\n\n")
+        return False
+
 # TODO: check that ffmpeg is installed firstly
+
+
 @app.on_event("startup")
 def startup() -> None:
+    if not check_ffmpeg_is_installed():
+        sys.exit(1)
+
     files = os.listdir(VIDEOS_PATH)
     files.sort()
 
