@@ -77,7 +77,4 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-#FIXME: Remove the global variable json.info
-#TODO: Read every time the session.json
 ###
