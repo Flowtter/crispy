@@ -8,7 +8,7 @@
 
     export const fetch = () => {
         axios
-            .get(API_URL)
+            .get(API_URL + "/")
             .then((response) => {
                 const res = response.data;
                 list = [];
