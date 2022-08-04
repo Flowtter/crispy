@@ -44,7 +44,7 @@
         cutsDone = false;
         result = false;
         dispatch("clear", {});
-        let objects = await axios.get(API_URL).catch((error) => {
+        let objects = await axios.get(API_URL + "/").catch((error) => {
             globalError(error);
             generating = false;
             retun;
@@ -108,7 +108,7 @@
             dismissable: false,
         });
 
-        let objects = await axios.get(API_URL).catch((error) => {
+        let objects = await axios.get(API_URL + "/").catch((error) => {
             generating = false;
             globalError(error);
             return;
