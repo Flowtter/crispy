@@ -1,7 +1,7 @@
 <script>
     import "../../constants";
     import axios from "axios";
-    import { API_URL, globalInfo } from "../../constants";
+    import { API_URL, globalInfo, globalError } from "../../constants";
     import { createEventDispatcher } from "svelte";
     import { toast } from "@zerodevx/svelte-toast";
 
@@ -12,13 +12,10 @@
     let result = false;
 
     let greenOptions = {
-        "--toastBackground": "#2ecc71",
-        "--toastBarBackground": "#27ae60",
+        "--toastBackground": "#009432",
+        "--toastBarBackground": "#A3CB38",
     };
-    let redOptions = {
-        "--toastBackground": "#F56565",
-        "--toastBarBackground": "#C53030",
-    };
+
     let generating = false;
 
     async function lock() {
@@ -29,10 +26,7 @@
         // gen = gen.data || generating;
         let gen = generating;
         if (gen) {
-            toast.push("Already generating", {
-                duration: 3000,
-                theme: redOptions,
-            });
+            globalError("Already generating.");
         }
         return gen;
     }
@@ -47,7 +41,7 @@
         let objects = await axios.get(API_URL + "/").catch((error) => {
             globalError(error);
             generating = false;
-            retun;
+            return;
         });
         toast.push("Generating cuts! Check the cut menu to see them", {
             duration: 5000,
@@ -75,8 +69,6 @@
                     file: object.name,
                     cuts: cuts,
                 });
-                // allow the backend to send the videos to the browser
-                // before rendering the next video
                 toast.pop(id);
                 toast.push(
                     'Cuts for "<strong>' + object.name + '</strong>" generated',
@@ -236,7 +228,7 @@
     }
     .end {
         height: 50px;
-        width: 20%;
+        width: 30%;
         display: flex;
         margin-right: 0;
         margin-left: auto;
@@ -244,6 +236,10 @@
     .end > button {
         width: 100%;
         border-radius: 0 0 20px 0;
+        animation-name: cycle-color;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
     }
 
     button {
@@ -270,5 +266,42 @@
     }
     .selected {
         background-color: var(--primary);
+    }
+    @media (max-width: 700px) {
+        .main {
+            flex-direction: column;
+            border-radius: 0% !important;
+        }
+        .menu {
+            width: 100%;
+            height: 30px;
+        }
+        .end {
+            width: 100%;
+            margin-top: 10px;
+        }
+        button {
+            font-size: smaller;
+            border-radius: 0% !important;
+        }
+        p {
+            display: none;
+        }
+    }
+    @media (max-width: 500px) {
+        button {
+            font-size: small;
+        }
+    }
+
+    @keyframes cycle-color {
+        50% {
+            color: var(--white-text);
+        }
+
+        100% {
+            /* change font color to yellow */
+            color: #ffc312;
+        }
     }
 </style>

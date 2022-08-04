@@ -39,7 +39,9 @@
             c = "/" + cuts;
         }
         let url = API_URL + "/objects/" + filename + c + "/switch";
-        axios.get(url);
+        axios.get(url).catch((error) => {
+            globalError(error);
+        });
         enabled = enabled == "disabled" ? "enabled" : "disabled";
     }
 
@@ -94,7 +96,9 @@
     let filtersInterval = undefined;
     async function timeReadFilters() {
         let url = API_URL + "/objects/filters/" + filename + "/update";
-        let response = await axios.get(url);
+        let response = await axios.get(url).catch((error) => {
+            globalError(error);
+        });
         if (response.data) {
             await readFilters();
             clearInterval(filtersInterval);
@@ -104,9 +108,11 @@
     let anyFilter = false;
     async function readFilters() {
         anyFilter = false;
-        let read = await axios.get(
-            API_URL + "/objects/filters/" + filename + "/read"
-        );
+        let read = await axios
+            .get(API_URL + "/objects/filters/" + filename + "/read")
+            .catch((error) => {
+                globalError(error);
+            });
         for (let filter in read.data) {
             if (read.data[filter].box) {
                 anyFilter = true;

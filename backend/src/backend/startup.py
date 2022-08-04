@@ -6,6 +6,7 @@ import subprocess
 
 import ffmpeg
 import progressbar
+from music.music import silence_if_no_audio
 
 from utils.constants import app, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
 from utils.IO import io
@@ -29,7 +30,7 @@ def extract_snippet_in_lower_res(video_path: str, output: str) -> None:
     output_path = f"{output}.mp4"
     try:
         video = ffmpeg.input(video_path, sseof="-20")
-        audio = video.audio
+        audio = silence_if_no_audio(video.audio, video_path)
         video = video.filter("scale", w=w, h=h)
         video = ffmpeg.output(video, audio, output_path, t="00:00:10")
         video.run(quiet=True)
@@ -51,6 +52,7 @@ def check_ffmpeg_is_installed() -> bool:
     except FileNotFoundError as e:
         print("\n\nffmpeg is not installed\n\t\"", e, "\"\n\n")
         return False
+
 
 # TODO: check that ffmpeg is installed firstly
 
@@ -81,6 +83,8 @@ def startup() -> None:
 
     progress = progressbar.ProgressBar(max_value=len(files))
 
+    first_time = True
+
     for i, file in enumerate(files):
         if not file.endswith(".mp4"):
             continue
@@ -95,6 +99,12 @@ def startup() -> None:
         extract_first_image_of_video(video, im)
         if not check_image_is_1080p(im + ".jpg"):
             # convert if not the case (old video saved in /backup)
+            if first_time:
+                first_time = False
+                print(
+                    f"\n\nOne of your video ({file}) is not in 1080p, converting it. You might want to lower the confidence of the neural network in the `settings.json`, the program has not been developped for other resolutions and it is only added for compability, with the current confidence, you might miss kills in the clip."
+                )
+                time.sleep(15)
             ff.scale_video(video)
 
         # create a snippet of the video

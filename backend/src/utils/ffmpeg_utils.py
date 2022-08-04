@@ -11,6 +11,7 @@ import ffmpeg
 import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
+from music.music import silence_if_no_audio
 from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters
 from utils.filter import Filters
 from utils.IO import io
@@ -107,7 +108,7 @@ def segment_video(video_path: str, save_path: str,
             ffmpeg
             .input(video_path)
         ) # yapf: disable
-        audio = video.audio
+        audio = silence_if_no_audio(video.audio, video_path)
 
         video, filter_json, recompile = apply_filter(video, video_path,
                                                      frame_json, save_path)
@@ -172,7 +173,9 @@ def scale_video(video_path: str,
     Scale (up or down) a video.
     """
     if os.path.exists(video_path):
-        L.warning(f"\nWARNING:Scaling video {video_path}, saving a backup")
+        L.warning(
+            f"\nWARNING:Scaling video {video_path}, saving a backup in ./backup"
+        )
 
         if not os.path.exists(BACKUP):
             os.makedirs(BACKUP)
@@ -181,18 +184,17 @@ def scale_video(video_path: str,
                     os.path.join(BACKUP, os.path.basename(video_path)))
 
         save_path = find_available_path(video_path)
-        (
-            ffmpeg
-            .input(video_path)
-            .filter("scale", w=width, h=height)
-            .output(save_path, start_number=0)
-            .overwrite_output()
-            .run(quiet=True)
-        ) # yapf: disable
+
+        video = ffmpeg.input(video_path)
+        audio = silence_if_no_audio(video.audio, video_path)
+        video = video.filter("scale", w=width, h=height)
+
+        video = ffmpeg.output(video, audio, save_path, start_number=0)
+        video = video.overwrite_output()
+        video = video.run(quiet=True)
 
         os.remove(video_path)
         os.rename(save_path, video_path)
-        # check if image has to be upscaled or downscaled ?
     else:
         raise FileNotFoundError(f"{video_path} not found")
 
@@ -249,10 +251,11 @@ def merge_videos(videos_path: List[str],
             final_audio = mpe.CompositeAudioClip([final_clip.audio, music])
             final_audio = final_audio.subclip(0, final_clip.duration)
             final_clip.audio = final_audio
-        final_clip.write_videofile(save_path,
-                                   preset="superfast",
-                                   verbose=False,
-                                   logger=None)
+
+        final_clip = final_clip.subclip(t_end=(final_clip.duration -
+                                               1.0 / final_clip.fps))
+        final_clip.write_videofile(save_path, verbose=False, logger=None)
+
         # ffmpeg_params=["-vcodec", "copy"])
     else:
         print("Only one video, no need to merge, copying...")
