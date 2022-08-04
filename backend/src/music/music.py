@@ -1,9 +1,10 @@
 import os
-from typing import List
+from typing import List, Any
 
+import ffmpeg
 from pydub import AudioSegment
 
-from utils.constants import MUSIC_MERGE_FOLDER, TMP_PATH
+from utils.constants import ASSETS, MUSIC_MERGE_FOLDER, TMP_PATH
 
 
 def concat_musics(audios: List[str]) -> None:
@@ -25,3 +26,12 @@ def concat_musics(audios: List[str]) -> None:
         res += AudioSegment.from_mp3(au)
 
     res.export(save_path)
+
+
+def silence_if_no_audio(audio: Any, file: str) -> Any:
+    p = ffmpeg.probe(file, select_streams="a")
+    if not p["streams"]:
+        print(f"No audio found for {file}, adding silence")
+        path = os.path.join(ASSETS, "silence.mp3")
+        return ffmpeg.input(path).audio
+    return audio

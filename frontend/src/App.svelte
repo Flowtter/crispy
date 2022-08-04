@@ -44,13 +44,13 @@
 	);
 </script>
 
-<!-- <Demo /> -->
-<div class="top">
-	<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
-</div>
-
 <main>
-	<SvelteToast />
+	<div class="top">
+		<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
+	</div>
+	<div class="right">
+		<SvelteToast />
+	</div>
 	<div class="main-container">
 		<Menubar
 			{mode}
@@ -135,6 +135,22 @@
 		.top {
 			--toastWidth: 90vw;
 			--toastContainerLeft: 3vw;
+		}
+	}
+
+	@media (max-width: 700px) {
+		.content {
+			border-radius: 0% !important;
+		}
+		.right {
+			--toastContainerTop: 150px;
+			--toastWidth: 90vw;
+			--toastContainerRight: 5vw;
+
+			--toastContainerTop: auto;
+			--toastContainerBottom: 30px;
+
+			font-size: 0.7em;
 		}
 	}
 </style>

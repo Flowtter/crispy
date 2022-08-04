@@ -51,9 +51,13 @@
             tmp.push({ name: list[i].name });
         }
 
-        axios.post(API_URL + "/musics/reorder", JSON.stringify(tmp), {
-            headers: { "Content-Type": "application/json" },
-        });
+        axios
+            .post(API_URL + "/musics/reorder", JSON.stringify(tmp), {
+                headers: { "Content-Type": "application/json" },
+            })
+            .catch((error) => {
+                globalError(error);
+            });
     };
 
     const dragstart = (event, i) => {
