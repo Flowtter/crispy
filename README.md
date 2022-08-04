@@ -1,37 +1,31 @@
-# Setup pre-commit
+# Usage
+## Releases
+[Releases](https://github.com/Flowtter/crispy/releases) are available for windows and linux.\
+
+## Setup
+Firstly, you will have to install [ffmpeg](https://ffmpeg.org/about.html) (ffprobe is also required).
+Once unzip, you can run the setup.[sh|bat] file.\
+Then you can add your videos in the mp4/mp3 format in the resources folder.
+
+## Run
+You can now run the application with the run.[sh|bat] file.
+
+# Demo
+[live demo](https://crispy.gyroskan.com/)
+# Dev
+## Setup pre-commit
 First install `pre-commit` by running:
 ```sh
 pip install pre-commit
 ```
-
 Then to install the git hook run:
 ```sh
 pre-commit install -t pre-commit -t commit-msg
 ```
 
 Now `pre-commit` will run on every `git commit`.
-# demo
-[youtube link](https://youtu.be/8zv-x2LzxBk)
-# run
-- add some images in `resources/images`
-- `docker-compose up --build`
-- open `http://127.0.0.1:8080/` on your browser
 
 
-# dev
-To allow the development of the project, you can build wihout `docker-compose`:
-to do so, you'll need another resource folder
-
-- add a .env in `backend/.env` which contains the following variables:
-  - `DIRECTORY_PATH=resources/`
-- copy your usual `resources/` in `backend/resources/`
-
-
+## Start
 - `cd frontend && npm install && npm run dev`
-- `cd backend && pip install -r requirements.txt && uvicorn src.app:app --reload --host 127.0.0.1 --port 1337`
-
-# ffmpeg filters
-- crop / hflip / vflip / grayscale : boolean
-- blur / brightness / saturation : int (between -10 and 10)
-- scale: str (ex: "w=1280:h=720")
-- zoom: int (>= 1)
+- `pip install -r backend/requirements.txt && python backend/src/app.py`
