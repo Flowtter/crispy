@@ -1,5 +1,5 @@
 # Crispy
-Crispy is a machine-learning algorithm to make video-games montage efficiently.\
+Crispy is a machine-learning algorithm to make video-games montages efficiently.\
 It uses a neural network to detect highlights in the video-game frames.\
 Currently it supports **[Valorant](https://playvalorant.com/)**.
 # Usage
@@ -25,7 +25,7 @@ It has 5 pages:
 
 ### Clips
 In the clips page, you can see the list of your videos.\
-You can rearange themn by drag and drop.\
+You can rearrange them by dragging and dropping them.\
 Select the video you don't want in the montage and add customs effects for a single clip.\
 Once you've made your selection, you can click on `generate cuts` to create the cuts.
 
@@ -35,7 +35,7 @@ You can hide the one you don't want
 
 ### Music
 In the music page, you can see the list of your music.\
-You can hide the one you don't want and you can reorder them by drag and drop.
+You can hide the one you don't want and you can you can rearrange them by dragging and dropping them.\
 
 ### Effects
 In the effects page, you can see the list of your effects.\
