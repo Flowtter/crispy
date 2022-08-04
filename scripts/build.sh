@@ -9,6 +9,8 @@ cp -r scripts/default-settings.json build/windows/settings.json
 cp -r backend/requirements.txt build/windows
 mkdir -p build/windows/backend
 cp -r backend/src build/windows/backend/src
+# use rm -v
+rm build/windows/backend/src/create_dataset.py
 cp -r backend/assets build/windows/backend/assets
 
 cd frontend && npm run build
@@ -28,5 +30,7 @@ cp -r build/windows/* build/linux
 cp -r scripts/windows/* build/windows/
 cp -r scripts/linux/* build/linux/
 
-zip -r build/windows.zip build/windows/ >/dev/null
-zip -r build/linux.zip build/linux/ >/dev/null
+cd build
+zip -r windows.zip windows/ >/dev/null
+zip -r linux.zip linux/ >/dev/null
+cd ..
