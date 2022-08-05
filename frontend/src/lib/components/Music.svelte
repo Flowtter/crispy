@@ -1,10 +1,10 @@
 <script>
+    import AudioPlayer from "./Audio.svelte";
+    import { API_URL, globalError } from "../../constants.js";
+
+    //
     import axios from "axios";
     import { onMount } from "svelte";
-    import { flip } from "svelte/animate";
-
-    import { API_URL, globalError, globalWarning } from "../../constants.js";
-    import Video from "./Video.svelte";
 
     export const fetch = () => {
         axios
@@ -12,27 +12,14 @@
             .then((response) => {
                 const res = response.data;
                 list = [];
-
-                if (res.objects.length >= 15) {
-                    globalWarning(
-                        "You have more than 70 clips. Some browser won't accept it."
-                    );
-                }
-                for (let i = 0; i < res.objects.length; i++) {
-                    var name = res.objects[i].name;
-                    var fullname = name;
-                    if (name.length > 20) {
-                        name =
-                            name.substring(0, 10) +
-                            "..." +
-                            name.substring(name.length - 10);
-                    }
+                for (let i = 0; i < res.musics.length; i++) {
+                    var name = res.musics[i].name;
                     list.push({
                         name: name,
-                        fullname: fullname,
                         id: i,
                     });
                 }
+                console.log(list);
             })
             .catch((error) => {
                 globalError(error);
@@ -61,11 +48,11 @@
 
         var tmp = [];
         for (let i = 0; i < list.length; i++) {
-            tmp.push({ name: list[i].fullname });
+            tmp.push({ name: list[i].name });
         }
 
         axios
-            .post(API_URL + "/objects/reorder", JSON.stringify(tmp), {
+            .post(API_URL + "/musics/reorder", JSON.stringify(tmp), {
                 headers: { "Content-Type": "application/json" },
             })
             .catch((error) => {
@@ -82,11 +69,10 @@
 </script>
 
 {#if list}
-    <div class="gallery">
+    <div>
         {#each list as n, index (n.id)}
             <div
                 class="list-item"
-                animate:flip={{ duration: 400 }}
                 draggable={true}
                 on:dragstart={(event) => dragstart(event, index)}
                 on:drop|preventDefault={(event) => drop(event, index)}
@@ -94,37 +80,9 @@
                 on:dragenter={() => (hovering = index)}
                 class:is-active={hovering === index}
             >
-                <Video
-                    filename={n.fullname}
-                    shortname={n.name}
-                    videoUrl={API_URL + "/objects/" + n.fullname + "/video"}
-                />
+                <AudioPlayer src={API_URL + "/musics/" + n.name} />
+                <!-- <div>{n.name}</div> -->
             </div>
         {/each}
     </div>
 {/if}
-
-<style>
-    .gallery {
-        justify-content: center;
-        border-radius: 4px;
-
-        flex-wrap: wrap;
-        justify-content: center;
-        display: flex;
-        text-align: center;
-        width: 95%;
-        /* align the div */
-        margin: auto;
-    }
-
-    .list-item {
-        padding: 0.5em 1em;
-    }
-
-    .list-item.is-active {
-        background-color: var(--secondary);
-        border-radius: 4px;
-        /* color: #fff; */
-    }
-</style>

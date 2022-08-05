@@ -1,6 +1,6 @@
 #!/bin/sh
 
-find backend/src/crispy -name '*.py' -print0 | xargs -0 mypy \
+find backend/src -name '*.py' -print0 | xargs -0 mypy \
     --python-version 3.8 \
     --disallow-untyped-defs \
     --disallow-incomplete-defs \

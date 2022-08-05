@@ -1,31 +1,54 @@
 <script>
     import axios from "axios";
     import { onMount } from "svelte";
-    import { API_URL } from "../../variables";
+    import { API_URL, globalError } from "../../constants.js";
 
-    export let src;
+    import Filters from "./Filters.svelte";
 
-    // $: basename = src.split("/").pop();
+    import { toast } from "@zerodevx/svelte-toast";
+
+    export let filename;
+    export let videoUrl;
+    export let shortname;
+    export let editable = true;
+    export let cuts = undefined;
+
     const fetch = () => {
+        let c = "";
+        if (cuts) {
+            c = "/" + cuts;
+        }
+        let url = API_URL + "/objects/" + filename + c + "/info";
         axios
-            .get(API_URL + "/images/" + src.split("/").pop() + "/info")
+            .get(url)
             .then((response) => {
                 const res = response.data;
                 enabled = res.enabled ? "enabled" : "disabled";
+            })
+            .catch((error) => {
+                globalError(error);
             });
     };
     onMount(fetch);
 
     let enabled;
 
-    function handleClick() {
-        axios.get(API_URL + "/images/" + src.split("/").pop() + "/switch");
+    function handleSwitch() {
+        let c = "";
+        if (cuts) {
+            c = "/" + cuts;
+        }
+        let url = API_URL + "/objects/" + filename + c + "/switch";
+        axios.get(url).catch((error) => {
+            globalError(error);
+        });
         enabled = enabled == "disabled" ? "enabled" : "disabled";
     }
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
+
+    ///////////
+    // https://svelte.dev/repl/7bf3c9308bc941a682ac92b9bec0a653?version=3.23.2
+    ///////////
+
     // These values are bound to properties of the video
     let time = 0;
     let duration;
@@ -46,84 +69,138 @@
             else e.target.pause();
         }
     }
-
-    function format(seconds) {
-        if (isNaN(seconds)) return "...";
-
-        const minutes = Math.floor(seconds / 60);
-        seconds = Math.floor(seconds % 60);
-        if (seconds < 10) seconds = "0" + seconds;
-
-        return `${minutes}:${seconds}`;
+    function clickFilter() {
+        toast.push({
+            component: {
+                src: Filters,
+                props: {
+                    name: filename,
+                    filterRoute: "objects/filters/" + filename,
+                },
+                sendIdTo: "toastId",
+            },
+            target: "new",
+            dismissable: false,
+            initial: 0,
+            intro: { y: -192 },
+            theme: {
+                "--toastBackground": "#323c53",
+                "--toastBorderRadius": "1rem",
+            },
+        });
+        filtersInterval = setInterval(async () => {
+            await timeReadFilters();
+        }, 300);
     }
+
+    let filtersInterval = undefined;
+    async function timeReadFilters() {
+        let url = API_URL + "/objects/filters/" + filename + "/update";
+        let response = await axios.get(url).catch((error) => {
+            globalError(error);
+        });
+        if (response.data) {
+            await readFilters();
+            clearInterval(filtersInterval);
+        }
+    }
+
+    let anyFilter = false;
+    async function readFilters() {
+        anyFilter = false;
+        let read = await axios
+            .get(API_URL + "/objects/filters/" + filename + "/read")
+            .catch((error) => {
+                globalError(error);
+            });
+        for (let filter in read.data) {
+            if (read.data[filter].box) {
+                anyFilter = true;
+                break;
+            }
+        }
+    }
+    onMount(readFilters);
+
+    let anyTransition = false;
 </script>
 
-<div class="photo">
-    <div class="holder">
-        <div class={enabled}>
-            <video
-                poster={src}
-                src={API_URL + "/video/" + src.split("/").pop()}
-                on:mousedown={handleMousedown}
-                on:mouseup={handleMouseup}
-                bind:currentTime={time}
-                bind:duration
-                bind:paused
-            >
-                <track kind="captions" />
-            </video>
-            {#if !duration}
-                <div class="loader">
-                    <div class="lds-roller">
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                    </div>
-                </div>
-            {/if}
-        </div>
+<div class="object">
+    <div class="title">
+        {shortname}.mp4
     </div>
+    <div class={enabled}>
+        <video
+            poster={API_URL + "/objects/" + filename + "/image"}
+            src={videoUrl + "?t=" + Date.now()}
+            on:mousedown={handleMousedown}
+            on:mouseup={handleMouseup}
+            bind:currentTime={time}
+            bind:duration
+            bind:paused
+        >
+            <track kind="captions" />
+        </video>
 
-    <button class="info" on:click={handleClick}>&times</button>
+        {#if !duration}
+            <div class="loader">
+                <div class="lds-roller">
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                    <div />
+                </div>
+            </div>
+        {/if}
+    </div>
+    <div class="trailing-menu">
+        {#if editable}
+            <button on:click={clickFilter} class={anyFilter ? "green" : ""}
+                >FILTER</button
+            >
+            <p>|</p>
+            <!-- <button class={anyTransition ? "green" : ""}>TRANSITION</button>
+            <p>|</p> -->
+            <button on:click={handleSwitch}
+                >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
+            >
+        {:else}
+            <button class="only" on:click={handleSwitch}
+                >{enabled === "enabled" ? "HIDE" : "SHOW"}</button
+            >
+        {/if}
+    </div>
 </div>
 
 <style>
-    .controls {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        transition: opacity 1s;
+    .green {
+        background: rgb(15, 185, 177, 0.5);
     }
-
-    .info {
-        display: flex;
-        width: 100%;
+    .green:hover {
+        transition: all 0.2s;
+        background: rgb(15, 185, 177, 0.8);
+    }
+    .title {
         justify-content: space-between;
-    }
-
-    .time {
-        width: 3em;
-    }
-
-    .time:last-child {
-        text-align: right;
+        align-items: center;
+        padding: 0.5rem;
+        text-align: center;
+        font-weight: bold;
     }
 
     .disabled {
-        filter: brightness(40%);
+        filter: brightness(35%);
     }
-    .photo {
-        width: calc(1920px / 5 - 20px);
-        height: calc(1080px / 5);
+    .object {
+        width: calc(1600px / 4 - 80px);
         background-color: var(--terciary);
-        display: flex;
+        /* display: flex; */
         justify-content: center;
-        border-radius: 2vh;
+        border-radius: 20px;
         position: relative;
         margin: 1vh;
     }
@@ -132,28 +209,34 @@
         height: 90%;
         object-fit: cover;
         display: block;
-        border-radius: 2vh;
+        border-radius: 20px;
         margin: auto;
-        margin-top: 3%;
     }
-    .info {
-        position: absolute;
-        right: 0px;
-        bottom: 0px;
+    .trailing-menu {
+        /* background-color: red; */
+        margin-top: 5px;
         height: 50px;
-        width: 50px;
-        border-radius: 15px 0 15px 0;
-        font-size: 3em;
+        width: 100%;
         display: flex;
-        justify-content: center;
-        align-items: center;
     }
+    .trailing-menu > button {
+        width: 100%;
+    }
+    .trailing-menu > button:first-child {
+        border-radius: 0 0 0 20px;
+    }
+    .trailing-menu > button:last-child {
+        border-radius: 0 0 20px 0;
+    }
+    .only {
+        border-radius: 0 0 20px 20px !important;
+    }
+
     button {
         text-align: center;
-        padding: 12px 20px;
-        box-sizing: border-box;
+        /* padding: 12px 20px; */
         border: none;
-        border-radius: 1vh;
+        border-radius: 0px;
         background-color: var(--terciary);
         outline: none;
         cursor: pointer;
@@ -165,7 +248,7 @@
     }
     button:hover {
         transition: all 0.2s;
-        background-color: var(--terciary-variant);
+        background-color: var(--terciary-hover);
     }
 
     /*  */
