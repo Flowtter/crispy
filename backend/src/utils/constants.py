@@ -51,6 +51,7 @@ SESSION = "session"
 SETTINGS_PATH = "settings.json"
 FILTERS_PATH = os.path.join(SESSION, "filters.json")
 JSON_PATH = os.path.join(SESSION, "info.json")
+TRANSITIONS_PATH = os.path.join(SESSION, "transitions.json")
 
 with open(SETTINGS_PATH, "r") as s:
     settings = json.load(s)
@@ -62,6 +63,11 @@ def get_settings() -> Dict[Any, Any]:
 
 def get_filters() -> Dict[Any, Any]:
     with open(FILTERS_PATH, "r") as f:
+        return json.load(f)
+
+
+def get_transitions() -> Dict[Any, Any]:
+    with open(TRANSITIONS_PATH, "r") as f:
         return json.load(f)
 
 
