@@ -47,6 +47,10 @@
         margin: auto;
         height: 20px;
     }
+    ::placeholder {
+        color: #979797;
+        opacity: 1;
+    }
     input[type="checkbox"] {
         grid-column: span 2;
         -ms-transform: scale(1.5);

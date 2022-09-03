@@ -21,7 +21,7 @@
     async function lock() {
         // let gen = await axios.get(API_URL + "/generating").catch((error) => {
         //     globalError(error);
-        //     return;
+        //     return true;
         // });
         // gen = gen.data || generating;
         let gen = generating;
@@ -148,6 +148,11 @@
     }
 
     function changeMenu(newMode) {
+        if (generating) {
+            globalError("Wait for the end of the generation.");
+            return;
+        }
+
         if (newMode === mode) {
             return;
         }
@@ -163,7 +168,7 @@
     }
 </script>
 
-<div class="main">
+<div class={"main" + (generating ? " menu-gen" : "")}>
     <div class="menu">
         <button
             class={mode === "clips" ? "selected" : ""}
@@ -225,6 +230,9 @@
     }
     .menu > button:first-child {
         border-radius: 0 0 0 20px;
+    }
+    .menu-gen {
+        filter: brightness(0.6);
     }
     .end {
         height: 50px;
