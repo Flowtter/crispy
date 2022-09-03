@@ -68,7 +68,7 @@ def get_filters() -> Dict[Any, Any]:
         return json.load(f)
 
 
-def get_transitions() -> Dict[Any, Any]:
+def get_transition() -> Dict[Any, Any]:
     with open(TRANSITIONS_PATH, "r") as f:
         return json.load(f)
 

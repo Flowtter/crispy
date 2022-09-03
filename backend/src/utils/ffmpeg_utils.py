@@ -7,14 +7,14 @@ import shutil
 
 import datetime
 import sys
-from typing import Optional, Any, List, Tuple
+from typing import Optional, Any, List, Tuple, Union
 
 import ffmpeg
 import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
 from music.music import silence_if_no_audio
-from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
+from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transition
 from utils.filter import Filters
 from utils.IO import io
 from utils.transition import Transition
@@ -384,8 +384,15 @@ def merge_videos(videos_path: List[str],
         # TODO: add transition on final_merge
         clips = []
         for filename in videos_path:
-            clips.append(mpe.VideoFileClip(filename))
-        final_clip = mpe.concatenate_videoclips(clips)
+            clips.append((mpe.VideoFileClip(filename), find_transi(filename)))
+
+        # For each clip, apply starting and ending transition
+        res_clips = [
+            mpe.CompositeVideoClip([clip[1][0](clip[1][1]((clip[0])))])
+            for clip in clips
+        ]
+        # Since clips are CompositeVideoClip, they can be concatenated
+        final_clip = mpe.concatenate(res_clips)
 
         if final_merge:
             music = mpe.AudioFileClip(
@@ -454,21 +461,40 @@ def find_filters(video_path: str) -> List[Filters]:
     return global_filters
 
 
-def find_transi(video_path: str) -> Transition:
+def find_transi(video_path: str) -> Tuple[Transition, Transition]:
     """
-    Find the transition for the video and return its name and the time it last
+    Find the starting and ending transition for the video
     """
-    TRANSI = get_transitions()
-    global_transi: Tuple[str, int] = ("", 0)
-    if "transi" in TRANSI:
-        global_transi = TRANSI["transi"]
+    TRANSI = get_transition()
+    in_transi: Tuple[str, Union[None, Transition]] = ("", None)
+    out_transi: Tuple[str, Union[None, Transition]] = ("", None)
+
+    # Get global starting and ending transition
+    if "transitions" in TRANSI:
+        if "in" in TRANSI["transitions"] and TRANSI["transitions"]["in"] != {}:
+            key = next(iter(TRANSI["transitions"]["in"]))
+            in_transi = key, TRANSI["transitions"]["in"][key]
+        if "out" in TRANSI[
+                "transitions"] and TRANSI["transitions"]["out"] != {}:
+            key = next(iter(TRANSI["transitions"]["out"]))
+            out_transi = key, TRANSI["transitions"]["out"][key]
+
     video_name = os.path.split(video_path)[-1]
     no_ext = io.remove_extension(video_name)
+
+    # Get specific starting and ending transition for the current video (if they exist)
     if "clips" in TRANSI:
         if no_ext in TRANSI["clips"]:
-            global_transi = TRANSI["clips"][no_ext]
+            if "in" in TRANSI["clips"][
+                    no_ext] and TRANSI["clips"][no_ext]["in"] != {}:
+                key = next(iter(TRANSI["clips"][no_ext]["in"]))
+                in_transi = key, TRANSI["clips"][no_ext]["in"][key]
+            if "out" in TRANSI["clips"][
+                    no_ext] and TRANSI["clips"][no_ext]["out"] != {}:
+                key = next(iter(TRANSI["clips"][no_ext]["out"]))
+                out_transi = key, TRANSI["clips"][no_ext]["out"][key]
 
-    return Transition(global_transi[0], global_transi[1])
+    return Transition(*in_transi), Transition(*out_transi)
 
 
 def check_exists(frame: Tuple[int, int], save_path: str) -> bool:
