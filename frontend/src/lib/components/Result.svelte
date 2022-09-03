@@ -1,10 +1,14 @@
 <script>
-    import { API_URL } from "../../variables";
+    import { API_URL } from "../../constants";
+
+    ///////////
+    // https://svelte.dev/repl/7bf3c9308bc941a682ac92b9bec0a653?version=3.23.2
+    ///////////
 
     // These values are bound to properties of the video
     let time = 0;
-    let paused = true;
     let duration;
+    let paused = true;
 
     // Used to track time of last mouse down event
     let lastMouseDown;
@@ -21,60 +25,69 @@
             else e.target.pause();
         }
     }
+    let t = Date.now();
 </script>
 
-<div class="photo">
-    <div class="holder">
-        <video
-            poster={API_URL + "/export/image"}
-            src={API_URL + "/export/video"}
-            on:mousedown={handleMousedown}
-            on:mouseup={handleMouseup}
-            bind:currentTime={time}
-            bind:duration
-            bind:paused
-        >
-            <track kind="captions" />
-        </video>
-        {#if !duration}
-            <div class="loader">
-                <div class="lds-roller">
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                </div>
+<div class="object">
+    <div class="title">merged.mp4</div>
+    <video
+        poster={API_URL + "/result/image?t=" + t}
+        src={API_URL + "/result/video?t=" + t}
+        on:mousedown={handleMousedown}
+        on:mouseup={handleMouseup}
+        bind:currentTime={time}
+        bind:duration
+        bind:paused
+    >
+        <track kind="captions" />
+    </video>
+    <br />
+
+    {#if !duration}
+        <div class="loader">
+            <div class="lds-roller">
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
+                <div />
             </div>
-        {/if}
-    </div>
+        </div>
+    {/if}
+    <br />
 </div>
-<br />
 
 <style>
-    .photo {
-        width: calc(1920px / 2 - 20px);
-        height: calc(1080px / 2);
-        background-color: var(--secondary);
+    .title {
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .object {
+        background-color: var(--terciary);
+        /* display: flex; */
         justify-content: center;
-        border-radius: 2vh;
+        border-radius: 20px;
         position: relative;
-        margin: auto;
-        margin-bottom: 10px;
-        display: flex;
+        margin-left: 10vh;
+        margin-right: 10vh;
     }
     video {
-        width: 99%;
-        height: 96%;
+        width: 98%;
+        height: 94%;
         object-fit: cover;
         display: block;
-        border-radius: 2vh;
+        border-radius: 20px;
         margin: auto;
-        margin-top: 1%;
     }
+
+    /*  */
     .loader {
         position: absolute;
         /* center */

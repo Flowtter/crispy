@@ -1,13 +1,14 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import os
 
 from PIL import Image
 import numpy as np
 
-from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT, SETTINGS
+from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT, get_settings
 import utils.ffmpeg_utils as ff
 from utils.IO import io
 from AI.network import NeuralNetwork
+import music.music as mu
 
 
 def get_saving_path(video: str) -> str:
@@ -22,6 +23,8 @@ def extract_frames_from_video(video: str) -> str:
     Extract frames from the video
     return: saving location
     """
+    SETTINGS = get_settings()
+
     loading_path = os.path.join(RESOURCE_PATH, VIDEO, video)
 
     video_no_ext = io.remove_extension(video)
@@ -47,6 +50,8 @@ def get_query_array_from_video(neural_network: NeuralNetwork,
     """
     Query the neural network on a given input
     """
+    SETTINGS = get_settings()
+
     images = os.listdir(images_path)
     images.sort()
     query_array = []
@@ -71,6 +76,7 @@ def segment_video_with_kill_array(video: str,
     """
     Segment the video with the given kill array
     """
+    SETTINGS = get_settings()
 
     loading_path = os.path.join(RESOURCE_PATH, VIDEO, video)
 
@@ -87,6 +93,7 @@ def post_processing_kill_array(
     """
     Post processing the kill array
     """
+    SETTINGS = get_settings()
     found = True
     offset = SETTINGS["clip"]["second-between-kills"] * SETTINGS["clip"][
         "framerate"]
@@ -107,6 +114,7 @@ def get_kill_array_from_query_array(
     """
     Get the kill array from the query array
     """
+    SETTINGS = get_settings()
     kill_array: List[List[int]] = []
     current_kill: List[int] = []
 
@@ -133,6 +141,8 @@ def get_kill_array_from_query_array(
             continue
 
         start = kill[0] - frames_before
+        start = max(start, 0)
+
         end = kill[-1] + frames_after
         result.append((start, end))
     return result
@@ -153,4 +163,22 @@ def merge_cuts() -> None:
             cut[i] = os.path.join(TMP_PATH, folder, CUT, cut[i])
         cuts.extend(cut)
 
-    ff.merge_videos(cuts, os.path.join(TMP_PATH, "merged.mp4"))
+    ff.merge_videos(cuts, "merged.mp4")
+
+
+def merge_cuts_with_files(cuts: List[str],
+                          pth: str = "merged.mp4",
+                          audio: Union[List[str], None] = None) -> None:
+    """
+    Merge the cuts
+    """
+    real_cuts = []
+    for cut in cuts:
+        if os.path.exists(cut):
+            real_cuts.append(cut)
+
+    if audio:
+        mu.concat_musics(audio)
+        ff.merge_videos(real_cuts, pth, True)
+    else:
+        ff.merge_videos(real_cuts, pth)
