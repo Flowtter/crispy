@@ -15,7 +15,7 @@
         justify-content: center;
         width: 90%;
         height: 100%;
-        background-color: var(--primary);
+        background-color: #323c53;
         /* align to center */
         margin: 0 auto;
         border-radius: 20px;
