@@ -12,7 +12,7 @@ import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
 from music.music import silence_if_no_audio
-from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transition
+from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
 from utils.filter import Filters
 from utils.IO import io
 from utils.transition import Transition
@@ -230,18 +230,11 @@ def merge_videos(videos_path: List[str],
     # print(videos_path, save_path, final_merge)
 
     if len(videos_path) > 1 or final_merge:
+        # TODO: add transition on final_merge
         clips = []
-
         for filename in videos_path:
-            clips.append((mpe.VideoFileClip(filename), find_transi(filename)))
-
-        res_clips = []
-        for clip in clips:
-            res_clips.append(clip[1](clip[0]))
-
-        final_clip = mpe.concatenate_videoclips(res_clips)
-
-        # final_clip = mpe.CompositeVideoClip(clips)
+            clips.append(mpe.VideoFileClip(filename))
+        final_clip = mpe.concatenate_videoclips(clips)
 
         if final_merge:
             music = mpe.AudioFileClip(
@@ -314,7 +307,7 @@ def find_transi(video_path: str) -> Transition:
     """
     Find the transition for the video and return its name and the time it last
     """
-    TRANSI = get_transition()
+    TRANSI = get_transitions()
     global_transi: Tuple[str, int] = ("", 0)
     if "transi" in TRANSI:
         global_transi = TRANSI["transi"]
