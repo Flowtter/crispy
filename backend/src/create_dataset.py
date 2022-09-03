@@ -4,9 +4,9 @@ import argparse
 
 from PIL import Image
 
-import ffmpeg_utils
+import utils.ffmpeg_utils
 
-from constants import DATASET_PATH, DATASET_VALUES_PATH, VIDEOS_PATH
+from utils.constants import DATASET_PATH, DATASET_VALUES_PATH, VIDEOS_PATH
 
 INDEX = 0
 
@@ -113,7 +113,7 @@ def main(ext: bool, csv: bool) -> None:
         print("Doing:", video)
         video_no_ext = video.split(".", maxsplit=1)[0]
         if ext:
-            ffmpeg_utils.extract_images(
+            utils.ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),
                 os.path.join(DATASET_PATH, video_no_ext))
 

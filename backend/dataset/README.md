@@ -5,7 +5,7 @@ The videos should be saved in `backend/resources/video`.
 ## Generate the frames
 Run the following command:
 ```
-python3 backend/src/crispy/utils/create_dataset.py --extract
+python backend/src/create_dataset.py --extract
 ```
 
 ## Add a values.json
@@ -17,7 +17,7 @@ The range corresponds to the frame where a kill should be detected.
 ## Generate the dataset
 Run the following command:
 ```
-python3 backend/src/crispy/utils/create_dataset.py --to-csv
+python backend/src/create_dataset.py --to-csv
 ```
 
 # Usage

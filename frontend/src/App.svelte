@@ -1,77 +1,156 @@
 <script>
-	import FinalVideo from "./lib/components/FinalVideo.svelte";
+	import "./constants";
+	import Cut from "./lib/components/Cut.svelte";
 	import Gallery from "./lib/components/Gallery.svelte";
-	import LeftBar from "./lib/components/LeftBar/LeftBar.svelte";
-	import Log from "./lib/components/Log.svelte";
-	import Video from "./lib/components/Video.svelte";
+	import Menubar from "./lib/components/Menubar.svelte";
+	import Result from "./lib/components/Result.svelte";
+	import Effects from "./lib/components/Effects.svelte";
 
-	var display = "hide";
-	var init = "init";
-	setTimeout(() => {
-		display = "";
-		init = "hide";
-	}, 500);
+	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
+	import Music from "./lib/components/Music.svelte";
+	import { globalInfo } from "./constants";
 
-	function handleReload(event) {
-		location.reload();
+	let cuts = [];
+	let last_cut = null;
+
+	let mode = "clips";
+
+	function addCut(event) {
+		let file = event.detail.file;
+		let cut = event.detail.cuts;
+		last_cut = cut;
+		for (let i = 0; i < cuts.length; i++) {
+			let f = cuts[i].file;
+			if (f === file) {
+				cuts[i] = { file, cut };
+				return;
+			}
+		}
+		cuts.push({ file, cut });
 	}
 
-	let log;
-
-	function startLogging() {
-		log = true;
+	function changeMode(event) {
+		mode = event.detail;
 	}
 
-	let video;
-	function startVideo() {
-		video = true;
+	function clearCuts(event) {
+		cuts = [];
 	}
+	toast.push("Thanks for using Crispy!", {
+		duration: 5000,
+	});
+	globalInfo(
+		"Activate the videos you want in your montage, then generate cuts!"
+	);
 </script>
 
-<main class={display}>
-	{#if !log}
-		<LeftBar on:message={handleReload} on:send={startLogging} />
-	{/if}
-	<Gallery />
-	{#if log}
-		<Log on:video={startVideo} />
-	{/if}
-	{#if video}
-		<FinalVideo />
-	{/if}
+<main>
+	<div class="top">
+		<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
+	</div>
+	<div class="right">
+		<SvelteToast />
+	</div>
+	<div class="main-container">
+		<Menubar
+			{mode}
+			on:cuts={addCut}
+			on:mode={changeMode}
+			on:clear={clearCuts}
+		/>
+		<div class="content">
+			<br />
+			{#key mode}
+				{#if mode === "clips"}
+					<Gallery />
+				{:else if mode === "cuts"}
+					{#key last_cut}
+						<Cut {cuts} />
+					{/key}
+				{:else if mode === "result"}
+					<Result />
+				{:else if mode === "music"}
+					<Music />
+				{:else if mode === "effects"}
+					<Effects />
+				{/if}
+			{/key}
+		</div>
+	</div>
 </main>
-<div class={init} />
 
 <style>
+	:root {
+		--toastContainerTop: 60px;
+	}
 	main {
-		background-color: var(--primary);
+		background-color: var(--background);
 		color: var(--white-text);
-		min-width: 100%;
-		min-height: 100%;
+	}
+	.main-container {
+		max-width: 1600px;
+		margin: 0 auto;
+	}
+	.content {
+		background-color: var(--content);
+		border-radius: 20px 20px 0 0;
+		min-height: calc(100vh - 70px);
 	}
 	:global(body) {
 		margin: 0;
 		padding: 0;
 	}
 	* {
-		--primary: #141b23;
-		--secondary: #1b222f;
-		--terciary: #f5a52a;
-		--terciary-variant: #c57f15;
-		--terciary-hover: #d48c1f;
+		--background: #131d35;
 
-		--exit: #e74c3c;
-		--exit-hover: #dd4332;
-		--exit-selected: #c0392b;
+		--content: #242d44;
+
+		--primary: #2e364a;
+		--secondary: #404b62;
+
+		--terciary: #404b62;
+		--terciary-hover: #2e364a;
 
 		--white-text: #f0f0f0;
 	}
-	.hide {
-		display: none;
+	.top {
+		--toastContainerTop: 0.5rem;
+		--toastContainerRight: 0.5rem;
+		--toastContainerBottom: auto;
+		--toastContainerLeft: 0.5rem;
+		--toastWidth: 100%;
+		--toastMinHeight: 2rem;
+		--toastPadding: 0 0.5rem;
+		font-size: 0.9em;
 	}
-	.init {
-		height: 100vh;
-		width: 100vw;
-		background-color: var(--primary);
+	@media (min-width: 40rem) {
+		.top {
+			--toastContainerRight: auto;
+			--toastContainerLeft: calc(50vw - 20rem);
+			--toastWidth: 40rem;
+		}
+	}
+
+	@media (max-width: 1000px) {
+		.top {
+			--toastWidth: 90vw;
+			--toastContainerLeft: 3vw;
+		}
+	}
+
+	@media (max-width: 700px) {
+		.content {
+			border-radius: 0% !important;
+		}
+		.right {
+			--toastContainerTop: 150px;
+			--toastWidth: 90vw;
+			--toastContainerRight: 5vw;
+
+			--toastContainerTop: auto;
+			--toastContainerBottom: 30px;
+
+			font-size: 0.7em;
+		}
 	}
 </style>

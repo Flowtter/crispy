@@ -1,2 +1,2 @@
-START "backend" uvicorn app:app --reload --host 127.0.0.1 --port 1337
+python backend/src/app.py
 start frontend/index.html

@@ -6,14 +6,15 @@ python-dotenv==0.10.3
 
 # Crispy
 numpy==1.21.0 # crdaignore
-opencv-python==4.5.5.62
-librosa==0.9.1
+# librosa==0.9.1
 moviepy==1.0.3
 IPython==7.13.0
 progressbar2==4.0.0
 ffmpeg-python==0.2.0
+pydub==0.25.1
+scipy==1.8.0
 
-# PipelinE
+# Pipeline
 yapf==0.32.0
 mypy==0.961
 pylint==2.14.3
