@@ -1,2 +1,2 @@
-python backend/src/app.py
 start frontend/index.html
+python backend/src/app.py
