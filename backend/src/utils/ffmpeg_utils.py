@@ -12,9 +12,10 @@ import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
 from music.music import silence_if_no_audio
-from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters
+from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transition
 from utils.filter import Filters
 from utils.IO import io
+from utils.transition import Transition
 
 BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
@@ -232,15 +233,13 @@ def merge_videos(videos_path: List[str],
         clips = []
 
         for filename in videos_path:
-            clips.append(mpe.VideoFileClip(filename))
+            clips.append((mpe.VideoFileClip(filename), find_transi(filename)))
 
-        # time = 1
-        # effects_clips = [
-        # mpe.CompositeVideoClip(
-        # [clip.fx(mpe.transfx.slide_in, time, "top")]) for clip in clips
-        # ]
+        res_clips = []
+        for clip in clips:
+            res_clips.append(clip[1](clip[0]))
 
-        final_clip = mpe.concatenate_videoclips(clips)
+        final_clip = mpe.concatenate_videoclips(res_clips)
 
         # final_clip = mpe.CompositeVideoClip(clips)
 
@@ -287,6 +286,9 @@ def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
 
 
 def find_filters(video_path: str) -> List[Filters]:
+    """
+    Find every filters for the video and return a list of them
+    """
     FILTERS = get_filters()
     global_filters: List[Filters] = []
     if "filters" in FILTERS:
@@ -306,6 +308,23 @@ def find_filters(video_path: str) -> List[Filters]:
                 if not found:
                     global_filters.append(Filters(filt, value))
     return global_filters
+
+
+def find_transi(video_path: str) -> Transition:
+    """
+    Find the transition for the video and return its name and the time it last
+    """
+    TRANSI = get_transition()
+    global_transi: Tuple[str, int] = ("", 0)
+    if "transi" in TRANSI:
+        global_transi = TRANSI["transi"]
+    video_name = os.path.split(video_path)[-1]
+    no_ext = io.remove_extension(video_name)
+    if "clips" in TRANSI:
+        if no_ext in TRANSI["clips"]:
+            global_transi = TRANSI["clips"][no_ext]
+
+    return Transition(global_transi[0], global_transi[1])
 
 
 def check_exists(frame: Tuple[int, int], save_path: str) -> bool:
