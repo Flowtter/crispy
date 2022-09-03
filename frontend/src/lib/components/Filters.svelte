@@ -87,7 +87,7 @@
             bind:activated={filters["blur"].box}
             text="blur"
             mode="one"
-            firstPlaceholder="value"
+            firstPlaceholder="10"
             bind:firstInput={filters["blur"].value}
         />
         <Filter
@@ -107,21 +107,21 @@
             bind:activated={filters["brightness"].box}
             text="brightness"
             mode="one"
-            firstPlaceholder="value"
+            firstPlaceholder="0.5"
             bind:firstInput={filters["brightness"].value}
         />
         <Filter
             bind:activated={filters["saturation"].box}
             text="saturation"
             mode="one"
-            firstPlaceholder="value"
+            firstPlaceholder="1.2"
             bind:firstInput={filters["saturation"].value}
         />
         <Filter
             bind:activated={filters["zoom"].box}
             text="zoom"
             mode="one"
-            firstPlaceholder="value"
+            firstPlaceholder="1.5"
             bind:firstInput={filters["zoom"].value}
         />
         <Filter bind:activated={filters["grayscale"].box} text="grayscale" />
@@ -132,9 +132,13 @@
 {/if}
 
 <style>
+    div {
+        background-color: transparent;
+    }
     button {
-        /* FIXME: bad usage of negatove margin */
-        margin-top: -40px;
+        /* FIXME: bad usage of negative margin */
+        margin-top: -60px;
+        margin-bottom: 20px;
         float: right;
         text-align: center;
         padding: 12px 20px;
@@ -145,7 +149,6 @@
         cursor: pointer;
         border: none;
         color: var(--white-text);
-        margin-bottom: 0;
         font-size: large;
         font-size: 1.25em;
         border-radius: 5px;
