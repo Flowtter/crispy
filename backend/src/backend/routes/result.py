@@ -128,18 +128,18 @@ def create_neural_network() -> NeuralNetwork:
     game = session["game"]
 
     if game == "overwatch":
-        NN = NeuralNetwork([10000, 120, 15, 2], 0.01)
+        nn = NeuralNetwork([10000, 120, 15, 2], 0.01)
     elif game == "valorant":
-        NN = NeuralNetwork([4000, 120, 15, 2], 0.01)
+        nn = NeuralNetwork([4000, 120, 15, 2], 0.01)
     elif game == "valorant-review":
-        NN = NeuralNetwork([616, 120, 15, 2], 0.01)
+        nn = NeuralNetwork([616, 120, 15, 2], 0.01)
     else:
         print(f"Game {game} not found")
         sys.exit(1)
 
-    NN.load(os.path.join(ASSETS, game + "_trained_network_latest.npy"))
+    nn.load(os.path.join(ASSETS, game + "_trained_network_latest.npy"))
 
-    return NN
+    return nn
 
 
 NN = create_neural_network()

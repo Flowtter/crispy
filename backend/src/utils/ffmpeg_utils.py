@@ -1,4 +1,3 @@
-from curses import keyname
 import subprocess
 import json
 import os
@@ -15,7 +14,7 @@ import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
 
 from music.music import silence_if_no_audio
-from utils.constants import BACKUP, KEYFRAME_PATH, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
+from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
 from utils.filter import Filters
 from utils.IO import io
 from utils.transition import Transition
@@ -70,9 +69,9 @@ def extract_overwatch(video_path: str,
     images = os.listdir(save_path)
     images.sort(key=lambda x: int(x.split(".")[0]))
 
-    for im in images:
-        im_path = os.path.join(save_path, im)
-        im = Image.open(im_path)
+    for i in images:
+        im_path = os.path.join(save_path, i)
+        im: Image = Image.open(im_path)
 
         # make red more visible and blue less visible
         r, g, b = im.split()
@@ -97,7 +96,7 @@ def extract_overwatch(video_path: str,
                     g.putpixel((x, y), max(0, int(green * 0.05)))
                     b.putpixel((x, y), max(0, int(blue * 0.05)))
 
-        im = ImageOps.grayscale(Image.merge('RGB', (r, g, b)))
+        im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
 
         final = Image.new("RGB", (2 * s, 2 * s))
         final.paste(im, (0, 0))
@@ -164,9 +163,9 @@ def extract_valorant_review(video_path: str,
     images = os.listdir(save_path)
     images.sort(key=lambda x: int(x.split(".")[0]))
 
-    for im in images:
-        im_path = os.path.join(save_path, im)
-        im = Image.open(im_path)
+    for i in images:
+        im_path = os.path.join(save_path, i)
+        im: Image = Image.open(im_path)
 
         im = ImageOps.grayscale(im)
 
@@ -196,7 +195,7 @@ def extract_images(video_path: str,
         sys.exit(1)
 
 
-def get_keyframes(video_path: str) -> List[int]:
+def get_keyframes(video_path: str) -> List[float]:
     res = subprocess.check_output(
         f"ffprobe -v quiet -skip_frame nokey -show_entries frame=pkt_pts_time -select_streams v -of csv=p=0 {video_path}"
         .split()).decode("utf-8").strip()
@@ -204,7 +203,7 @@ def get_keyframes(video_path: str) -> List[int]:
     return keyframes
 
 
-def get_keyframe_before_frame(keyframes: List[float], frame: int) -> int:
+def get_keyframe_before_frame(keyframes: List[float], frame: float) -> float:
     last_keyframe = keyframes[0]
     for keyframe in keyframes:
         if keyframe >= frame:
