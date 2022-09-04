@@ -1,13 +1,15 @@
 <div align="center">
+
 # Crispy
 Crispy is a machine-learning algorithm to make video-games montages efficiently.
+It uses a neural network to detect highlights in the video-game frames.
 [![Tech](https://skillicons.dev/icons?i=python,svelte,ts,css,html,docker,bash)](https://skillicons.dev)
 
-It uses a neural network to detect highlights in the video-game frames.\
-<div>
+
+</div>
 
 
-# Games 
+# Supported games 
 Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)** and Valorant-review (a custom mode to see only the moments you're alive in a game).
 # Usage
 ## Releases
@@ -53,7 +55,7 @@ config example:
 ## Run
 You can now run the application with the run.[sh|bat] file.
 
-## Frontend explanation
+# Frontend explanation
 The frontend is a web-application that allows you to add options to the Crispy algorithm.\
 It has 5 pages:
 - clips
