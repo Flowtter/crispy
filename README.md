@@ -34,20 +34,6 @@ config example:
         "second-after": 3,
         "second-between-kills": 5
     },
-    "supported-games-and-recommended-neural-network-confidence": [
-        [
-            "valorant",
-            0.8
-        ],
-        [
-            "valorant-review",
-            0.6
-        ],
-        [
-            "overwatch",
-            0.75
-        ]
-    ],
     "game": "valorant"
 }
 ```
