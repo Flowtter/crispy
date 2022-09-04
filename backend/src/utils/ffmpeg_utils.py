@@ -1,3 +1,4 @@
+import subprocess
 import json
 import os
 import random
@@ -5,6 +6,7 @@ import string
 import shutil
 
 import datetime
+import sys
 from typing import Optional, Any, List, Tuple
 
 import ffmpeg
@@ -16,6 +18,7 @@ from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_tran
 from utils.filter import Filters
 from utils.IO import io
 from utils.transition import Transition
+from backend.json_handling import get_session_json
 
 BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
@@ -46,12 +49,63 @@ def _apply_filter_and_do_operations(im: Image,
     return final
 
 
-def extract_images(video_path: str,
-                   save_path: str,
-                   framerate: int = 4) -> None:
-    """
-    Extract the images from the video
-    """
+def extract_overwatch(video_path: str,
+                      save_path: str,
+                      framerate: int = 4) -> None:
+    s = 50
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    (
+        ffmpeg
+        .input(video_path)
+        .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
+        .crop(x=960-s, y=540-s, width=2*s, height=2*s)
+        # .overlay(ffmpeg.input(DOT_PATH))
+        .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
+        .overwrite_output()
+        .run(quiet=True)
+    )  # yapf: disable
+
+    images = os.listdir(save_path)
+    images.sort(key=lambda x: int(x.split(".")[0]))
+
+    for i in images:
+        im_path = os.path.join(save_path, i)
+        im: Image = Image.open(im_path)
+
+        # make red more visible and blue less visible
+        r, g, b = im.split()
+
+        # check each pixel and make it black if it is red or black else
+        # make it white
+        for x in range(im.width):
+            for y in range(im.height):
+                red = r.getpixel((x, y))
+                green = g.getpixel((x, y))
+                blue = b.getpixel((x, y))
+                if red > 200 and green < 100 and blue < 100:
+                    r.putpixel((x, y), 255)
+                    b.putpixel((x, y), 255)
+                    g.putpixel((x, y), 255)
+                elif red > 200 and green < 180 and blue < 180:
+                    r.putpixel((x, y), min(255, int(red * 1.5)))
+                    g.putpixel((x, y), max(0, int(green * 0.3)))
+                    b.putpixel((x, y), max(0, int(blue * 0.3)))
+                else:
+                    r.putpixel((x, y), min(255, int(red * 1.1)))
+                    g.putpixel((x, y), max(0, int(green * 0.05)))
+                    b.putpixel((x, y), max(0, int(blue * 0.05)))
+
+        im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
+
+        final = Image.new("RGB", (2 * s, 2 * s))
+        final.paste(im, (0, 0))
+        final.save(im_path)
+
+
+def extract_valorant(video_path: str,
+                     save_path: str,
+                     framerate: int = 4) -> None:
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     (
@@ -63,7 +117,7 @@ def extract_images(video_path: str,
         .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
         .overwrite_output()
         .run(quiet=True)
-    ) # yapf: disable
+    )  # yapf: disable
 
     images = os.listdir(save_path)
     images.sort(key=lambda x: int(x.split(".")[0]))
@@ -89,6 +143,75 @@ def extract_images(video_path: str,
         final.save(im_path)
 
 
+def extract_valorant_review(video_path: str,
+                            save_path: str,
+                            framerate: int = 4) -> None:
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    (
+        ffmpeg
+        .input(video_path)
+        .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
+        # .filter("fps", fps=f"1/5")
+        .crop(x=120, y=853, width=28, height=22)
+        # .overlay(ffmpeg.input(DOT_PATH))
+        .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
+        .overwrite_output()
+        .run(quiet=True)
+    )  # yapf: disable
+
+    images = os.listdir(save_path)
+    images.sort(key=lambda x: int(x.split(".")[0]))
+
+    for i in images:
+        im_path = os.path.join(save_path, i)
+        im: Image = Image.open(im_path)
+
+        im = ImageOps.grayscale(im)
+
+        im = im.filter(ImageFilter.FIND_EDGES)
+
+        final = Image.new("RGB", (28, 22))
+        final.paste(im, (0, 0))
+
+        final.save(im_path)
+
+
+def extract_images(video_path: str,
+                   save_path: str,
+                   framerate: int = 4) -> None:
+
+    session = get_session_json()
+    game = session["game"]
+
+    if game == "overwatch":
+        extract_overwatch(video_path, save_path, framerate)
+    elif game == "valorant-review":
+        extract_valorant_review(video_path, save_path, framerate)
+    elif game == "valorant":
+        extract_valorant(video_path, save_path, framerate)
+    else:
+        print("Game not supported")
+        sys.exit(1)
+
+
+def get_keyframes(video_path: str) -> List[float]:
+    res = subprocess.check_output(
+        f"ffprobe -v quiet -skip_frame nokey -show_entries frame=pkt_pts_time -select_streams v -of csv=p=0 {video_path}"
+        .split()).decode("utf-8").strip()
+    keyframes = [float(x) for x in res.split("\n")]
+    return keyframes
+
+
+def get_keyframe_before_frame(keyframes: List[float], frame: float) -> float:
+    last_keyframe = keyframes[0]
+    for keyframe in keyframes:
+        if keyframe >= frame:
+            return last_keyframe
+        last_keyframe = keyframe
+    return keyframes[-1]
+
+
 def segment_video(video_path: str, save_path: str,
                   frames: List[Tuple[int, int]], frame_duration: int) -> None:
     """
@@ -96,6 +219,13 @@ def segment_video(video_path: str, save_path: str,
     """
     video_json = []
     recompile = False
+
+    session = get_session_json()
+    game = session["game"]
+
+    if game == "valorant-review":
+        keyframes = get_keyframes(video_path)
+
     for frame in frames:
         frame_json: dict = {"metadata": {}}
         start = frame[0] / frame_duration
@@ -108,7 +238,7 @@ def segment_video(video_path: str, save_path: str,
         video = (
             ffmpeg
             .input(video_path)
-        ) # yapf: disable
+        )  # yapf: disable
         audio = silence_if_no_audio(video.audio, video_path)
 
         video, filter_json, recompile = apply_filter(video, video_path,
@@ -117,14 +247,35 @@ def segment_video(video_path: str, save_path: str,
         if recompile or not check_exists((frame[0], frame[1]), save_path):
             video_save_path = os.path.join(save_path,
                                            f"{frame[0]}-{frame[1]}.mp4")
-            video = ffmpeg.output(video,
-                                  audio,
-                                  video_save_path,
-                                  ss=f"{start}",
-                                  to=f"{end}",
-                                  preset="ultrafast")
-            video = video.overwrite_output()
-            video.run(quiet=True)
+
+            if game != "valorant-review":
+                video = ffmpeg.output(video,
+                                      audio,
+                                      video_save_path,
+                                      ss=f"{start}",
+                                      to=f"{end}",
+                                      preset="ultrafast")
+                video = video.overwrite_output()
+                video.run(quiet=True)
+
+            else:
+                # copy so it's faster, but you need the last keyframe
+                # unfortunately ffmpeg-python does not support it correctly
+                # so we need to do it manually
+                video = ffmpeg.output(video,
+                                      audio,
+                                      video_save_path,
+                                      vcodec="copy",
+                                      acodec="copy",
+                                      to=f"{end}")
+
+                video = video.overwrite_output()
+                args = ([
+                    "ffmpeg", "-loglevel", "error", "-ss",
+                    str(get_keyframe_before_frame(keyframes, start))
+                ] + video.get_args())
+                subprocess.run(args)
+
             L.debug(f"{frame[0]}-{frame[1]}.mp4 created or modified")
         else:
             L.debug(f"no modifications made to {frame[0]}-{frame[1]}.mp4")
