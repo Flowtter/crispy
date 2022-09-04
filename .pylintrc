@@ -21,7 +21,8 @@ disable=
     C0123,
     R0911,
     R0912,
-    R0801 # FIXME: issue with fastapi + mypy
+    R0801, # FIXME: issue with fastapi + mypy
+    W1510
 
 
 string-quote=double
