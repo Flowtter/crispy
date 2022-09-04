@@ -47,6 +47,7 @@ In the result page, you can see the result of your montage.
 
 # Demo
 [live demo](https://crispy.gyroskan.com/)
+[youtube demo](https://www.youtube.com/watch?v=svT-Z_MkAfw)
 # Dev
 ## Setup pre-commit
 First install `pre-commit` by running:
