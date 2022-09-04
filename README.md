@@ -2,7 +2,7 @@
 
 # Crispy
 Crispy is a machine-learning algorithm to make video-games montages efficiently.
-It uses a neural network to detect highlights in the video-game frames.
+It uses a neural network to detect highlights in the video-game frames.\
 [![Tech](https://skillicons.dev/icons?i=python,svelte,ts,css,html,docker,bash)](https://skillicons.dev)
 
 
