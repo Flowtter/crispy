@@ -29,6 +29,9 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
         if inclusive_range == []:
             continue
 
+        if len(inclusive_range) == 1:
+            inclusive_range.append(inclusive_range[0])
+
         for i in range(inclusive_range[0], inclusive_range[1] + 1):
             dict_values.append(i)
 
