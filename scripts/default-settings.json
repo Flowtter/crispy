@@ -7,5 +7,6 @@
         "second-before": 3,
         "second-after": 0.5,
         "second-between-kills": 1
-    }
+    },
+    "game": "valorant"
 }
