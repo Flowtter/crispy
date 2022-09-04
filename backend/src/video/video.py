@@ -94,6 +94,8 @@ def post_processing_kill_array(
     Post processing the kill array
     """
     SETTINGS = get_settings()
+    game = SETTINGS["game"]
+
     found = True
     offset = SETTINGS["clip"]["second-between-kills"] * SETTINGS["clip"][
         "framerate"]
@@ -105,7 +107,19 @@ def post_processing_kill_array(
                 kill_array[i] = (kill_array[i][0], kill_array[i + 1][1])
                 kill_array.pop(i + 1)
                 break
-
+            if game == "valorant-review" and kill_array[i][1] - kill_array[i][
+                    0] < 30 * SETTINGS["clip"]["framerate"] and kill_array[i][
+                        0] != 0:
+                found = True
+                kill_array.pop(i)
+                break
+    if game == "valorant-review":
+        for i in range(len(kill_array)):
+            if kill_array[i][0] == 0:
+                continue
+            kill_array[i] = (kill_array[i][0] +
+                             SETTINGS["clip"]["framerate"] * 30,
+                             kill_array[i][1])
     return kill_array
 
 

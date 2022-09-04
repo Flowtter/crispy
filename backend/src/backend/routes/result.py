@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 from typing import Any, Dict, List, Tuple, Union
 
@@ -9,7 +10,7 @@ from fastapi.responses import FileResponse
 from AI.network import NeuralNetwork
 import video.video as vid
 from utils.IO import io
-from utils.constants import FILTERS_PATH, IMAGE, MUSICS_PATH, NEURAL_NETWORK_PATH, VIDEOS_PATH, app, CUT, TMP_PATH
+from utils.constants import ASSETS, FILTERS_PATH, IMAGE, MUSICS_PATH, VIDEOS_PATH, app, CUT, TMP_PATH
 from backend.json_handling import get_session_json, save_json
 from backend.startup import extract_first_image_of_video
 
@@ -121,8 +122,27 @@ def convert_session_to_settings() -> None:
 # def get_generating() -> bool:
 #     return False
 
-NN = NeuralNetwork([4000, 120, 15, 2], 0.01)
-NN.load(NEURAL_NETWORK_PATH)
+
+def create_neural_network() -> NeuralNetwork:
+    session = get_session_json()
+    game = session["game"]
+
+    if game == "overwatch":
+        nn = NeuralNetwork([10000, 120, 15, 2], 0.01)
+    elif game == "valorant":
+        nn = NeuralNetwork([4000, 120, 15, 2], 0.01)
+    elif game == "valorant-review":
+        nn = NeuralNetwork([616, 120, 15, 2], 0.01)
+    else:
+        print(f"Game {game} not found")
+        sys.exit(1)
+
+    nn.load(os.path.join(ASSETS, game + "_trained_network_latest.npy"))
+
+    return nn
+
+
+NN = create_neural_network()
 
 # TODO: move function convert_session, done every time should only be done once
 

@@ -3,7 +3,7 @@ import json
 
 from typing import Dict, Any
 
-from utils.constants import FILTERS_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS, TMP_PATH, VIDEOS_PATH
+from utils.constants import FILTERS_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS, TMP_PATH, VIDEOS_PATH, get_settings
 from utils.IO import io
 
 with open(os.path.join(ASSETS, "filters.json"), "r") as js:
@@ -51,6 +51,8 @@ def new_json() -> None:
 
         JSON_INFO["musics"].append(obj)
 
+    settings = get_settings()
+    JSON_INFO["game"] = settings["game"]
     save_json(JSON_INFO)
 
 
@@ -62,6 +64,13 @@ def update_json() -> None:
 
     with open(JSON_PATH, "r") as f:
         NEW_JSON = json.load(f)
+
+    settings = get_settings()
+    game = settings["game"]
+
+    if JSON_INFO["game"] != game:
+        save_json(NEW_JSON)
+        return
 
     for obj in NEW_JSON["objects"]:
         if not obj["name"] in [o["name"] for o in JSON_INFO["objects"]]:

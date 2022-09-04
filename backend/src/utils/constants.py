@@ -42,7 +42,7 @@ MUSIC_MERGE_FOLDER = os.path.join(TMP_PATH, MUSIC)
 IMAGES_PATH = os.path.join(TMP_PATH, IMAGE)
 FRONTEND_PATH = os.path.join(TMP_PATH, FRONTEND)
 
-NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
+# NEURAL_NETWORK_PATH = os.path.join(ASSETS, "trained_network_latest.npy")
 ### CODE_PATH ###
 
 ### SETTINGS ###
