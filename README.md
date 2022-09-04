@@ -2,6 +2,7 @@
 Crispy is a machine-learning algorithm to make video-games montages efficiently.\
 It uses a neural network to detect highlights in the video-game frames.\
 Currently it supports **[Valorant](https://playvalorant.com/)**.
+A beta version on **[Overwatch](https://playoverwatch.com/)** is currently in development.
 # Usage
 ## Releases
 [Releases](https://github.com/Flowtter/crispy/releases) are available for windows and linux.
@@ -46,7 +47,7 @@ Yet the clips' effects override the global effects.
 In the result page, you can see the result of your montage.
 
 # Demo
-[live demo](https://crispy.gyroskan.com/)
+[live demo](https://crispy.gyroskan.com/)\
 [youtube demo](https://www.youtube.com/watch?v=svT-Z_MkAfw)
 # Dev
 ## Setup pre-commit
