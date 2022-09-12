@@ -37,6 +37,15 @@ config example:
     "game": "valorant"
 }
 ```
+The following settings are adjustable:
+- neural-network
+    - confidence: The confidence level used by the neural network.
+- clip
+    - framerate: The framerate of the clip.
+    - second-before: Seconds of gameplay included before the highlight.
+    - second-after: Seconds of gameplay included after the highlight.
+    - second-between-kills: Transition time between highlights.
+- game: Chosen game (either "valorant" or "overwatch")
 
 ## Run
 You can now run the application with the run.[sh|bat] file.
@@ -53,21 +62,33 @@ It has 5 pages:
 ### Clips
 In the clips page, you can see the list of your videos.\
 You can rearrange them by dragging and dropping them.\
-Select the video you don't want in the montage and add customs effects for a single clip.\
+Select the videos you want to make cuts of by selecting "show" for that video \
+Select the videos you want in the montage and add customs effects for a single clip.\
 Once you've made your selection, you can click on `generate cuts` to create the cuts.
 
 ### Cuts
 In the cuts page, you can see the list of your cuts.\
-You can hide the one you don't want
+Each cut is a gameplay highlight chosen by the algorithm. \
+You can select "hide" on a cut to exclude that cut from the final result.
 
 ### Music
 In the music page, you can see the list of your music.\
-You can hide the one you don't want and you can you can rearrange them by dragging and dropping them.\
+This is the music that will be played in the final result video. \
+You can select "hide" for songs you don't want and you can you can rearrange them by dragging and dropping them.
 
 ### Effects
 In the effects page, you can see the list of your effects.\
 Those effects are applied to the whole video.\
-Yet the clips' effects override the global effects.
+Yet the clips' effects override the global effects.\
+The following effects are available to use:
+- blur
+- scale
+- hflip
+- vflip
+- brightness
+- saturation
+- zoom
+- grayscale
 
 ### Result
 In the result page, you can see the result of your montage.
