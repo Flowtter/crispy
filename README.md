@@ -45,7 +45,7 @@ The following settings are adjustable:
     - second-before: Seconds of gameplay included before the highlight.
     - second-after: Seconds of gameplay included after the highlight.
     - second-between-kills: Transition time between highlights.
-- game: Chosen game (either "valorant" or "overwatch")
+- game: Chosen game (either "valorant", "overwatch" or "valorant-review")
 
 ## Run
 You can now run the application with the run.[sh|bat] file.
