@@ -8,6 +8,9 @@ It uses a neural network to detect highlights in the video-game frames.\
 
 </div>
 
+# Demo
+[live demo](https://crispy.gyroskan.com/)\
+[youtube demo](https://www.youtube.com/watch?v=svT-Z_MkAfw)
 
 # Supported games 
 Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)** and Valorant-review (a custom mode to see only the moments you're alive in a game).
@@ -93,9 +96,6 @@ The following effects are available to use:
 ### Result
 In the result page, you can see the result of your montage.
 
-# Demo
-[live demo](https://crispy.gyroskan.com/)\
-[youtube demo](https://www.youtube.com/watch?v=svT-Z_MkAfw)
 # Contributing
 Every contribution is welcome.
 ## Setup pre-commit
