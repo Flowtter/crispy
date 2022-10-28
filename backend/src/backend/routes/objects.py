@@ -63,12 +63,12 @@ async def get_cut_info(filename: str,
 
     if not obj:
         return HTTPException(status_code=404, detail="Object not found")
-    cut = next(filter(lambda x: x[0] == cut, obj["cuts"]), None)
+    result = next(filter(lambda x: x[0] == cut, obj["cuts"]), None)
 
-    if not cut:
+    if not result:
         return HTTPException(status_code=404, detail="Cut not found")
 
-    return {"enabled": cut[1]}
+    return {"enabled": result[1]}
 
 
 @app.get("/objects/{filename}/switch")
