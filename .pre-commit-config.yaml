@@ -15,22 +15,23 @@ repos:
         language: system
         entry: ./scripts/check_commit_msg.sh
         stages: ["commit-msg"]
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-yapf
+    rev: 'v0.32.0'
     hooks:
-      # FIXME: use anchors
-      - id: coding-style
+      - id: yapf
         name: Coding style
         description: Check if code respects the coding-style
-        language: system
-        entry: ./scripts/yapf.sh
         stages: ["commit"]
-      - id: coding-style-lint
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v0.961'
+    hooks:
+      - id: mypy
         name: Coding style linting
         description: Check if code respects the coding-style
-        language: system
-        entry: ./scripts/mypy.sh
         stages: ["commit"]
-      - id: coding-style-type
+  - repo: local
+    hooks:
+      - id: pylint
         name: Coding style type-check
         description: Check if code respects the coding-style
         language: system

@@ -7,42 +7,13 @@ on:
     branches: [master]
 
 jobs:
-  format:
+  pre-commit:
     runs-on: ubuntu-latest
-    name: Coding style
     steps:
-      - uses: actions/checkout@v2
-      - name: Run coding style tests
-        run: docker build . -f ./docker-ci/yapf.Dockerfile -t crispy/yapf
-      - name: Cleanup
-        if: always()
-        run: docker run crispy/yapf
-
-  type-check:
-    runs-on: ubuntu-latest
-    name: Type checking
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run coding style type-check tests
-        run: docker build . -f ./docker-ci/mypy.Dockerfile -t crispy/mypy
-      - name: Cleanup
-        if: always()
-        run: docker run crispy/mypy
-
-  linting:
-    runs-on: ubuntu-latest
-    name: Linting
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run coding style linting tests
-        run: docker build . -f ./docker-ci/pylint.Dockerfile -t crispy/pylint
-      - name: Cleanup
-        if: always()
-        run: docker run crispy/pylint
-
-  commit-style:
-    runs-on: ubuntu-latest
-    name: Commit style
-    steps:
-      - uses: actions/checkout@v2
-      - uses: webiny/action-conventional-commits@v1.0.3
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.8.3'
+        cache: 'pip'
+    - run: pip install -r backend/requirements-dev.txt
+    - uses: pre-commit/action@v3.0.0
