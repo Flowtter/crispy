@@ -52,13 +52,15 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
         # Image is already in grey scale
         pixel_values = list(im.getchannel("R").getdata())
 
-        pixel_values.insert(0, int(i in dict_values))
+        expected = int(i in dict_values)
+        pixel_values.insert(0, expected)
         csv.append(pixel_values)
         if file != "test":
             im.save(
                 os.path.join(
                     DATASET_PATH, "result",
-                    str(INDEX) + "_" + file_clean + "_" + str(i) + ".bmp"))
+                    str(INDEX) + "_" + file_clean + "_" + str(i) +
+                    str("__expected_kill" if expected else "") + ".bmp"))
         INDEX += 1
         if save:
             if not os.path.exists(os.path.join(path, "grey")):
@@ -114,7 +116,7 @@ def main(ext: bool, csv: bool) -> None:
 
     for video in videos:
         print("Doing:", video)
-        video_no_ext = video.split(".", maxsplit=1)[0]
+        video_no_ext = ".".join(video.split(".")[:-1])
         if ext:
             utils.ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),

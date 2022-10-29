@@ -13,6 +13,7 @@ progressbar2==4.0.0
 ffmpeg-python==0.2.0
 pydub==0.25.1
 scipy==1.8.0
+colorthief==0.2.1
 
 # Tests
 pytube==12.1.0

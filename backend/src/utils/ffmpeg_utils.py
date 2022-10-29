@@ -12,6 +12,7 @@ from typing import Optional, Any, List, Tuple
 import ffmpeg
 import moviepy.editor as mpe
 from PIL import Image, ImageFilter, ImageOps
+from colorthief import ColorThief
 
 from music.music import silence_if_no_audio
 from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
@@ -72,6 +73,8 @@ def extract_overwatch(video_path: str,
     for i in images:
         im_path = os.path.join(save_path, i)
         im: Image = Image.open(im_path)
+        color_thief = ColorThief(im_path)
+        palette = color_thief.get_palette(color_count=8)
 
         # make red more visible and blue less visible
         r, g, b = im.split()
@@ -83,18 +86,26 @@ def extract_overwatch(video_path: str,
                 red = r.getpixel((x, y))
                 green = g.getpixel((x, y))
                 blue = b.getpixel((x, y))
-                if red > 200 and green < 100 and blue < 100:
+
+                red, green, blue = min(palette, key=lambda c: (c[0] - red)**2 + \
+                    (c[1] - green)**2 + (c[2] - blue)**2)
+
+                if red > 220 and green < 140 and blue < 160:
                     r.putpixel((x, y), 255)
                     b.putpixel((x, y), 255)
                     g.putpixel((x, y), 255)
                 elif red > 200 and green < 180 and blue < 180:
-                    r.putpixel((x, y), min(255, int(red * 1.5)))
-                    g.putpixel((x, y), max(0, int(green * 0.3)))
-                    b.putpixel((x, y), max(0, int(blue * 0.3)))
+                    r.putpixel((x, y), 255)
+                    g.putpixel((x, y), int(green * 0.8))
+                    b.putpixel((x, y), int(blue * 0.8))
+                elif red > 100 and green < 120 and blue < 120:
+                    r.putpixel((x, y), 200)
+                    g.putpixel((x, y), int(green * 0.7))
+                    b.putpixel((x, y), int(blue * 0.7))
                 else:
                     r.putpixel((x, y), min(255, int(red * 1.1)))
-                    g.putpixel((x, y), max(0, int(green * 0.05)))
-                    b.putpixel((x, y), max(0, int(blue * 0.05)))
+                    g.putpixel((x, y), int(green * 0.05))
+                    b.putpixel((x, y), int(blue * 0.05))
 
         im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
 
