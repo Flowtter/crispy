@@ -31,8 +31,8 @@
 <div class="object">
     <div class="title">merged.mp4</div>
     <video
-        poster={API_URL + "/result/image?t=" + t}
-        src={API_URL + "/result/video?t=" + t}
+        poster={API_URL + "/results/image?t=" + t}
+        src={API_URL + "/results/video?t=" + t}
         on:mousedown={handleMousedown}
         on:mouseup={handleMouseup}
         bind:currentTime={time}

@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import shutil
 
 from typing import Any, Dict, List, Tuple, Union
 
@@ -10,12 +11,12 @@ from fastapi.responses import FileResponse
 from AI.network import NeuralNetwork
 import video.video as vid
 from utils.IO import io
-from utils.constants import ASSETS, FILTERS_PATH, IMAGE, MUSICS_PATH, VIDEOS_PATH, app, CUT, TMP_PATH
+from utils.constants import ASSETS, FILTERS_PATH, IMAGE, MUSICS_PATH, VIDEOS_PATH, app, CUT, TMP_PATH, ALL_CUTS
 from backend.json_handling import get_session_json, save_json
 from backend.startup import extract_first_image_of_video
 
 
-@app.get("/result/generate-result/{filename}")
+@app.get("/results/generate-result/{filename}")
 async def generate_result_for_file(
         filename: str) -> Union[HTTPException, None]:
 
@@ -142,16 +143,22 @@ def create_neural_network() -> NeuralNetwork:
     return nn
 
 
+@app.get("/results/clear")
+async def clear_result() -> None:
+    convert_session_to_settings()
+
+    for file in os.listdir(ALL_CUTS):
+        os.remove(os.path.join(ALL_CUTS, file))
+
+
 NN = create_neural_network()
 
 # TODO: move function convert_session, done every time should only be done once
 
 
-@app.get("/result/{filename}/generate-cuts")
+@app.get("/results/{filename}/generate-cuts")
 async def single_video_generate_cuts(
         filename: str) -> Union[List[Tuple[Any, bool]], HTTPException]:
-    convert_session_to_settings()
-
     session = get_session_json()
     objects = session["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
@@ -171,17 +178,16 @@ async def single_video_generate_cuts(
 
         cut_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), CUT)
         cuts = os.listdir(cut_path)
-        cuts.sort()
-        old_cuts = session["objects"][objects.index(obj)]["cuts"]
         cuts = [(io.remove_extension(cut), True) for cut in cuts]
-        if old_cuts:
-            for i in range(len(cuts)):
-                if cuts[i][0] == old_cuts[i][0]:
-                    cuts[i] = old_cuts[i]
         cuts.sort(key=lambda x: int(x[0].split("-")[0]))
         session["objects"][objects.index(obj)]["cuts"] = cuts
 
         save_json(session)
+
+        for cut in cuts:
+            shutil.copy(
+                os.path.join(cut_path, cut[0] + ".mp4"),
+                os.path.join(ALL_CUTS, filename + "-" + cut[0] + ".mp4"))
 
         return cuts
 
@@ -201,7 +207,7 @@ def get_music_list() -> List[str]:
     return res
 
 
-@app.get("/result/generate-result")
+@app.get("/results/generate-result")
 async def generate_result() -> Union[HTTPException, None]:
     if not os.path.exists(os.path.join(TMP_PATH, "recompile.json")):
         return None
@@ -228,11 +234,11 @@ async def generate_result() -> Union[HTTPException, None]:
     return None
 
 
-@app.get("/result/video")
+@app.get("/results/video")
 def get_result_video() -> FileResponse:
     return FileResponse("merged.mp4")
 
 
-@app.get("/result/image")
+@app.get("/results/image")
 def get_result_image() -> FileResponse:
     return FileResponse("merged.jpg")

@@ -43,6 +43,11 @@
             generating = false;
             return;
         });
+        await axios.get(API_URL + "/results/clear").catch((error) => {
+            globalError(error);
+            generating = false;
+            return;
+        });
         toast.push("Generating cuts! Check the cut menu to see them", {
             duration: 5000,
         });
@@ -58,7 +63,7 @@
                     }
                 );
                 let cuts = await axios
-                    .get(API_URL + "/result/" + object.name + "/generate-cuts")
+                    .get(API_URL + "/results/" + object.name + "/generate-cuts")
                     .catch((error) => {
                         generating = false;
                         globalError(error);
@@ -84,6 +89,7 @@
         cutsDone = true;
         generating = false;
     }
+
     async function generateResult() {
         toast.pop(0);
         if (await lock()) return;
@@ -120,7 +126,7 @@
                     next: i / length,
                 });
                 await axios
-                    .get(API_URL + "/result/generate-result/" + object.name)
+                    .get(API_URL + "/results/generate-result/" + object.name)
                     .catch((error) => {
                         generating = false;
                         globalError(error);
@@ -133,7 +139,7 @@
             msg: "Generating final montage",
             next: length - 1 / length,
         });
-        await axios.get(API_URL + "/result/generate-result").catch((error) => {
+        await axios.get(API_URL + "/results/generate-result").catch((error) => {
             generating = false;
             globalError(error);
             return;
