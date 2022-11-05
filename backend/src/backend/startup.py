@@ -8,7 +8,7 @@ import ffmpeg
 import progressbar
 from music.music import silence_if_no_audio
 
-from utils.constants import app, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH
+from utils.constants import app, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH, ALL_CUTS
 from utils.IO import io
 import utils.ffmpeg_utils as ff
 import video.video as vid
@@ -71,6 +71,8 @@ def startup() -> None:
         os.mkdir(FRONTEND_PATH)
     if not os.path.exists(IMAGES_PATH):
         os.mkdir(IMAGES_PATH)
+    if not os.path.exists(ALL_CUTS):
+        os.mkdir(ALL_CUTS)
 
     print("Extracting thumbnails, snippets and frames")
     print("This may take a while if it's the first time you run the app")
