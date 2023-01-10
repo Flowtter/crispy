@@ -1,11 +1,9 @@
-import os
-import json
 import argparse
-
-from PIL import Image
+import json
+import os
 
 import utils.ffmpeg_utils
-
+from PIL import Image
 from utils.constants import DATASET_PATH, DATASET_VALUES_PATH, VIDEOS_PATH
 
 INDEX = 0
@@ -57,8 +55,11 @@ def to_csv(folder: str, file: str, values: dict, save: bool = False) -> None:
         if file != "test":
             im.save(
                 os.path.join(
-                    DATASET_PATH, "result",
-                    str(INDEX) + "_" + file_clean + "_" + str(i) + ".bmp"))
+                    DATASET_PATH,
+                    "result",
+                    str(INDEX) + "_" + file_clean + "_" + str(i) + ".bmp",
+                )
+            )
         INDEX += 1
         if save:
             if not os.path.exists(os.path.join(path, "grey")):
@@ -118,7 +119,8 @@ def main(ext: bool, csv: bool) -> None:
         if ext:
             utils.ffmpeg_utils.extract_images(
                 os.path.join(VIDEOS_PATH, video),
-                os.path.join(DATASET_PATH, video_no_ext))
+                os.path.join(DATASET_PATH, video_no_ext),
+            )
 
         if csv:
             to_csv(DATASET_PATH, video_no_ext, values)

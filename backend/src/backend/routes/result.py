@@ -1,24 +1,31 @@
 import json
 import os
-import sys
 import shutil
-
+import sys
 from typing import Any, Dict, List, Tuple, Union
 
-from fastapi import HTTPException
-from fastapi.responses import FileResponse
-
-from AI.network import NeuralNetwork
 import video.video as vid
-from utils.IO import io
-from utils.constants import ASSETS, FILTERS_PATH, IMAGE, MUSICS_PATH, VIDEOS_PATH, app, CUT, TMP_PATH, ALL_CUTS
+from AI.network import NeuralNetwork
 from backend.json_handling import get_session_json, save_json
 from backend.startup import extract_first_image_of_video
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
+from utils.constants import (
+    ALL_CUTS,
+    ASSETS,
+    CUT,
+    FILTERS_PATH,
+    IMAGE,
+    MUSICS_PATH,
+    TMP_PATH,
+    VIDEOS_PATH,
+    app,
+)
+from utils.IO import io
 
 
 @app.get("/results/generate-result/{filename}")
-async def generate_result_for_file(
-        filename: str) -> Union[HTTPException, None]:
+async def generate_result_for_file(filename: str) -> Union[HTTPException, None]:
 
     session = get_session_json()
     objects = session["objects"]
@@ -70,9 +77,12 @@ def convert_filters(name: str) -> Dict[Any, Any]:
         if not obj["filters"][f]["box"]:
             continue
         if f == "scale":
-            result[name][f] = "w=" + str(int(
-                obj["filters"][f]["w"])) + ":h=" + str(
-                    int(obj["filters"][f]["h"]))
+            result[name][f] = (
+                "w="
+                + str(int(obj["filters"][f]["w"]))
+                + ":h="
+                + str(int(obj["filters"][f]["h"]))
+            )
         elif "value" in obj["filters"][f]:
             result[name][f] = obj["filters"][f]["value"]
         else:
@@ -88,9 +98,12 @@ def convert_global_filters() -> Dict[Any, Any]:
         if not session["filters"][f]["box"]:
             continue
         if f == "scale":
-            result["filters"][f] = "w=" + str(int(
-                session["filters"][f]["w"])) + ":h=" + str(
-                    int(session["filters"][f]["h"]))
+            result["filters"][f] = (
+                "w="
+                + str(int(session["filters"][f]["w"]))
+                + ":h="
+                + str(int(session["filters"][f]["h"]))
+            )
         elif "value" in session["filters"][f]:
             result["filters"][f] = session["filters"][f]["value"]
         else:
@@ -158,7 +171,8 @@ NN = create_neural_network()
 
 @app.get("/results/{filename}/generate-cuts")
 async def single_video_generate_cuts(
-        filename: str) -> Union[List[Tuple[Any, bool]], HTTPException]:
+    filename: str,
+) -> Union[List[Tuple[Any, bool]], HTTPException]:
     session = get_session_json()
     objects = session["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
@@ -168,8 +182,7 @@ async def single_video_generate_cuts(
 
     if obj["enabled"]:
         no_ext = obj["name"]
-        images_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext),
-                                   IMAGE)
+        images_path = os.path.join(TMP_PATH, io.generate_clean_name(no_ext), IMAGE)
 
         query_array = vid.get_query_array_from_video(NN, images_path)
         kill_array = vid.get_kill_array_from_query_array(query_array)
@@ -187,7 +200,8 @@ async def single_video_generate_cuts(
         for cut in cuts:
             shutil.copy(
                 os.path.join(cut_path, cut[0] + ".mp4"),
-                os.path.join(ALL_CUTS, filename + "-" + cut[0] + ".mp4"))
+                os.path.join(ALL_CUTS, filename + "-" + cut[0] + ".mp4"),
+            )
 
         return cuts
 

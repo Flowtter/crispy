@@ -1,9 +1,17 @@
-import os
 import json
+import os
+from typing import Any, Dict
 
-from typing import Dict, Any
-
-from utils.constants import FILTERS_PATH, JSON_PATH, MUSICS_PATH, SESSION, ASSETS, TMP_PATH, VIDEOS_PATH, get_settings
+from utils.constants import (
+    ASSETS,
+    FILTERS_PATH,
+    JSON_PATH,
+    MUSICS_PATH,
+    SESSION,
+    TMP_PATH,
+    VIDEOS_PATH,
+    get_settings,
+)
 from utils.IO import io
 
 with open(os.path.join(ASSETS, "filters.json"), "r") as js:
@@ -76,13 +84,13 @@ def update_json() -> None:
         if not obj["name"] in [o["name"] for o in JSON_INFO["objects"]]:
             JSON_INFO["objects"].append(obj)
             with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-                f.write("{\"new\":true}")
+                f.write('{"new":true}')
 
     for music in NEW_JSON["musics"]:
         if not music["name"] in [m["name"] for m in JSON_INFO["musics"]]:
             JSON_INFO["musics"].append(music)
             with open(os.path.join(TMP_PATH, "music.json"), "w") as f:
-                f.write("{\"new\":true}")
+                f.write('{"new":true}')
 
     save_json(JSON_INFO)
 

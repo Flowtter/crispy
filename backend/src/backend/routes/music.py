@@ -1,13 +1,11 @@
 import os
-from typing import Union, Dict, Any, List
+from typing import Any, Dict, List, Union
 
+from backend.dto import Reorder
+from backend.json_handling import get_session_json, save_json
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
-
 from utils.constants import MUSICS_PATH, TMP_PATH, app
-
-from backend.json_handling import get_session_json, save_json
-from backend.dto import Reorder
 
 
 @app.get("/musics/{filename}")
@@ -48,10 +46,10 @@ async def switch_music(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     save_json(session)
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-        f.write("{\"switch\":true}")
+        f.write('{"switch":true}')
 
     with open(os.path.join(TMP_PATH, "music.json"), "w") as f:
-        f.write("{\"switch\":true}")
+        f.write('{"switch":true}')
 
     return music["enabled"]
 
@@ -69,10 +67,10 @@ async def music_reorder(data: List[Reorder]) -> Dict[Any, Any]:
     session["musics"] = new_musics
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-        f.write("{\"reorder\":true}")
+        f.write('{"reorder":true}')
 
     with open(os.path.join(TMP_PATH, "music.json"), "w") as f:
-        f.write("{\"reorder\":true}")
+        f.write('{"reorder":true}')
 
     save_json(session)
     return session
