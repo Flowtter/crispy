@@ -1,14 +1,15 @@
-import argparse
-import os
-import sys
+from typing import List, Any, Tuple
 import warnings
 from datetime import datetime
-from typing import Any, List, Tuple
+import argparse
+import sys
+import os
 
+from PIL import Image
 import numpy as np
 import progressbar
+
 from network import NeuralNetwork
-from PIL import Image
 
 # FIXME
 warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
@@ -44,7 +45,8 @@ class Trainer(NeuralNetwork):
                 im = im.resize((100 * im.width, 100 * im.height))
                 im.save(os.path.join(path, images[index]))
 
-    def train(self, epochs: int, inputs: List[List[float]], targets: List[Any]) -> None:
+    def train(self, epochs: int, inputs: List[List[float]],
+              targets: List[Any]) -> None:
         """
         Train the neural network for a given number of epochs
         """
@@ -68,7 +70,8 @@ class Trainer(NeuralNetwork):
             print("Accuracy:", accuracy / len(inputs))
 
             if epoch % 25 == 0:
-                self.save("./outputs/trained_network_" + self.hash + "_" + str(epoch))
+                self.save("./outputs/trained_network_" + self.hash + "_" +
+                          str(epoch))
 
         self.save("./outputs/trained_network_" + self.hash + "_end")
 
@@ -90,16 +93,9 @@ class Trainer(NeuralNetwork):
             accuracy_score += result == np.argmax(targets[j])
             if result != np.argmax(targets[j]):
                 failed.append(j)
-                print(
-                    "--- Expected:",
-                    np.argmax(targets[j]),
-                    "Got:",
-                    result,
-                    "at:",
-                    j,
-                    "confidence:",
-                    str(int(np.max(q) * 100)) + "%",
-                )
+                print("--- Expected:", np.argmax(targets[j]), "Got:", result,
+                      "at:", j, "confidence:",
+                      str(int(np.max(q) * 100)) + "%")
 
         acc = accuracy_score / len(inputs)
         con = confidence / len(inputs)
@@ -158,10 +154,17 @@ if __name__ == "__main__":
     csv_test_path = os.path.join("backend", "dataset", "test.csv")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--train", help="Train the network", action="store_true")
+    parser.add_argument("--train",
+                        help="Train the network",
+                        action="store_true")
     parser.add_argument("--test", help="Test the network", action="store_true")
-    parser.add_argument("--epoch", help="Number of epochs", type=int, default=1000)
-    parser.add_argument("--load", help="Load a trained network", action="store_true")
+    parser.add_argument("--epoch",
+                        help="Number of epochs",
+                        type=int,
+                        default=1000)
+    parser.add_argument("--load",
+                        help="Load a trained network",
+                        action="store_true")
     parser.add_argument("--path", help="Path to the network", type=str)
 
     parser.add_argument("--debug", help="Debug mode", action="store_true")
