@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Tuple, Union
-
 import moviepy.editor as mpe
 from utils import moviepy_transi
 from utils.constants import L
@@ -27,12 +26,13 @@ class TransitionValue(NoValue):
     NONE = "none"
 
 
-class Transition:
+class Transition():
     """
     Class holding all transitions
     """
 
-    def __init__(self, name: str, option: Union[Tuple[int, str], float]) -> None:
+    def __init__(self, name: str, option: Union[Tuple[int, str],
+                                                float]) -> None:
         if name in TransitionValue._value2member_map_:
             self.transi = TransitionValue._value2member_map_[name]
         else:

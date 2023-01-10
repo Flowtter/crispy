@@ -1,13 +1,14 @@
-import os
 from typing import List, Tuple, Union
+import os
 
-import music.music as mu
-import numpy as np
-import utils.ffmpeg_utils as ff
-from AI.network import NeuralNetwork
 from PIL import Image
-from utils.constants import CUT, IMAGE, RESOURCE_PATH, TMP_PATH, VIDEO, get_settings
+import numpy as np
+
+from utils.constants import TMP_PATH, IMAGE, RESOURCE_PATH, VIDEO, CUT, get_settings
+import utils.ffmpeg_utils as ff
 from utils.IO import io
+from AI.network import NeuralNetwork
+import music.music as mu
 
 
 def get_saving_path(video: str) -> str:
@@ -44,9 +45,8 @@ def _image_to_list_format(path: str) -> List[int]:
     return pixel_values
 
 
-def get_query_array_from_video(
-    neural_network: NeuralNetwork, images_path: str
-) -> List[int]:
+def get_query_array_from_video(neural_network: NeuralNetwork,
+                               images_path: str) -> List[int]:
     """
     Query the neural network on a given input
     """
@@ -71,9 +71,8 @@ def get_query_array_from_video(
     return query_array
 
 
-def segment_video_with_kill_array(
-    video: str, kill_array: List[Tuple[int, int]]
-) -> None:
+def segment_video_with_kill_array(video: str,
+                                  kill_array: List[Tuple[int, int]]) -> None:
     """
     Segment the video with the given kill array
     """
@@ -85,12 +84,12 @@ def segment_video_with_kill_array(
     video_clean_name = io.generate_clean_name(video_no_ext)
     save_path = os.path.join(TMP_PATH, video_clean_name, CUT)
 
-    ff.segment_video(loading_path, save_path, kill_array, SETTINGS["clip"]["framerate"])
+    ff.segment_video(loading_path, save_path, kill_array,
+                     SETTINGS["clip"]["framerate"])
 
 
 def post_processing_kill_array(
-    kill_array: List[Tuple[int, int]]
-) -> List[Tuple[int, int]]:
+        kill_array: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
     """
     Post processing the kill array
     """
@@ -98,7 +97,8 @@ def post_processing_kill_array(
     game = SETTINGS["game"]
 
     found = True
-    offset = SETTINGS["clip"]["second-between-kills"] * SETTINGS["clip"]["framerate"]
+    offset = SETTINGS["clip"]["second-between-kills"] * SETTINGS["clip"][
+        "framerate"]
     while found:
         found = False
         for i in range(len(kill_array) - 1):
@@ -107,12 +107,9 @@ def post_processing_kill_array(
                 kill_array[i] = (kill_array[i][0], kill_array[i + 1][1])
                 kill_array.pop(i + 1)
                 break
-            if (
-                game == "valorant-review"
-                and kill_array[i][1] - kill_array[i][0]
-                < 30 * SETTINGS["clip"]["framerate"]
-                and kill_array[i][0] != 0
-            ):
+            if game == "valorant-review" and kill_array[i][1] - kill_array[i][
+                    0] < 30 * SETTINGS["clip"]["framerate"] and kill_array[i][
+                        0] != 0:
                 found = True
                 kill_array.pop(i)
                 break
@@ -120,14 +117,14 @@ def post_processing_kill_array(
         for i in range(len(kill_array)):
             if kill_array[i][0] == 0:
                 continue
-            kill_array[i] = (
-                kill_array[i][0] + SETTINGS["clip"]["framerate"] * 30,
-                kill_array[i][1],
-            )
+            kill_array[i] = (kill_array[i][0] +
+                             SETTINGS["clip"]["framerate"] * 30,
+                             kill_array[i][1])
     return kill_array
 
 
-def get_kill_array_from_query_array(query_array: List[int]) -> List[Tuple[int, int]]:
+def get_kill_array_from_query_array(
+        query_array: List[int]) -> List[Tuple[int, int]]:
     """
     Get the kill array from the query array
     """
@@ -183,9 +180,9 @@ def merge_cuts() -> None:
     ff.merge_videos(cuts, "merged.mp4")
 
 
-def merge_cuts_with_files(
-    cuts: List[str], pth: str = "merged.mp4", audio: Union[List[str], None] = None
-) -> None:
+def merge_cuts_with_files(cuts: List[str],
+                          pth: str = "merged.mp4",
+                          audio: Union[List[str], None] = None) -> None:
     """
     Merge the cuts
     """
