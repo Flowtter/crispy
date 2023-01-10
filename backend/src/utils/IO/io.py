@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from utils.constants import TMP_PATH, IMAGE, CUT
+from utils.constants import CUT, IMAGE, TMP_PATH
 
 
 def generate_tmp_folder(overwrite: bool) -> None:

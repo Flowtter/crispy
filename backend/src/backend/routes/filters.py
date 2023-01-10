@@ -1,12 +1,10 @@
-from typing import Union, Dict, Any
+from typing import Any, Dict, Union
 
+from backend.dto import Filters
+from backend.json_handling import get_session_json, save_json
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-
 from utils.constants import app
-
-from backend.json_handling import get_session_json, save_json
-from backend.dto import Filters
 
 
 @app.get("/objects/filters/{filename}/read")
@@ -22,8 +20,9 @@ async def filters_read(filename: str) -> Union[Dict[Any, Any], HTTPException]:
 
 
 @app.post("/objects/filters/{filename}/save")
-async def filters_save(data: Filters,
-                       filename: str) -> Union[Dict[Any, Any], HTTPException]:
+async def filters_save(
+    data: Filters, filename: str
+) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
     objects = session["objects"]
 
@@ -69,8 +68,7 @@ async def global_filters_read() -> Union[Dict[Any, Any], HTTPException]:
 
 
 @app.post("/filters/save")
-async def global_filters_save(
-        data: Filters) -> Union[Dict[Any, Any], HTTPException]:
+async def global_filters_save(data: Filters) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
     filters = session["filters"]
 
