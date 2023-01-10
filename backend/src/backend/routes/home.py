@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from utils.constants import app
 from backend.json_handling import get_session_json, new_json
+from utils.constants import app
 
 
 @app.get("/")

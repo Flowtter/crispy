@@ -1,18 +1,24 @@
 import os
 import shutil
+import subprocess
 import sys
 import time
-import subprocess
 
 import ffmpeg
 import progressbar
-from music.music import silence_if_no_audio
-
-from utils.constants import app, FRONTEND_PATH, VIDEOS_PATH, IMAGES_PATH, TMP_PATH, ALL_CUTS
-from utils.IO import io
 import utils.ffmpeg_utils as ff
 import video.video as vid
+from music.music import silence_if_no_audio
 from PIL import Image
+from utils.constants import (
+    ALL_CUTS,
+    FRONTEND_PATH,
+    IMAGES_PATH,
+    TMP_PATH,
+    VIDEOS_PATH,
+    app,
+)
+from utils.IO import io
 
 
 def extract_first_image_of_video(video_path: str, output: str) -> None:
@@ -50,7 +56,7 @@ def check_ffmpeg_is_installed() -> bool:
         subprocess.check_output(["ffmpeg", "-version"])
         return True
     except FileNotFoundError as e:
-        print("\n\nffmpeg is not installed\n\t\"", e, "\"\n\n")
+        print('\n\nffmpeg is not installed\n\t"', e, '"\n\n')
         return False
 
 

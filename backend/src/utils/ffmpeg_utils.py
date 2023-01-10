@@ -1,31 +1,28 @@
-import subprocess
+import datetime
 import json
 import os
 import random
-import string
 import shutil
-
-import datetime
+import string
+import subprocess
 import sys
-from typing import Optional, Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import ffmpeg
 import moviepy.editor as mpe
-from PIL import Image, ImageFilter, ImageOps
-
+from backend.json_handling import get_session_json
 from music.music import silence_if_no_audio
-from utils.constants import BACKUP, L, MUSIC_MERGE_FOLDER, get_filters, get_transitions
+from PIL import Image, ImageFilter, ImageOps
+from utils.constants import BACKUP, MUSIC_MERGE_FOLDER, L, get_filters, get_transitions
 from utils.filter import Filters
 from utils.IO import io
 from utils.transition import Transition
-from backend.json_handling import get_session_json
 
 BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
 
 
-def _apply_filter_and_do_operations(im: Image,
-                                    im_filter: Optional[Any]) -> Image:
+def _apply_filter_and_do_operations(im: Image, im_filter: Optional[Any]) -> Image:
 
     if im_filter is not None:
         im = im.filter(im_filter)
@@ -49,17 +46,14 @@ def _apply_filter_and_do_operations(im: Image,
     return final
 
 
-def extract_overwatch(video_path: str,
-                      save_path: str,
-                      framerate: int = 4) -> None:
+def extract_overwatch(video_path: str, save_path: str, framerate: int = 4) -> None:
     s = 50
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     (
-        ffmpeg
-        .input(video_path)
+        ffmpeg.input(video_path)
         .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
-        .crop(x=960-s, y=540-s, width=2*s, height=2*s)
+        .crop(x=960 - s, y=540 - s, width=2 * s, height=2 * s)
         # .overlay(ffmpeg.input(DOT_PATH))
         .output(os.path.join(save_path, "%8d.bmp"), start_number=0)
         .overwrite_output()
@@ -103,14 +97,11 @@ def extract_overwatch(video_path: str,
         final.save(im_path)
 
 
-def extract_valorant(video_path: str,
-                     save_path: str,
-                     framerate: int = 4) -> None:
+def extract_valorant(video_path: str, save_path: str, framerate: int = 4) -> None:
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     (
-        ffmpeg
-        .input(video_path)
+        ffmpeg.input(video_path)
         .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
         .crop(x=899, y=801, width=122, height=62)
         # .overlay(ffmpeg.input(DOT_PATH))
@@ -129,8 +120,7 @@ def extract_valorant(video_path: str,
         im = ImageOps.grayscale(im)
 
         edges = _apply_filter_and_do_operations(im, ImageFilter.FIND_EDGES)
-        enhanced = _apply_filter_and_do_operations(
-            im, ImageFilter.EDGE_ENHANCE_MORE)
+        enhanced = _apply_filter_and_do_operations(im, ImageFilter.EDGE_ENHANCE_MORE)
         # im = __apply_filter_and_do_operation(im, None)
 
         final = Image.new("RGB", (50, 80))
@@ -143,14 +133,13 @@ def extract_valorant(video_path: str,
         final.save(im_path)
 
 
-def extract_valorant_review(video_path: str,
-                            save_path: str,
-                            framerate: int = 4) -> None:
+def extract_valorant_review(
+    video_path: str, save_path: str, framerate: int = 4
+) -> None:
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     (
-        ffmpeg
-        .input(video_path)
+        ffmpeg.input(video_path)
         .filter("fps", fps=f"1/{round(1 / framerate, 5)}")
         # .filter("fps", fps=f"1/5")
         .crop(x=120, y=853, width=28, height=22)
@@ -177,9 +166,7 @@ def extract_valorant_review(video_path: str,
         final.save(im_path)
 
 
-def extract_images(video_path: str,
-                   save_path: str,
-                   framerate: int = 4) -> None:
+def extract_images(video_path: str, save_path: str, framerate: int = 4) -> None:
 
     session = get_session_json()
     game = session["game"]
@@ -196,9 +183,13 @@ def extract_images(video_path: str,
 
 
 def get_keyframes(video_path: str) -> List[float]:
-    res = subprocess.check_output(
-        f"ffprobe -v quiet -skip_frame nokey -show_entries frame=pkt_pts_time -select_streams v -of csv=p=0 {video_path}"
-        .split()).decode("utf-8").strip()
+    res = (
+        subprocess.check_output(
+            f"ffprobe -v quiet -skip_frame nokey -show_entries frame=pkt_pts_time -select_streams v -of csv=p=0 {video_path}".split()
+        )
+        .decode("utf-8")
+        .strip()
+    )
     keyframes = [float(x) for x in res.split("\n")]
     return keyframes
 
@@ -212,8 +203,9 @@ def get_keyframe_before_frame(keyframes: List[float], frame: float) -> float:
     return keyframes[-1]
 
 
-def segment_video(video_path: str, save_path: str,
-                  frames: List[Tuple[int, int]], frame_duration: int) -> None:
+def segment_video(
+    video_path: str, save_path: str, frames: List[Tuple[int, int]], frame_duration: int
+) -> None:
     """
     Segment a video on multiple smaller video using the frames array.
     """
@@ -235,26 +227,25 @@ def segment_video(video_path: str, save_path: str,
         frame_json["metadata"]["date"] = datetime.datetime.now().timestamp()
         frame_json["filters"] = {}
         # print(start, end, frame_duration, video_path, save_path)
-        video = (
-            ffmpeg
-            .input(video_path)
-        )  # yapf: disable
+        video = ffmpeg.input(video_path)  # yapf: disable
         audio = silence_if_no_audio(video.audio, video_path)
 
-        video, filter_json, recompile = apply_filter(video, video_path,
-                                                     frame_json, save_path)
+        video, filter_json, recompile = apply_filter(
+            video, video_path, frame_json, save_path
+        )
 
         if recompile or not check_exists((frame[0], frame[1]), save_path):
-            video_save_path = os.path.join(save_path,
-                                           f"{frame[0]}-{frame[1]}.mp4")
+            video_save_path = os.path.join(save_path, f"{frame[0]}-{frame[1]}.mp4")
 
             if game != "valorant-review":
-                video = ffmpeg.output(video,
-                                      audio,
-                                      video_save_path,
-                                      ss=f"{start}",
-                                      to=f"{end}",
-                                      preset="ultrafast")
+                video = ffmpeg.output(
+                    video,
+                    audio,
+                    video_save_path,
+                    ss=f"{start}",
+                    to=f"{end}",
+                    preset="ultrafast",
+                )
                 video = video.overwrite_output()
                 video.run(quiet=True)
 
@@ -262,18 +253,23 @@ def segment_video(video_path: str, save_path: str,
                 # copy so it's faster, but you need the last keyframe
                 # unfortunately ffmpeg-python does not support it correctly
                 # so we need to do it manually
-                video = ffmpeg.output(video,
-                                      audio,
-                                      video_save_path,
-                                      vcodec="copy",
-                                      acodec="copy",
-                                      to=f"{end}")
+                video = ffmpeg.output(
+                    video,
+                    audio,
+                    video_save_path,
+                    vcodec="copy",
+                    acodec="copy",
+                    to=f"{end}",
+                )
 
                 video = video.overwrite_output()
-                args = ([
-                    "ffmpeg", "-loglevel", "error", "-ss",
-                    str(get_keyframe_before_frame(keyframes, start))
-                ] + video.get_args())
+                args = [
+                    "ffmpeg",
+                    "-loglevel",
+                    "error",
+                    "-ss",
+                    str(get_keyframe_before_frame(keyframes, start)),
+                ] + video.get_args()
                 subprocess.run(args)
 
             L.debug(f"{frame[0]}-{frame[1]}.mp4 created or modified")
@@ -296,14 +292,12 @@ def segment_video(video_path: str, save_path: str,
         used = []
 
     with open(os.path.join(dir_path, "info.json"), "w") as f:
-        json.dump({
-            "recompile": recompile,
-            "cuts": video_json,
-            "used": used
-        },
-                  f,
-                  indent=4,
-                  sort_keys=True)
+        json.dump(
+            {"recompile": recompile, "cuts": video_json, "used": used},
+            f,
+            indent=4,
+            sort_keys=True,
+        )
 
 
 def find_available_path(video_path: str) -> str:
@@ -312,28 +306,23 @@ def find_available_path(video_path: str) -> str:
     """
     dirname, basename = os.path.split(video_path)
     h = str(hash(basename)) + ".mp4"
-    while (os.path.exists(os.path.join(dirname, h))):
+    while os.path.exists(os.path.join(dirname, h)):
         h = random.choice(string.ascii_letters) + h
 
     return os.path.join(dirname, h)
 
 
-def scale_video(video_path: str,
-                width: int = 1920,
-                height: int = 1080) -> None:
+def scale_video(video_path: str, width: int = 1920, height: int = 1080) -> None:
     """
     Scale (up or down) a video.
     """
     if os.path.exists(video_path):
-        L.warning(
-            f"\nWARNING:Scaling video {video_path}, saving a backup in ./backup"
-        )
+        L.warning(f"\nWARNING:Scaling video {video_path}, saving a backup in ./backup")
 
         if not os.path.exists(BACKUP):
             os.makedirs(BACKUP)
 
-        shutil.copy(video_path,
-                    os.path.join(BACKUP, os.path.basename(video_path)))
+        shutil.copy(video_path, os.path.join(BACKUP, os.path.basename(video_path)))
 
         save_path = find_available_path(video_path)
 
@@ -369,9 +358,9 @@ def create_new_path(video_path: str) -> str:
     return res
 
 
-def merge_videos(videos_path: List[str],
-                 save_path: str,
-                 final_merge: bool = False) -> None:
+def merge_videos(
+    videos_path: List[str], save_path: str, final_merge: bool = False
+) -> None:
     """
     Merge videos together.
     """
@@ -388,15 +377,15 @@ def merge_videos(videos_path: List[str],
         final_clip = mpe.concatenate_videoclips(clips)
 
         if final_merge:
-            music = mpe.AudioFileClip(
-                os.path.join(MUSIC_MERGE_FOLDER, "merged.mp3"))
+            music = mpe.AudioFileClip(os.path.join(MUSIC_MERGE_FOLDER, "merged.mp3"))
 
             final_audio = mpe.CompositeAudioClip([final_clip.audio, music])
             final_audio = final_audio.subclip(0, final_clip.duration)
             final_clip.audio = final_audio
 
-        final_clip = final_clip.subclip(t_end=(final_clip.duration -
-                                               1.0 / final_clip.fps))
+        final_clip = final_clip.subclip(
+            t_end=(final_clip.duration - 1.0 / final_clip.fps)
+        )
         final_clip.write_videofile(save_path, verbose=False, logger=None)
 
         # ffmpeg_params=["-vcodec", "copy"])
@@ -405,9 +394,12 @@ def merge_videos(videos_path: List[str],
         shutil.copyfile(videos_path[0], save_path)
 
 
-def apply_filter(video: ffmpeg.nodes.FilterableStream, video_path: str,
-                 frame_json: dict,
-                 save_path: str) -> ffmpeg.nodes.FilterableStream:
+def apply_filter(
+    video: ffmpeg.nodes.FilterableStream,
+    video_path: str,
+    frame_json: dict,
+    save_path: str,
+) -> ffmpeg.nodes.FilterableStream:
     """
     Apply a list of filter to a video.
     """
@@ -482,14 +474,17 @@ def check_exists(frame: Tuple[int, int], save_path: str) -> bool:
     with open(path) as f:
         video_json = json.load(f)["cuts"]
     for clip in video_json:
-        if clip["metadata"]["start"] == frame[0] and clip["metadata"][
-                "end"] == frame[1]:
+        if (
+            clip["metadata"]["start"] == frame[0]
+            and clip["metadata"]["end"] == frame[1]
+        ):
             return True
     return False
 
 
-def check_recompile(save_path: str, frame: Tuple[int, int],
-                    filter_list: List[Filters]) -> Tuple[bool, dict]:
+def check_recompile(
+    save_path: str, frame: Tuple[int, int], filter_list: List[Filters]
+) -> Tuple[bool, dict]:
     """
     Check if modifications has to be done to a video
     True if has to recompile, False otherwise
@@ -508,8 +503,10 @@ def check_recompile(save_path: str, frame: Tuple[int, int],
         return True, {}
 
     for clip_json in video_json:
-        if clip_json["metadata"]["start"] == frame[0] and clip_json[
-                "metadata"]["end"] == frame[1]:
+        if (
+            clip_json["metadata"]["start"] == frame[0]
+            and clip_json["metadata"]["end"] == frame[1]
+        ):
             clip = clip_json
     length = len(clip["filters"])
 

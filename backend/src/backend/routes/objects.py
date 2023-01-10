@@ -1,15 +1,12 @@
 import os
+from typing import Any, Dict, List, Union
 
-from typing import Union, Dict, Any, List
-
+from backend.dto import Reorder
+from backend.json_handling import get_session_json, save_json
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
-
-from utils.IO import io
 from utils.constants import CUT, FRONTEND_PATH, IMAGES_PATH, TMP_PATH, app
-
-from backend.json_handling import get_session_json, save_json
-from backend.dto import Reorder
+from utils.IO import io
 
 
 @app.post("/objects/reorder")
@@ -23,7 +20,7 @@ async def reorder(data: List[Reorder]) -> Dict[Any, Any]:
     session["objects"] = new_objects
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-        f.write("{\"reorder\":true}")
+        f.write('{"reorder":true}')
 
     save_json(session)
     return session
@@ -42,8 +39,7 @@ def get_video(filename: str) -> FileResponse:
 # The next four functions could use a query parameter
 # To avoid code duplication
 @app.get("/objects/{filename}/info")
-async def get_object_info(
-        filename: str) -> Union[Dict[Any, Any], HTTPException]:
+async def get_object_info(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
     objects = session["objects"]
 
@@ -55,8 +51,7 @@ async def get_object_info(
 
 
 @app.get("/objects/{filename}/{cut}/info")
-async def get_cut_info(filename: str,
-                       cut: str) -> Union[Dict[Any, Any], HTTPException]:
+async def get_cut_info(filename: str, cut: str) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
     objects = session["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
@@ -90,14 +85,13 @@ async def switch(filename: str) -> Union[Dict[Any, Any], HTTPException]:
     save_json(session)
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-        f.write("{\"switch\":true}")
+        f.write('{"switch":true}')
 
     return obj["enabled"]
 
 
 @app.get("/objects/{filename}/{cut}/switch")
-async def switch_cut(filename: str,
-                     cut: str) -> Union[Dict[Any, Any], HTTPException]:
+async def switch_cut(filename: str, cut: str) -> Union[Dict[Any, Any], HTTPException]:
     session = get_session_json()
     objects = session["objects"]
     obj = next(filter(lambda x: x["name"] == filename, objects), None)
@@ -122,7 +116,7 @@ async def switch_cut(filename: str,
     save_json(session)
 
     with open(os.path.join(TMP_PATH, "recompile.json"), "w") as f:
-        f.write("{\"switch\":true}")
+        f.write('{"switch":true}')
 
     return obj["enabled"]
 
@@ -130,5 +124,5 @@ async def switch_cut(filename: str,
 @app.get("/objects/{filename}/{cut}")
 def get_cut(filename: str, cut: str) -> FileResponse:
     return FileResponse(
-        os.path.join(TMP_PATH, io.generate_clean_name(filename), CUT,
-                     cut + ".mp4"))
+        os.path.join(TMP_PATH, io.generate_clean_name(filename), CUT, cut + ".mp4")
+    )

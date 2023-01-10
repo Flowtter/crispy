@@ -1,9 +1,9 @@
 from typing import Tuple
+
 import moviepy.editor as mpe
 
 
-def slide_in(option: Tuple[int, str],
-             video: mpe.VideoFileClip) -> mpe.VideoFileClip:
+def slide_in(option: Tuple[int, str], video: mpe.VideoFileClip) -> mpe.VideoFileClip:
     """
     Apply a slide in transition to the current clip
     """
@@ -11,8 +11,7 @@ def slide_in(option: Tuple[int, str],
     return video
 
 
-def slide_out(option: Tuple[int, str],
-              video: mpe.VideoFileClip) -> mpe.VideoFileClip:
+def slide_out(option: Tuple[int, str], video: mpe.VideoFileClip) -> mpe.VideoFileClip:
     """
     Apply a slide out transition to the current clip
     """
