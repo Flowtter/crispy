@@ -1,8 +1,9 @@
 import os
-from typing import Any, List
+from typing import List, Any
 
 import ffmpeg
 from pydub import AudioSegment
+
 from utils.constants import ASSETS, MUSIC_MERGE_FOLDER, TMP_PATH
 
 

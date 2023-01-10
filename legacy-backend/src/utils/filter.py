@@ -1,7 +1,8 @@
-from enum import Enum
 from typing import Union
+from enum import Enum
 
 import ffmpeg
+
 from utils import ffmpeg_filters
 from utils.constants import L
 
@@ -31,7 +32,7 @@ class FilterValue(NoValue):
     NONE = "none"
 
 
-class Filters:
+class Filters():
     """
     Class holding all filters
     """
