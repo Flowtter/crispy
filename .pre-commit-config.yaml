@@ -8,6 +8,7 @@ repos:
     hooks:
       - id: conventional-commit
         name: Conventional commit
+        description: Check if commits follow the conventional commit specification
         language: system
         entry: ./etc/scripts/check_commit_msg.sh
         stages: [commit-msg]
