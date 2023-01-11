@@ -3,7 +3,7 @@
 https://github.com/Refty/thingy/archive/bb8565a25a428b1d607aa65111552fb3e12f2a12.zip
 
 # replace when 0.16.0 (or upper) is released
-https://github.com/Refty/mongo-thingy/archive/6eba2c9605720097b20351780c538f84f4edea59.zip
+https://github.com/Refty/mongo-thingy/archive/0ca7d40081e08e7312d456747d642e75c65eff2c.zip
 
 fastapi==0.75.2
 python-multipart==0.0.5
@@ -11,11 +11,6 @@ uvicorn==0.17.6
 python-dotenv==0.10.3
 motor==3.1.1
 
-# # Crispy
-# numpy==1.21.0
-# moviepy==1.0.3
-# IPython==7.13.0
-# progressbar2==4.0.0
-# ffmpeg-python==0.2.0
-# pydub==0.25.1
-# scipy==1.8.0
+# Crispy
+ffmpeg-python==0.2.0
+Pillow==9.4.0
