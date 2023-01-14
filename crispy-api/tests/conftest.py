@@ -5,9 +5,11 @@ import ffmpeg
 import pytest
 from httpx import AsyncClient
 from mongo_thingy import AsyncThingy
+from PIL import Image
 
 from api import app, init_database
 from api.models.highlight import Highlight
+from api.tools.image import compare_image
 
 
 @pytest.fixture
@@ -87,6 +89,7 @@ class CompareFolder:
         )
 
     def is_same_files(self, file_path, expected_file_path):
+        assert os.path.getsize(file_path) == os.path.getsize(expected_file_path)
         with open(expected_file_path, "rb") as e:
             with open(file_path, "rb") as f:
                 chunk = expected_chunk = True
@@ -112,12 +115,16 @@ class CompareFolder:
             assert os.path.exists(expected_file_path)
             assert os.path.exists(file_path)
 
-            assert os.path.getsize(file_path) == os.path.getsize(expected_file_path)
             assert os.path.basename(file_path) == os.path.basename(expected_file_path)
             assert os.path.isdir(file_path) == os.path.isdir(expected_file_path)
 
+            extension = os.path.splitext(file_path)[1]
+
             if os.path.isdir(file_path):
                 self.is_same_directory(file_path, expected_file_path)
+            elif extension in [".jpg", ".png", ".bmp"]:
+                assert Image.open(file_path).size == Image.open(expected_file_path).size
+                compare_image(file_path, expected_file_path)
             else:
                 self.is_same_files(file_path, expected_file_path)
 
