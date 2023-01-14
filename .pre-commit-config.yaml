@@ -3,28 +3,28 @@ repos:
     rev: v3.3.0
     hooks:
       - id: end-of-file-fixer
-        stages: ["commit"]
+        stages: [commit]
   - repo: local
     hooks:
       - id: conventional-commit
         name: Conventional commit
         language: system
         entry: ./etc/scripts/check_commit_msg.sh
-        stages: ["commit-msg"]
+        stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.961
     hooks:
       - id: mypy
         name: Coding style linting
-        stages: ["commit"]
+        stages: [commit]
   - repo: https://github.com/psf/black
     rev: 22.10.0
     hooks:
       - id: black
         require_serial: true
         name: Coding style (Black)
-        language_version: python3.11
-        stages: ["commit"]
+        language_version: python3.10
+        stages: [commit]
         exclude: ^legacy-backend.*$
   - repo: https://github.com/pycqa/isort
     rev: 5.10.1
@@ -33,6 +33,7 @@ repos:
         require_serial: true
         name: isort
         args: ["--profile", "black"]
+        stages: [commit]
         exclude: ^legacy-backend.*$
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
@@ -40,5 +41,5 @@ repos:
       - id: flake8
         require_serial: true
         name: Coding style (flake8)
-        stages: ["commit"]
+        stages: [commit]
         exclude: ^legacy-backend.*$
