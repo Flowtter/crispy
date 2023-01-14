@@ -5,9 +5,12 @@ import ffmpeg
 import pytest
 from httpx import AsyncClient
 from mongo_thingy import AsyncThingy
+from PIL import Image
 
 from api import app, init_database
 from api.models.highlight import Highlight
+from api.tools.image import compare_image
+from tests.constants import main_video
 
 
 @pytest.fixture
@@ -43,13 +46,19 @@ async def clean_database(database):
 async def highlight(tmp_path):
     return await Highlight(
         {
-            "path": os.path.join("tests", "assets", "main-video.mp4"),
+            "path": main_video,
             "directory": str(tmp_path),
             "thumbnail_path": None,
             "images_path": None,
             "videos_path": None,
         }
     ).save()
+
+
+@pytest.fixture
+async def highlight_overwatch(highlight):
+    highlight.path = os.path.join("tests", "assets", "main-video-overwatch.mp4")
+    return await highlight.save()
 
 
 @pytest.fixture(autouse=True)
@@ -69,6 +78,10 @@ class CompareFolder:
         root_expected = os.path.join("tests", "assets", "compare", request.node.name)
 
         if not os.path.exists(root_expected):
+            if os.path.exists(tmp_path) and os.listdir(tmp_path):
+                assert (
+                    False
+                ), "The tmp_path is not empty but the expected folder does not exist"
             return
 
         root = str(tmp_path)
@@ -87,6 +100,7 @@ class CompareFolder:
         )
 
     def is_same_files(self, file_path, expected_file_path):
+        assert os.path.getsize(file_path) == os.path.getsize(expected_file_path)
         with open(expected_file_path, "rb") as e:
             with open(file_path, "rb") as f:
                 chunk = expected_chunk = True
@@ -112,12 +126,16 @@ class CompareFolder:
             assert os.path.exists(expected_file_path)
             assert os.path.exists(file_path)
 
-            assert os.path.getsize(file_path) == os.path.getsize(expected_file_path)
             assert os.path.basename(file_path) == os.path.basename(expected_file_path)
             assert os.path.isdir(file_path) == os.path.isdir(expected_file_path)
 
+            extension = os.path.splitext(file_path)[1]
+
             if os.path.isdir(file_path):
                 self.is_same_directory(file_path, expected_file_path)
+            elif extension in (".jpg", ".png", ".bmp"):
+                assert Image.open(file_path).size == Image.open(expected_file_path).size
+                compare_image(file_path, expected_file_path)
             else:
                 self.is_same_files(file_path, expected_file_path)
 

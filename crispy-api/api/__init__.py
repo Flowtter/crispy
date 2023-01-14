@@ -1,3 +1,4 @@
+import logging
 import subprocess
 
 import mongo_thingy
@@ -10,6 +11,9 @@ from pydantic.json import ENCODERS_BY_TYPE
 from api.config import DEBUG, MONGO_URI
 
 ENCODERS_BY_TYPE[ObjectId] = str
+
+
+logging.getLogger("PIL").setLevel(logging.ERROR)
 
 
 def init_app(debug):
