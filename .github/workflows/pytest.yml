@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          lfs: true
+          submodules: true
       - uses: FedericoCarboni/setup-ffmpeg@v2
         id: setup-ffmpeg
       - uses: actions/setup-python@v4

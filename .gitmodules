@@ -1,0 +1,3 @@
+[submodule "crispy-api/tests/assets"]
+	path = crispy-api/tests/assets
+	url = https://github.com/dawhn/crispy-test-resources
