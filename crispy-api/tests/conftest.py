@@ -147,3 +147,11 @@ class CompareFolder:
             elif os.path.splitext(file_path)[1] == ".mp4":
                 self.extract_frames(file_path)
                 os.remove(file_path)
+
+
+def pytest_sessionstart(session):
+    root_expected = os.path.join("tests", "assets")
+    assert os.path.exists(root_expected), (
+        "Directory tests/assets does not exists. Create it using `git "
+        "submodule update --init`"
+    )
