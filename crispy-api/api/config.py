@@ -17,3 +17,6 @@ BACKUP = "backup"
 SESSION = "session"
 RESOURCES = "resources"
 VIDEOS = os.path.join(RESOURCES, "videos")
+
+DATASET_PATH = "dataset"
+DATASET_VALUES_PATH = "dataset_values.json"
