@@ -24,6 +24,7 @@ BACKEND = "backend"
 DOT_PATH = os.path.join(BACKEND, "assets", "dot.png")
 
 
+# Done
 def _apply_filter_and_do_operations(im: Image,
                                     im_filter: Optional[Any]) -> Image:
 
@@ -48,7 +49,7 @@ def _apply_filter_and_do_operations(im: Image,
 
     return final
 
-
+# Done
 def extract_overwatch(video_path: str,
                       save_path: str,
                       framerate: int = 4) -> None:
@@ -103,6 +104,7 @@ def extract_overwatch(video_path: str,
         final.save(im_path)
 
 
+# Done
 def extract_valorant(video_path: str,
                      save_path: str,
                      framerate: int = 4) -> None:
@@ -177,6 +179,7 @@ def extract_valorant_review(video_path: str,
         final.save(im_path)
 
 
+# Done (partially)
 def extract_images(video_path: str,
                    save_path: str,
                    framerate: int = 4) -> None:
@@ -212,6 +215,7 @@ def get_keyframe_before_frame(keyframes: List[float], frame: float) -> float:
     return keyframes[-1]
 
 
+# Done
 def segment_video(video_path: str, save_path: str,
                   frames: List[Tuple[int, int]], frame_duration: int) -> None:
     """
