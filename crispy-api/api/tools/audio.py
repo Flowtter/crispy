@@ -1,9 +1,23 @@
 import os
-from typing import Any
+import shutil
+from typing import Any, List
 
 import ffmpeg
+from pydub import AudioSegment
 
 from api.config import ASSETS
+
+
+def merge_musics(audios: List[str], save_path: str) -> None:
+    if len(audios) <= 1:
+        shutil.copy(audios[0], save_path)
+        return
+
+    res = AudioSegment.from_mp3(audios.pop(0))
+    for au in audios:
+        res += AudioSegment.from_mp3(au)
+
+    res.export(save_path)
 
 
 def silence_if_no_audio(audio: Any, file: str) -> Any:
