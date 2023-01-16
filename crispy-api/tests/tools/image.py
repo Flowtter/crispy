@@ -14,6 +14,13 @@ from api.tools.image import compare_image
         ("2-no.jpg", False),
         ("3-no.jpg", False),
     ],
+    ids=[
+        "0.1 second before",
+        "0.01 second before",
+        "1 seconds after",
+        "3 seconds after",
+        "rocket league",
+    ],
 )
 async def test_compare_image(file, expected):
     """

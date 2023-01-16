@@ -10,6 +10,7 @@ from PIL import Image
 from api import app, init_database
 from api.models.highlight import Highlight
 from api.tools.image import compare_image
+from tests.constants import MAIN_VIDEO, ROOT_ASSETS
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def event_loop():
 
 @pytest.fixture(autouse=True, scope="session")
 async def database():
-    await init_database()
+    await init_database("test")
 
     database = AsyncThingy.database
     assert "test" in database.name
@@ -41,17 +42,45 @@ async def clean_database(database):
         await collection.delete_many({})
 
 
+def generate_fake_keyframes():
+    """
+    Generate fake keyframes for the main video
+    """
+    pattern = [0.016667, 0.033333, 0.05, 0.066667, 0.083333, 0.1]
+    current = 0
+
+    keyframes = [0.0]
+
+    while current < 4.9:
+        for p in pattern:
+            keyframes.append(round(current + p, 6))
+
+        current += 0.1
+
+    keyframes.remove(0.016667)
+    keyframes.append(5.016667)
+
+    return keyframes
+
+
 @pytest.fixture
 async def highlight(tmp_path):
     return await Highlight(
         {
-            "path": os.path.join("tests", "assets", "main-video.mp4"),
+            "path": MAIN_VIDEO,
             "directory": str(tmp_path),
             "thumbnail_path": None,
             "images_path": None,
             "videos_path": None,
+            "keyframes": generate_fake_keyframes(),
         }
     ).save()
+
+
+@pytest.fixture
+async def highlight_overwatch(highlight):
+    highlight.path = os.path.join("tests", "assets", "main-video-overwatch.mp4")
+    return await highlight.save()
 
 
 @pytest.fixture(autouse=True)
@@ -68,9 +97,13 @@ class CompareFolder:
     """
 
     def __init__(self, request, tmp_path):
-        root_expected = os.path.join("tests", "assets", "compare", request.node.name)
+        root_expected = os.path.join(ROOT_ASSETS, "compare", request.node.name)
 
         if not os.path.exists(root_expected):
+            if os.path.exists(tmp_path) and os.listdir(tmp_path):
+                assert (
+                    False
+                ), "The tmp_path is not empty but the expected folder does not exist"
             return
 
         root = str(tmp_path)
@@ -122,7 +155,7 @@ class CompareFolder:
 
             if os.path.isdir(file_path):
                 self.is_same_directory(file_path, expected_file_path)
-            elif extension in [".jpg", ".png", ".bmp"]:
+            elif extension in (".jpg", ".png", ".bmp"):
                 assert Image.open(file_path).size == Image.open(expected_file_path).size
                 compare_image(file_path, expected_file_path)
             else:
@@ -136,3 +169,10 @@ class CompareFolder:
             elif os.path.splitext(file_path)[1] == ".mp4":
                 self.extract_frames(file_path)
                 os.remove(file_path)
+
+
+def pytest_sessionstart(session):
+    assert os.path.exists(ROOT_ASSETS), (
+        "Directory tests/assets does not exists. Create it using `git "
+        "submodule update --init`"
+    )
