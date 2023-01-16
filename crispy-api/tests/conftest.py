@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 
 import ffmpeg
@@ -176,3 +177,4 @@ def pytest_sessionstart(session):
         "Directory tests/assets does not exists. Create it using `git "
         "submodule update --init`"
     )
+    logging.getLogger("crispy").disabled = True

@@ -7,7 +7,7 @@ import pytest
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.enums import SupportedGames
-from tests.constants import MAIN_VIDEO_NO_AUDIO
+from tests.constants import MAIN_VIDEO_NO_AUDIO, MAIN_VIDEO_OVERWATCH
 
 
 async def test_highlight(highlight):
@@ -115,7 +115,7 @@ async def test_segment_video_optimization(highlight):
     [
         (None, SupportedGames.VALORANT),
         (
-            os.path.join("tests", "assets", "main-video-overwatch.mp4"),
+            MAIN_VIDEO_OVERWATCH,
             SupportedGames.OVERWATCH,
         ),
     ],

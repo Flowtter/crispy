@@ -1,27 +1,22 @@
 # How to create a dataset
 ## Add the videos
-The videos should be saved in `backend/resources/video`.
-
-## Generate the frames
-Run the following command:
-```
-python backend/src/create_dataset.py --extract
-```
-
-## Add a values.json
-A file named `values.json` should be created in the `backend/dataset` folder.\
-This file will be used to create the dataset.\
-A template is available.\
-The range corresponds to the frame where a kill should be detected.
+The videos should be saved in `crispy-api/resources/video`.
 
 ## Generate the dataset
 Run the following command:
 ```
-python backend/src/create_dataset.py --to-csv
+python -m api --dataset --game="valorant"
 ```
+game can be any game supported by the api.
+
+## Add a values.json
+A file named `dataset_values.json` should be created in the `crispy-api/` folder.\
+This file will be used to create the dataset.\
+A template is available.\
+The range corresponds to the frame where a kill should be detected.
 
 # Usage
-The dataset will be saved as a csv file in the `backend/dataset` folder.\
+The dataset will be saved as a csv file in the `crispy-api/dataset` folder.\
 Its name is `result.csv`.
 
 # Understanding the dataset
