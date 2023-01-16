@@ -16,3 +16,5 @@ ffmpeg-python==0.2.0
 Pillow==9.4.0
 numpy==1.21.0
 moviepy==1.0.3
+progressbar2==4.0.0
+scipy==1.8.0
