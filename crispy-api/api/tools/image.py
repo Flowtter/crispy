@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 
-def compare_image(path1: str, path2: str):
+def compare_image(path1: str, path2: str) -> bool:
     """Compare 2 images using the correlation system to find similarities.
     Images must be the same size.
 
@@ -10,7 +10,6 @@ def compare_image(path1: str, path2: str):
     :param path2: path of the second image
     :return: the correlation factor of the images
     """
-
     image1 = Image.open(path1)
     image2 = Image.open(path2)
 
@@ -20,4 +19,4 @@ def compare_image(path1: str, path2: str):
     data1 = np.asarray(blur1)
     data2 = np.asarray(blur2)
 
-    return (1 + np.corrcoef(data1.flat, data2.flat)[0, 1]) / 2 > 0.95
+    return bool((1 + np.corrcoef(data1.flat, data2.flat)[0, 1]) / 2 > 0.95)
