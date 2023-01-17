@@ -2,6 +2,7 @@ import os
 
 ROOT_ASSETS = os.path.join("tests", "assets")
 VIDEOS_PATH = os.path.join(ROOT_ASSETS, "videos")
+MUSICS_PATH = os.path.join(ROOT_ASSETS, "musics")
 CSV_PATH = os.path.join(ROOT_ASSETS, "csv")
 
 MAIN_VIDEO = os.path.join(VIDEOS_PATH, "main-video.mp4")

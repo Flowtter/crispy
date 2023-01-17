@@ -1,11 +1,14 @@
 import asyncio
+import csv
 import logging
 import os
+import sys
 
 import ffmpeg
 import pytest
 from httpx import AsyncClient
 from mongo_thingy import AsyncThingy
+from mutagen.mp3 import MP3
 from PIL import Image
 
 from api import app, init_database
@@ -133,6 +136,20 @@ class CompareFolder:
                     assert chunk == expected_chunk
                 assert not (chunk or expected_chunk)
 
+    def is_same_audio(self, file_path, expected_file_path):
+        audio = MP3(file_path)
+        expected_audio = MP3(expected_file_path)
+
+        assert audio.info.length - expected_audio.info.length < 0.1
+
+    def is_same_csv(self, file_path, expected_file_path):
+        with open(expected_file_path, "r") as e:
+            with open(file_path, "r") as f:
+                reader = csv.reader(f)
+                expected_reader = csv.reader(e)
+                for row, expected_row in zip(reader, expected_reader):
+                    assert row == expected_row
+
     def is_same_directory(self, folder, expected_folder):
         assert os.path.exists(expected_folder)
         assert os.path.exists(folder)
@@ -159,6 +176,10 @@ class CompareFolder:
             elif extension in (".jpg", ".png", ".bmp"):
                 assert Image.open(file_path).size == Image.open(expected_file_path).size
                 compare_image(file_path, expected_file_path)
+            elif extension == ".mp3":
+                self.is_same_audio(file_path, expected_file_path)
+            elif extension == ".csv":
+                self.is_same_csv(file_path, expected_file_path)
             else:
                 self.is_same_files(file_path, expected_file_path)
 
@@ -173,8 +194,9 @@ class CompareFolder:
 
 
 def pytest_sessionstart(session):
-    assert os.path.exists(ROOT_ASSETS), (
-        "Directory tests/assets does not exists. Create it using `git "
-        "submodule update --init`"
-    )
+    if not (os.path.exists(ROOT_ASSETS) and os.listdir(ROOT_ASSETS)):
+        print(
+            "Directory tests/assets does not exists. Create it using `git submodule update --init`"
+        )
+        sys.exit(1)
     logging.getLogger("crispy").disabled = True
