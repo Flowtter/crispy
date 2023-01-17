@@ -14,6 +14,7 @@ from PIL import Image
 from api import app, init_database
 from api.models.highlight import Highlight
 from api.tools.image import compare_image
+from api.tools.job_scheduler import JobScheduler
 from tests.constants import MAIN_VIDEO, ROOT_ASSETS
 
 
@@ -85,6 +86,11 @@ async def highlight(tmp_path):
 async def highlight_overwatch(highlight):
     highlight.path = os.path.join("tests", "assets", "main-video-overwatch.mp4")
     return await highlight.save()
+
+
+@pytest.fixture
+async def job_scheduler():
+    return JobScheduler()
 
 
 @pytest.fixture(autouse=True)
