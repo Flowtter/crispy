@@ -20,16 +20,15 @@ class NeuralNetwork:
         Initialize the weights of the neural network
         """
         for i in range(len(self.nodes) - 1):
-            w = np.random.normal(0.0, pow(self.nodes[i], -0.5),
-                                 (self.nodes[i + 1], self.nodes[i]))
+            w = np.random.normal(
+                0.0, pow(self.nodes[i], -0.5), (self.nodes[i + 1], self.nodes[i])
+            )
             self.weights.append(w)
 
-    def _train(self, inputs: List[float],
-               targets: Any) -> Tuple[int, int, int]:
+    def _train(self, inputs: List[float], targets: Any) -> Tuple[int, int, int]:
         """
         Train the neural network
         """
-
         inputs = np.array(inputs, ndmin=2).T
         targets = np.array(targets, ndmin=2).T
 
@@ -63,9 +62,10 @@ class NeuralNetwork:
             errors = [e / 5 for e in errors]
 
         for i in range(len(self.nodes) - 1):
-            self.weights[i] += self.learning_rate * \
-                np.dot((errors[i] * outputs[i] *
-                      (1.0 - outputs[i])), np.transpose(final_inputs[i]))
+            self.weights[i] += self.learning_rate * np.dot(
+                (errors[i] * outputs[i] * (1.0 - outputs[i])),
+                np.transpose(final_inputs[i]),
+            )
 
         return expected == got, expected, got
 

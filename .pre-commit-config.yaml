@@ -13,10 +13,11 @@ repos:
         entry: ./etc/scripts/check_commit_msg.sh
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.961
+    rev: v0.991
     hooks:
       - id: mypy
-        name: Coding style linting
+        exclude: ^(legacy-backend|tests)/.*$
+        files: ^crispy-api/api/.*\.py$
         stages: [commit]
   - repo: https://github.com/psf/black
     rev: 22.10.0

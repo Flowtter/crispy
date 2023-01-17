@@ -1,14 +1,16 @@
 import logging
 import subprocess
+from typing import Optional
 
 import mongo_thingy
 from bson import ObjectId
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from pydantic.json import ENCODERS_BY_TYPE
 
 from api.config import DEBUG, MONGO_URI, VIDEOS
+from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights
 
 ENCODERS_BY_TYPE[ObjectId] = str
@@ -17,7 +19,7 @@ ENCODERS_BY_TYPE[ObjectId] = str
 logging.getLogger("PIL").setLevel(logging.ERROR)
 
 
-def init_app(debug):
+def init_app(debug: bool) -> FastAPI:
     if debug:
         return FastAPI(debug=True)
     return FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
@@ -27,7 +29,7 @@ app = init_app(debug=DEBUG)
 
 
 @app.on_event("startup")
-async def init_database(MONGODB_NAME=None):
+async def init_database(MONGODB_NAME: Optional[str] = None) -> None:
     mongo_thingy.connect(
         MONGO_URI, database_name=MONGODB_NAME, uuidRepresentation="standard"
     )
@@ -35,7 +37,7 @@ async def init_database(MONGODB_NAME=None):
 
 @app.on_event("startup")
 def verify_ffmpeg_utils_are_installed() -> None:
-    def is_tool_installed(ffmpeg_tool) -> None:
+    def is_tool_installed(ffmpeg_tool: str) -> None:
         try:
             subprocess.check_output([ffmpeg_tool, "-version"])
         except FileNotFoundError as e:
@@ -47,12 +49,12 @@ def verify_ffmpeg_utils_are_installed() -> None:
 
 
 @app.on_event("startup")
-async def handle_highlights_on_startup():
-    await handle_highlights(VIDEOS, "valorant", framerate=8)
+async def handle_highlights_on_startup() -> None:
+    await handle_highlights(VIDEOS, SupportedGames.VALORANT, framerate=8)
 
 
 @app.exception_handler(HTTPException)
-def http_exception(request, exc):
+def http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
 
 

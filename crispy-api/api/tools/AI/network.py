@@ -31,7 +31,6 @@ class NeuralNetwork:
         """
         Train the neural network
         """
-
         inputs = np.array(inputs, ndmin=2).T
         targets = np.array(targets, ndmin=2).T
 
@@ -75,7 +74,7 @@ class NeuralNetwork:
         """
         inputs = np.array(inputs, ndmin=2).T
 
-        outputs = []
+        outputs: List[List[float]] = []
         for i in range(len(self.nodes) - 1):
             tmp_inputs = np.dot(self.weights[i], inputs)
             tmp_outputs = self.activation_function(tmp_inputs)

@@ -26,7 +26,6 @@ class Highlight(AsyncThingy):
 
         :param highlight: Highlight to extract the image from
         """
-
         if self.thumbnail_path:
             return False
 

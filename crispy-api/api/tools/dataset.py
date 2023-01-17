@@ -87,7 +87,6 @@ async def create_dataset(
 
     :param game: Game to create the dataset from
     """
-
     await handle_highlights(video_path, game, framerate, dataset_path)
 
     if not os.path.exists(dataset_values_path):

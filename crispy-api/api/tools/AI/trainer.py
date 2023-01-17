@@ -73,7 +73,7 @@ class Trainer(NeuralNetwork):
                 os.path.join(output_path, "trained_network_" + self.hash + "_end")
             )
 
-    def test(self, inputs: List[List[float]], targets: List[Any], con_min=0.95) -> bool:
+    def test(self, inputs: List[List[float]], targets: List[Any]) -> bool:
         """
         Test the neural network
         """
@@ -147,7 +147,9 @@ def test(trainer: Trainer, path: str) -> bool:
     return trainer.test(final_inputs, final_targets)
 
 
-def train(epoch: int, trainer: Trainer, path: str, save: bool, output_path) -> None:
+def train(
+    epoch: int, trainer: Trainer, path: str, save: bool, output_path: str
+) -> None:
     """
     Wrapper for the train method
     """
