@@ -20,7 +20,7 @@ def to_csv(highlight: Highlight, values: dict, dataset_path: str) -> None:
     :param values: values array from dataset_values.json
     :param dataset_path: Path to the dataset folder
     """
-    name = highlight.path.split("/")[-1].split(".")[0]
+    name = os.path.splitext(os.path.basename(highlight.path))[0]
 
     inclusives_ranges = []
     if name not in values:
@@ -97,7 +97,7 @@ async def create_dataset(
     with open(dataset_values_path, "r") as f:
         values = json.load(f)
 
-    highlights = await Highlight.find({}).to_list(None)
+    highlights = Highlight.find({}).to_list(0)
 
     for highlight in highlights:
         logger.info(f"Doing: {highlight.path}")

@@ -1,5 +1,5 @@
-from mongo_thingy import AsyncThingy
+from mongo_thingy import Thingy
 
 
-class Segment(AsyncThingy):
+class Segment(Thingy):
     pass

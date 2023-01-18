@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Callable, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 
 class JobScheduler:
     def __init__(self, burst_size: int = 4):
-        self._jobs: dict[int, Union[asyncio.Task, Callable]] = {}
-        self._running_jobs: list[asyncio.Task] = []
+        self._jobs: Dict[int, Union[asyncio.Task, Callable]] = {}
+        self._running_jobs: List[asyncio.Task] = []
 
         self.burst_size = burst_size
 
