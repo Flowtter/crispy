@@ -111,23 +111,20 @@ async def test_segment_video_optimization(highlight):
 
 
 @pytest.mark.parametrize(
-    "highlight_path, game",
+    "highlight_path, game, rate",
     [
-        (None, SupportedGames.VALORANT),
-        (
-            MAIN_VIDEO_OVERWATCH,
-            SupportedGames.OVERWATCH,
-        ),
+        (None, SupportedGames.VALORANT, 8),
+        (MAIN_VIDEO_OVERWATCH, SupportedGames.OVERWATCH, 1.5),
     ],
     ids=["valorant", "overwatch"],
 )
-async def test_extract_game_images(highlight, highlight_path, game):
+async def test_extract_game_images(highlight, highlight_path, game, rate):
     if highlight_path is not None:
         highlight.path = highlight_path
         highlight = highlight.save()
 
     assert highlight.images_path is None
-    assert await highlight.extract_images_from_game(game, framerate=1.5)
+    assert await highlight.extract_images_from_game(game, framerate=rate)
     assert highlight.images_path is not None
     assert os.path.exists(highlight.images_path)
 
@@ -178,3 +175,12 @@ async def test_extract_keyframes(highlight):
     await highlight.extract_keyframes()
     assert highlight.keyframes is not None
     assert highlight.keyframes == keyframes
+
+
+async def test_extract_keyframes_fail(highlight):
+    highlight.path = "doesnt_exist.mp4"
+    highlight.keyframes = None
+    highlight.save()
+
+    await highlight.extract_keyframes()
+    assert highlight.keyframes == [0]

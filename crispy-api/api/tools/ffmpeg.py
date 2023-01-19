@@ -33,6 +33,8 @@ def merge_videos(videos_path: List[str], save_path: str, delete: bool = True) ->
             "-c",
             "copy",
             "-y",
+            "-loglevel",
+            "error",
             save_path,
         ]
     )
