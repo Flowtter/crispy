@@ -113,9 +113,10 @@ class Highlight(Thingy):
         def _apply_filter_and_do_operations(
             image: Image, image_filter: ImageFilter
         ) -> Image:
+            image = image.filter(image_filter)
+
             image = image.crop((1, 1, image.width - 2, image.height - 2))
 
-            image = image.filter(image_filter)
             dot = Image.open(DOT_PATH)
 
             image.paste(dot, (0, 0), dot)
@@ -185,7 +186,7 @@ class Highlight(Thingy):
         video = ffmpeg.input(self.path)
         audio = silence_if_no_audio(video.audio, self.path)
 
-        if next_keyframe > end:
+        if next_keyframe > end or end - start < 1:
             # No optimization possible
             (
                 ffmpeg.input(self.path)
@@ -223,7 +224,7 @@ class Highlight(Thingy):
                 .run(quiet=True)
             )
 
-            if next_keyframe == start or next_keyframe - start < 0.1:
+            if next_keyframe == start or next_keyframe - start < 0.2:
                 os.rename(paths[1], save_path)
             else:
                 (
@@ -342,20 +343,28 @@ class Highlight(Thingy):
         """
         Extract keyframes from the video using ffprobe
         """
-        video_info = subprocess.check_output(
-            [
-                "ffprobe",
-                "-loglevel",
-                "error",
-                "-show_frames",
-                "-select_streams",
-                "v",
-                self.path,
-            ]
-        ).decode("utf-8")
-
         self.keyframes = []
-        for line in video_info.splitlines():
-            if line.startswith("pkt_pts_time=") or line.startswith("pts_time="):
-                self.keyframes.append(float(line.split("=")[1]))
+        try:
+            video_info = subprocess.check_output(
+                [
+                    "ffprobe",
+                    "-loglevel",
+                    "error",
+                    "-show_frames",
+                    "-select_streams",
+                    "v",
+                    self.path,
+                ]
+            ).decode("utf-8")
+
+            for line in video_info.splitlines():
+                if line.startswith("pkt_pts_time=") or line.startswith("pts_time="):
+                    self.keyframes.append(float(line.split("=")[1]))
+        except subprocess.CalledProcessError:
+            logger.error(f"Error extracting keyframes from {self.path}")
+
+        # 0 Is always a keyframe in mp4 files
+        if not self.keyframes:
+            self.keyframes = [0]
+
         self.save()

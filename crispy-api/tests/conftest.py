@@ -13,9 +13,10 @@ from PIL import Image
 
 from api import app, init_database
 from api.models.highlight import Highlight
+from api.tools.AI.network import NeuralNetwork
 from api.tools.image import compare_image
 from api.tools.job_scheduler import JobScheduler
-from tests.constants import MAIN_VIDEO, ROOT_ASSETS
+from tests.constants import MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWORK
 
 
 @pytest.fixture
@@ -33,7 +34,7 @@ def event_loop():
 
 @pytest.fixture(autouse=True, scope="session")
 def database():
-    init_database("./tests-data")
+    init_database(".tests-data")
 
     database = Thingy.database
     assert "test" in database.name
@@ -91,6 +92,13 @@ async def highlight_overwatch(highlight):
 @pytest.fixture
 async def job_scheduler():
     return JobScheduler()
+
+
+@pytest.fixture
+async def neural_network():
+    neural_network = NeuralNetwork([4000, 120, 15, 2], 0.01)
+    neural_network.load(VALORANT_NETWORK)
+    return neural_network
 
 
 @pytest.fixture(autouse=True)

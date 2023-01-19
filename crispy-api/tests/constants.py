@@ -15,3 +15,4 @@ CSV_PATH_XOR = os.path.join(CSV_PATH, "xor.csv")
 CSV_PATH_OVERWATCH = os.path.join(CSV_PATH, "overwatch.csv")
 
 OVERWATCH_NETWORK = os.path.join("assets", "overwatch.npy")
+VALORANT_NETWORK = os.path.join("assets", "valorant.npy")
