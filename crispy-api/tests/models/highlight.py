@@ -12,7 +12,7 @@ from tests.constants import MAIN_VIDEO_NO_AUDIO, MAIN_VIDEO_OVERWATCH
 
 async def test_highlight(highlight):
     assert highlight
-    assert await Highlight.find_one(highlight.id)
+    assert Highlight.find_one(highlight.id)
 
 
 async def test_extract_thumbnail(highlight):
@@ -54,7 +54,7 @@ async def test_segment_video(highlight_path, timestamps, highlight):
 
     if highlight_path is not None:
         highlight.path = highlight_path
-        highlight = await highlight.save()
+        highlight = highlight.save()
 
     assert highlight.segments_path is None
     result = await highlight.segment(timestamps)
@@ -62,7 +62,7 @@ async def test_segment_video(highlight_path, timestamps, highlight):
     assert highlight.segments_path is not None
     assert os.path.exists(highlight.segments_path)
 
-    segments = await Segment.find({"highlight_id": highlight.id}).to_list(None)
+    segments = Segment.find({"highlight_id": highlight.id}).to_list(0)
     assert len(segments) == len(timestamps)
     assert result == segments
 
@@ -88,8 +88,8 @@ async def test_segment_video_new_clips(highlight):
 
     assert not os.path.exists(os.path.join(highlight.directory, "segments", "3-5.mp4"))
 
-    segments = await Segment.find({"highlight_id": highlight.id}).to_list(None)
-    assert await Segment.find_one({"highlight_id": highlight.id, "end": 5}) is None
+    segments = Segment.find({"highlight_id": highlight.id}).to_list(0)
+    assert Segment.find_one({"highlight_id": highlight.id, "end": 5}) is None
 
     assert len(segments) == 2
     assert results[-1] == segments
@@ -124,7 +124,7 @@ async def test_segment_video_optimization(highlight):
 async def test_extract_game_images(highlight, highlight_path, game):
     if highlight_path is not None:
         highlight.path = highlight_path
-        highlight = await highlight.save()
+        highlight = highlight.save()
 
     assert highlight.images_path is None
     assert await highlight.extract_images_from_game(game, framerate=1.5)
@@ -144,7 +144,7 @@ async def test_scale_video(highlight, tmp_path):
     assert not os.path.exists(tmp_video_path)
     shutil.copy(highlight.path, tmp_video_path)
     highlight.path = tmp_video_path
-    highlight = await highlight.save()
+    highlight = highlight.save()
     await highlight.scale_video(480, 270, os.path.join(tmp_path, "backup"))
     assert os.path.exists(tmp_video_path)
     shutil.rmtree(os.path.join(tmp_path, "backup"))
@@ -152,26 +152,26 @@ async def test_scale_video(highlight, tmp_path):
 
 async def test_scale_video_doesnt_exist(highlight):
     highlight.path = "doesnt_exist.mp4"
-    await highlight.save()
+    highlight.save()
     with pytest.raises(FileNotFoundError):
         await highlight.scale_video(480, 270)
 
 
 async def test_remove(highlight):
     await highlight.segment([(0, 1)])
-    assert await Segment.find_one({"highlight_id": highlight.id}) is not None
+    assert Segment.find_one({"highlight_id": highlight.id}) is not None
 
     await highlight.remove()
     assert not os.path.exists(highlight.directory)
-    assert await Segment.find_one({"highlight_id": highlight.id}) is None
-    assert await Highlight.find_one(highlight.id) is None
+    assert Segment.find_one({"highlight_id": highlight.id}) is None
+    assert Highlight.find_one(highlight.id) is None
 
 
 async def test_extract_keyframes(highlight):
     keyframes = copy.deepcopy(highlight.keyframes)
 
     highlight.keyframes = None
-    await highlight.save()
+    highlight.save()
 
     assert highlight.keyframes is None
 

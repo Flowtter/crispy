@@ -14,8 +14,9 @@ motor==3.1.1
 # Crispy
 ffmpeg-python==0.2.0
 Pillow==9.4.0
-numpy==1.21.0
+numpy
 moviepy==1.0.3
 progressbar2==4.0.0
 scipy==1.8.0
 pydub==0.25.1
+montydb

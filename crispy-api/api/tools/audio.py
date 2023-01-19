@@ -13,9 +13,9 @@ def merge_musics(audios: List[str], save_path: str) -> None:
         shutil.copy(audios[0], save_path)
         return
 
-    res = AudioSegment.from_mp3(audios.pop(0))
+    res = AudioSegment.from_file(audios.pop(0))
     for au in audios:
-        res += AudioSegment.from_mp3(au)
+        res += AudioSegment.from_file(au)
 
     res.export(save_path)
 
