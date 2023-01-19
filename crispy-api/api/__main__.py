@@ -21,7 +21,7 @@ async def generate_dataset(game: SupportedGames) -> None:
     """
     Generate a dataset from the highlights
     """
-    await init_database("dataset")
+    init_database(".dataset")
     await create_dataset(game)
 
 

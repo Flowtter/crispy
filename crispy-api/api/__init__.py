@@ -2,14 +2,15 @@ import logging
 import subprocess
 from typing import Optional
 
-import mongo_thingy
 from bson import ObjectId
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
+from mongo_thingy import connect
+from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
-from api.config import DEBUG, MONGO_URI, VIDEOS
+from api.config import DATABASE_PATH, DEBUG, VIDEOS
 from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights
 
@@ -29,10 +30,9 @@ app = init_app(debug=DEBUG)
 
 
 @app.on_event("startup")
-async def init_database(MONGODB_NAME: Optional[str] = None) -> None:
-    mongo_thingy.connect(
-        MONGO_URI, database_name=MONGODB_NAME, uuidRepresentation="standard"
-    )
+def init_database(path: Optional[str] = DATABASE_PATH) -> None:
+    set_storage(path, storage="sqlite")
+    connect(path, client_cls=MontyClient)
 
 
 @app.on_event("startup")

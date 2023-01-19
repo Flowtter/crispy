@@ -5,7 +5,7 @@ import subprocess
 from typing import Callable, List, Optional, Tuple
 
 import ffmpeg
-from mongo_thingy import AsyncThingy
+from mongo_thingy import Thingy
 from PIL import Image, ImageFilter, ImageOps
 
 from api.config import BACKUP, DOT_PATH
@@ -17,7 +17,7 @@ from api.tools.ffmpeg import merge_videos
 logger = logging.getLogger("crispy")
 
 
-class Highlight(AsyncThingy):
+class Highlight(Thingy):
     segments_path: Optional[str]
 
     async def extract_thumbnail(self) -> bool:
@@ -33,7 +33,7 @@ class Highlight(AsyncThingy):
         ffmpeg.input(self.path).output(thumbnail_path, vframes=1).run(quiet=True)
 
         self.update({"thumbnail_path": thumbnail_path})
-        await self.save()
+        self.save()
         return True
 
     async def extract_images(
@@ -73,7 +73,7 @@ class Highlight(AsyncThingy):
             post_process(im).save(im_path)
 
         self.update({"images_path": images_path})
-        await self.save()
+        self.save()
 
         return True
 
@@ -195,7 +195,6 @@ class Highlight(AsyncThingy):
                     save_path,
                     ss=f"{start}",
                     to=f"{end}",
-                    preset="ultrafast",
                 )
                 .overwrite_output()
                 .run(quiet=True)
@@ -260,7 +259,7 @@ class Highlight(AsyncThingy):
         if not os.path.exists(self.segments_path):
             os.mkdir(self.segments_path)
 
-        old_segments = await Segment.find({"highlight_id": self.id}).to_list(None)
+        old_segments = Segment.find({"highlight_id": self.id}).to_list(0)
 
         # Make a list of timestamps that are new, not in the database
         new_timestamps = []
@@ -294,7 +293,7 @@ class Highlight(AsyncThingy):
                     "end": end,
                 }
             )
-            await segment.save()
+            segment.save()
             segments.append(segment)
 
         return segments
@@ -336,8 +335,8 @@ class Highlight(AsyncThingy):
         if os.path.exists(self.directory):
             shutil.rmtree(self.directory)
 
-        await Segment.delete_many({"highlight_id": self.id})
-        await self.__class__.delete_one(self.id)
+        Segment.delete_many({"highlight_id": self.id})
+        self.__class__.delete_one(self.id)
 
     async def extract_keyframes(self) -> None:
         """
@@ -357,6 +356,6 @@ class Highlight(AsyncThingy):
 
         self.keyframes = []
         for line in video_info.splitlines():
-            if line.startswith("pts_time="):
+            if line.startswith("pkt_pts_time=") or line.startswith("pts_time="):
                 self.keyframes.append(float(line.split("=")[1]))
-        await self.save()
+        self.save()

@@ -7,7 +7,7 @@ import sys
 import ffmpeg
 import pytest
 from httpx import AsyncClient
-from mongo_thingy import AsyncThingy
+from mongo_thingy import Thingy
 from mutagen.mp3 import MP3
 from PIL import Image
 
@@ -32,19 +32,19 @@ def event_loop():
 
 
 @pytest.fixture(autouse=True, scope="session")
-async def database():
-    await init_database("test")
+def database():
+    init_database("./tests-data")
 
-    database = AsyncThingy.database
+    database = Thingy.database
     assert "test" in database.name
     return database
 
 
 @pytest.fixture(autouse=True)
-async def clean_database(database):
-    for collection_name in await database.list_collection_names():
+def clean_database(database):
+    for collection_name in database.list_collection_names():
         collection = database[collection_name]
-        await collection.delete_many({})
+        collection.delete_many({})
 
 
 def generate_fake_keyframes():
@@ -70,7 +70,7 @@ def generate_fake_keyframes():
 
 @pytest.fixture
 async def highlight(tmp_path):
-    return await Highlight(
+    return Highlight(
         {
             "path": MAIN_VIDEO,
             "directory": str(tmp_path),
@@ -85,7 +85,7 @@ async def highlight(tmp_path):
 @pytest.fixture
 async def highlight_overwatch(highlight):
     highlight.path = os.path.join("tests", "assets", "main-video-overwatch.mp4")
-    return await highlight.save()
+    return highlight.save()
 
 
 @pytest.fixture

@@ -20,3 +20,5 @@ VIDEOS = os.path.join(RESOURCES, "videos")
 
 DATASET_PATH = "dataset"
 DATASET_VALUES_PATH = "dataset_values.json"
+
+DATABASE_PATH = ".data"
