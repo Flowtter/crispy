@@ -3,7 +3,7 @@
 https://github.com/Refty/thingy/archive/bb8565a25a428b1d607aa65111552fb3e12f2a12.zip
 
 # replace when 0.16.0 (or upper) is released
-https://github.com/Refty/mongo-thingy/archive/0ca7d40081e08e7312d456747d642e75c65eff2c.zip
+https://github.com/Refty/mongo-thingy/archive/0e32be38391b2ed4b369641996384eb94be60c7c.zip
 
 fastapi==0.75.2
 python-multipart==0.0.5

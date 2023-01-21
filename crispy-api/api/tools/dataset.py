@@ -97,7 +97,7 @@ async def create_dataset(
     with open(dataset_values_path, "r") as f:
         values = json.load(f)
 
-    highlights = Highlight.find({}).to_list(0)
+    highlights = Highlight.find({}).to_list(None)
 
     for highlight in highlights:
         logger.info(f"Doing: {highlight.path}")

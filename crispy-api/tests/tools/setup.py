@@ -29,7 +29,7 @@ async def test_handle_highlights(tmp_path):
         tmp_resources, SupportedGames.VALORANT, session=tmp_session
     )
 
-    assert len(Highlight.find().to_list(0)) == 2
+    assert Highlight.count_documents() == 2
 
     os.remove(os.path.join(tmp_resources, "main-video.mp4"))
 
@@ -37,7 +37,7 @@ async def test_handle_highlights(tmp_path):
         tmp_resources, SupportedGames.VALORANT, session=tmp_session
     )
 
-    assert len(Highlight.find().to_list(0)) == 1
+    assert len(Highlight.find().to_list(None)) == 1
 
     os.remove(os.path.join(tmp_resources, "main-video-no-audio.mp4"))
     shutil.copy(MAIN_VIDEO, tmp_resources)
@@ -46,7 +46,7 @@ async def test_handle_highlights(tmp_path):
         tmp_resources, SupportedGames.VALORANT, session=tmp_session
     )
 
-    highlights = Highlight.find().to_list(0)
+    highlights = Highlight.find().to_list(None)
 
     assert len(highlights) == 1
     assert len(new_highlights) == 1
