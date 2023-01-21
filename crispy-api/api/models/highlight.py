@@ -260,7 +260,7 @@ class Highlight(Thingy):
         if not os.path.exists(self.segments_path):
             os.mkdir(self.segments_path)
 
-        old_segments = Segment.find({"highlight_id": self.id}).to_list(0)
+        old_segments = Segment.find({"highlight_id": self.id}).to_list(None)
 
         # Make a list of timestamps that are new, not in the database
         new_timestamps = []
@@ -337,7 +337,7 @@ class Highlight(Thingy):
             shutil.rmtree(self.directory)
 
         Segment.delete_many({"highlight_id": self.id})
-        self.__class__.delete_one(self.id)
+        self.delete()
 
     async def extract_keyframes(self) -> None:
         """

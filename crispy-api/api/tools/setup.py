@@ -20,7 +20,7 @@ async def handle_highlights(
     if not os.path.exists(session):
         os.mkdir(session)
 
-    highlights = Highlight.find().to_list(0)
+    highlights = Highlight.find().to_list(None)
     for highlight in highlights:
         if not os.path.exists(highlight.path):
             logger.info(f"Removing highlight {highlight.path}")

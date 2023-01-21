@@ -62,7 +62,7 @@ async def test_segment_video(highlight_path, timestamps, highlight):
     assert highlight.segments_path is not None
     assert os.path.exists(highlight.segments_path)
 
-    segments = Segment.find({"highlight_id": highlight.id}).to_list(0)
+    segments = Segment.find({"highlight_id": highlight.id}).to_list(None)
     assert len(segments) == len(timestamps)
     assert result == segments
 
@@ -88,7 +88,7 @@ async def test_segment_video_new_clips(highlight):
 
     assert not os.path.exists(os.path.join(highlight.directory, "segments", "3-5.mp4"))
 
-    segments = Segment.find({"highlight_id": highlight.id}).to_list(0)
+    segments = Segment.find({"highlight_id": highlight.id}).to_list(None)
     assert Segment.find_one({"highlight_id": highlight.id, "end": 5}) is None
 
     assert len(segments) == 2
