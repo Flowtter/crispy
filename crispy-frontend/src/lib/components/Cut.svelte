@@ -1,86 +1,134 @@
+<style>
+	p {
+		padding-top: 10px;
+	}
+	.gallery {
+		justify-content: center;
+		border-radius: 4px;
+
+		justify-content: center;
+		text-align: center;
+		width: 95%;
+		margin: auto;
+	}
+	.group {
+		display: flex;
+		flex-wrap: wrap;
+		margin-bottom: 20px;
+		justify-content: center;
+	}
+	.content {
+		background-color: var(--background);
+		border-radius: 10px;
+		width: auto;
+	}
+</style>
+
 <script>
-    import { API_URL } from "../../constants.js";
-    import Video from "./Video.svelte";
-    import ChangePage from "./ChangePage.svelte";
+	import { API_URL, sleep, globalSuccess } from "../../constants.js";
+	import Video from "./Video.svelte";
+	import ChangePage from "./ChangePage.svelte";
+	import axios from "axios";
 
-    export let cuts;
+	export let generating;
 
-    let cuts_split = [];
+	let allBlocks = [];
+	let currentPage = 0;
+	let blocksInPage = [];
+	// FIXME: blockCount should not be needed
+	// but svelte crashes if we're checking the length of blocksInPage
+	// https://github.com/sveltejs/svelte/issues/5789
+	let blockCount = 0;
 
-    function split_cuts() {
-        for (let i = 0; i < cuts.length; i += 10) {
-            cuts_split.push(cuts.slice(i, i + 10));
-        }
-    }
-    split_cuts();
-    console.log(cuts_split);
+	const setPagination = () => {
+		blockCount = 0;
+		blocksInPage = [];
 
-    let currentPage = 0;
+		allBlocks.sort((a, b) => {
+			return a.highlight.index - b.highlight.index;
+		});
 
-    function changePage(event) {
-        currentPage = event.detail;
-        console.log(event.detail);
-        window.scrollTo(0, 0);
-    }
+		for (let i = 0; i < allBlocks.length; i += 10) {
+			blocksInPage.push(allBlocks.slice(i, i + 10));
+			blockCount++;
+		}
+	};
+
+	const addSegmentToBlock = async (highlight) => {
+		const segments = await axios.get(API_URL + `/highlights/${highlight._id}/segments`);
+		allBlocks.push({
+			highlight: highlight,
+			segments: segments.data,
+		});
+	};
+
+	const mainLoop = async () => {
+		const renderedHighlights = [];
+		while (true) {
+			let highlights = await axios.get(API_URL + "/highlights/segments/generate/status");
+			let newHighlights = false;
+			const promises = [];
+			for (let i = 0; i < highlights.data.length; i++) {
+				const highlight = highlights.data[i];
+				if (highlight.status == "completed" && !renderedHighlights.includes(highlight._id)) {
+					newHighlights = true;
+					renderedHighlights.push(highlight._id);
+					promises.push(addSegmentToBlock(highlight));
+					if (generating) {
+						// short delay to make sure the toast is rendered
+						await sleep(100);
+						globalSuccess(`Segments for <strong>${highlight.name}</strong> generated!`);
+					}
+				}
+			}
+			await Promise.all(promises);
+
+			if (newHighlights) setPagination();
+
+			if (highlights.data.every((highlight) => highlight.status == "completed")) {
+				break;
+			}
+			await sleep(1500);
+		}
+	};
+	mainLoop();
+
+	function changePage(event) {
+		currentPage = event.detail;
+		window.scrollTo(0, 0);
+	}
 </script>
 
-{#key cuts}
-    {#if cuts}
-        <div class="gallery">
-            {#key currentPage}
-                {#each cuts_split[currentPage] as vid}
-                    <div class="content">
-                        <p>{vid.file}.mp4</p>
-                        <div class="group">
-                            {#each Object.entries(vid.cut) as [index]}
-                                <Video
-                                    filename={vid.file}
-                                    shortname={vid.cut[index][0]}
-                                    videoUrl={API_URL +
-                                        "/objects/" +
-                                        vid.file +
-                                        "/" +
-                                        vid.cut[index][0]}
-                                    editable={false}
-                                    cuts={vid.cut[index][0]}
-                                />
-                            {/each}
-                        </div>
-                    </div>
-                {/each}
-                <ChangePage
-                    {currentPage}
-                    maxi={cuts_split.length}
-                    on:change={changePage}
-                />
-            {/key}
-        </div>
-        <br />
-    {/if}
-{/key}
-
-<style>
-    p {
-        padding-top: 10px;
-    }
-    .gallery {
-        justify-content: center;
-        border-radius: 4px;
-
-        justify-content: center;
-        text-align: center;
-        width: 95%;
-        margin: auto;
-    }
-    .group {
-        display: flex;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-        justify-content: center;
-    }
-    .content {
-        background-color: var(--background);
-        border-radius: 10px;
-        width: auto;
-    }
-</style>
+<main>
+	{#key blockCount}
+		{#if blockCount}
+			<div class="gallery">
+				{#key currentPage}
+					{#each blocksInPage[currentPage] as blocks}
+						<div class="content">
+							<p>{blocks.highlight.name}.mp4</p>
+							<div class="group">
+								{#if blocks.segments.length == 0}
+									<p style="color: var(--text);">No cuts</p>
+								{:else}
+									{#each Object.entries(blocks.segments) as [index]}
+										<Video
+											shortname={blocks.segments[index].name}
+											id={blocks.segments[index]._id}
+											videoUrl={API_URL + `/segments/${blocks.segments[index]._id}/video`}
+											posterUrl={API_URL + `/highlights/${blocks.highlight._id}/thumbnail`}
+											editable={false}
+											isSegment={true}
+										/>
+									{/each}
+								{/if}
+							</div>
+						</div>
+					{/each}
+					<ChangePage {currentPage} maxi={blocksInPage.length} on:change={changePage} />
+				{/key}
+			</div>
+			<br />
+		{/if}
+	{/key}
+</main>

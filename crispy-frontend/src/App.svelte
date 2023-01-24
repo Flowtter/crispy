@@ -1,84 +1,3 @@
-<script>
-	import "./constants";
-	import Cut from "./lib/components/Cut.svelte";
-	import Gallery from "./lib/components/Gallery.svelte";
-	import Menubar from "./lib/components/Menubar.svelte";
-	import Result from "./lib/components/Result.svelte";
-	import Effects from "./lib/components/Effects.svelte";
-
-	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
-	import Music from "./lib/components/Music.svelte";
-	import { globalInfo } from "./constants";
-
-	let cuts = [];
-	let last_cut = null;
-
-	let mode = "clips";
-
-	function addCut(event) {
-		let file = event.detail.file;
-		let cut = event.detail.cuts;
-		last_cut = cut;
-		for (let i = 0; i < cuts.length; i++) {
-			let f = cuts[i].file;
-			if (f === file) {
-				cuts[i] = { file, cut };
-				return;
-			}
-		}
-		cuts.push({ file, cut });
-	}
-
-	function changeMode(event) {
-		mode = event.detail;
-	}
-
-	function clearCuts(event) {
-		cuts = [];
-	}
-	toast.push("Thanks for using Crispy!", {
-		duration: 5000,
-	});
-	globalInfo(
-		"Activate the videos you want in your montage, then generate cuts!"
-	);
-</script>
-
-<main>
-	<div class="top">
-		<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
-	</div>
-	<div class="right">
-		<SvelteToast />
-	</div>
-	<div class="main-container">
-		<Menubar
-			{mode}
-			on:cuts={addCut}
-			on:mode={changeMode}
-			on:clear={clearCuts}
-		/>
-		<div class="content">
-			<br />
-			{#key mode}
-				{#if mode === "clips"}
-					<Gallery />
-				{:else if mode === "cuts"}
-					{#key last_cut}
-						<Cut {cuts} />
-					{/key}
-				{:else if mode === "result"}
-					<Result />
-				{:else if mode === "music"}
-					<Music />
-				{:else if mode === "effects"}
-					<Effects />
-				{/if}
-			{/key}
-		</div>
-	</div>
-</main>
-
 <style>
 	:root {
 		--toastContainerTop: 60px;
@@ -154,3 +73,59 @@
 		}
 	}
 </style>
+
+<script>
+	import "./constants";
+	import Cut from "./lib/components/Cut.svelte";
+	import Gallery from "./lib/components/Gallery.svelte";
+	import Menubar from "./lib/components/Menubar.svelte";
+	import Result from "./lib/components/Result.svelte";
+	import Effects from "./lib/components/Effects.svelte";
+
+	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
+	import Music from "./lib/components/Music.svelte";
+	import { globalInfo } from "./constants";
+
+	let mode = "clips";
+	let generating = false;
+
+	function changeMode(event) {
+		mode = event.detail;
+	}
+	function changeGenerating(event) {
+		generating = event.detail;
+	}
+
+	toast.push("Thanks for using Crispy!", {
+		duration: 2500,
+	});
+	globalInfo("Activate the videos you want in your montage, then generate cuts!");
+</script>
+
+<main>
+	<div class="top">
+		<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
+	</div>
+	<div class="right">
+		<SvelteToast />
+	</div>
+	<div class="main-container">
+		<Menubar {mode} {generating} on:changeMode={changeMode} on:changeGenerating={changeGenerating} />
+		<div class="content">
+			<br />
+			{#key mode}
+				{#if mode === "clips"}
+					<Gallery />
+				{:else if mode === "cuts"}
+					<Cut {generating} />
+				{:else if mode === "result"}
+					<Result />
+				{:else if mode === "music"}
+					<Music />
+				{:else if mode === "effects"}
+					<Effects />
+				{/if}
+			{/key}
+		</div>
+	</div>
+</main>
