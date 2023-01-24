@@ -9,7 +9,7 @@ from api.models.highlight import Highlight
 from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights
 
-logger = logging.getLogger("crispy")
+logger = logging.getLogger("uvicorn")
 
 
 def to_csv(highlight: Highlight, values: dict, dataset_path: str) -> None:
@@ -56,7 +56,7 @@ def to_csv(highlight: Highlight, values: dict, dataset_path: str) -> None:
             f.write(",".join([str(x) for x in row]) + "\n")
 
 
-def concat_csv(dataset_path: str) -> None:
+def concatenate_csv(dataset_path: str) -> None:
     """
     Merge all the csv files into one result.csv
 
@@ -97,9 +97,9 @@ async def create_dataset(
     with open(dataset_values_path, "r") as f:
         values = json.load(f)
 
-    highlights = Highlight.find({}).to_list(None)
+    highlights = Highlight.find().to_list(None)
 
     for highlight in highlights:
         logger.info(f"Doing: {highlight.path}")
         to_csv(highlight, values, dataset_path)
-    concat_csv(dataset_path)
+    concatenate_csv(dataset_path)

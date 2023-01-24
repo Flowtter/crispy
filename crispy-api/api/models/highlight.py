@@ -1,7 +1,6 @@
 import logging
 import os
 import shutil
-import subprocess
 from typing import Callable, List, Optional, Tuple
 
 import ffmpeg
@@ -14,23 +13,27 @@ from api.tools.audio import silence_if_no_audio
 from api.tools.enums import SupportedGames
 from api.tools.ffmpeg import merge_videos
 
-logger = logging.getLogger("crispy")
+logger = logging.getLogger("uvicorn")
 
 
 class Highlight(Thingy):
     segments_path: Optional[str]
 
+    @property
+    def name(self) -> str:
+        return str(os.path.splitext(os.path.basename(self.path))[0])
+
     async def extract_thumbnail(self) -> bool:
         """
-        Extract the first image of a video
-
-        :param highlight: Highlight to extract the image from
+        Extract the first image of a highlight
         """
         if self.thumbnail_path:
             return False
 
         thumbnail_path = os.path.join(self.directory, "thumbnail.jpg")
-        ffmpeg.input(self.path).output(thumbnail_path, vframes=1).run(quiet=True)
+        ffmpeg.input(self.path).filter("scale", 640, -1).output(
+            thumbnail_path, vframes=1
+        ).run(quiet=True)
 
         self.update({"thumbnail_path": thumbnail_path})
         self.save()
@@ -98,7 +101,6 @@ class Highlight(Thingy):
                         g.putpixel((x, y), max(0, int(green * 0.05)))
                         b.putpixel((x, y), max(0, int(blue * 0.05)))
 
-            # FIXME: pretty sure i can return now
             im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
 
             final = Image.new("RGB", (100, 100))
@@ -159,93 +161,9 @@ class Highlight(Thingy):
         else:
             raise NotImplementedError
 
-    def __segment(self, start: float, end: float, save_path: str) -> None:
-        """
-        Segment a video into a smaller video
-
-        We get the next keyframe after the start time
-        - If the next keyframe is after the end time, there is no optimization possible
-            we cut from the start time to the end time and encode
-        - If the next keyframe is before the end time,
-            we cut from the start time to the next keyframe and encode
-            we cut without encoding from the next keyframe to the end time if the end time
-            we merge the two videos
-
-        :param start: Start of the segment in seconds
-        :param end: End of the segment in seconds
-
-        :return: Path to the segmented video
-        """
-        next_keyframe = self.keyframes[0]
-        for keyframe in self.keyframes:
-            if keyframe > start:
-                next_keyframe = keyframe
-                break
-
-        # FIXME: should be parameters
-        video = ffmpeg.input(self.path)
-        audio = silence_if_no_audio(video.audio, self.path)
-
-        if next_keyframe > end or end - start < 1:
-            # No optimization possible
-            (
-                ffmpeg.input(self.path)
-                .output(
-                    video,
-                    audio,
-                    save_path,
-                    ss=f"{start}",
-                    to=f"{end}",
-                )
-                .overwrite_output()
-                .run(quiet=True)
-            )
-        else:
-            # Optimization possible
-            save_path_no_extension, extension = os.path.splitext(save_path)
-
-            paths = [
-                f"{save_path_no_extension}_1{extension}",
-                f"{save_path_no_extension}_2{extension}",
-            ]
-
-            (
-                ffmpeg.input(self.path)
-                .output(
-                    video,
-                    audio,
-                    paths[1],
-                    ss=f"{next_keyframe}",
-                    vcodec="copy",
-                    map="0",
-                    to=f"{end}",
-                )
-                .overwrite_output()
-                .run(quiet=True)
-            )
-
-            if next_keyframe == start or next_keyframe - start < 0.2:
-                os.rename(paths[1], save_path)
-            else:
-                (
-                    ffmpeg.input(self.path)
-                    .output(
-                        video,
-                        audio,
-                        paths[0],
-                        ss=f"{start}",
-                        to=f"{next_keyframe}",
-                    )
-                    .overwrite_output()
-                    .run(quiet=True)
-                )
-                merge_videos(
-                    paths,
-                    save_path,
-                    True,
-                )
-
-    async def segment(self, timestamps: List[Tuple[float, float]]) -> List[Segment]:
+    async def extract_segments(
+        self, timestamps: List[Tuple[float, float]]
+    ) -> List[Segment]:
         """
         Segment a video into multiple videos
 
@@ -279,25 +197,62 @@ class Highlight(Thingy):
                 for start, end in timestamps
             ):
                 os.remove(old_segment.path)
+                if old_segment.downscaled_path:
+                    os.remove(old_segment.downscaled_path)
                 Segment.delete_one({"_id": old_segment.id})
             else:
                 segments.append(old_segment)
 
+        video = ffmpeg.input(self.path)
+        audio = silence_if_no_audio(video.audio, self.path)
+
         for (start, end) in new_timestamps:
             segment_save_path = os.path.join(self.segments_path, f"{start}-{end}.mp4")
-            self.__segment(start, end, segment_save_path)
+            (
+                ffmpeg.output(
+                    video,
+                    audio,
+                    segment_save_path,
+                    ss=f"{start}",
+                    to=f"{end}",
+                )
+                .overwrite_output()
+                .run(quiet=True)
+            )
             segment = Segment(
                 {
                     "highlight_id": self.id,
                     "path": segment_save_path,
                     "start": start,
                     "end": end,
+                    "enabled": True,
                 }
             )
             segment.save()
             segments.append(segment)
 
         return segments
+
+    async def concatenate_segments(self) -> bool:
+        """
+        Concatenate all the segments of a highlight into a single video
+        """
+
+        segments = Segment.find({"highlight_id": self.id}).sort("start").to_list(None)
+
+        if not segments:
+            self.merge_path = None
+            self.save()
+            return False
+
+        self.merge_path = os.path.join(self.directory, "merged.mp4")
+        self.save()
+
+        await merge_videos(
+            [segment.path for segment in segments], self.merge_path, False
+        )
+
+        return True
 
     async def scale_video(
         self, width: int = 1920, height: int = 1080, backup: str = BACKUP
@@ -339,32 +294,22 @@ class Highlight(Thingy):
         Segment.delete_many({"highlight_id": self.id})
         self.delete()
 
-    async def extract_keyframes(self) -> None:
-        """
-        Extract keyframes from the video using ffprobe
-        """
-        self.keyframes = []
-        try:
-            video_info = subprocess.check_output(
-                [
-                    "ffprobe",
-                    "-loglevel",
-                    "error",
-                    "-show_frames",
-                    "-select_streams",
-                    "v",
-                    self.path,
-                ]
-            ).decode("utf-8")
+    async def extract_snippet_in_lower_resolution(self) -> bool:
+        """Extract 5 seconds of a highlight in lower resolution"""
+        if self.snippet_path:
+            return False
 
-            for line in video_info.splitlines():
-                if line.startswith("pkt_pts_time=") or line.startswith("pts_time="):
-                    self.keyframes.append(float(line.split("=")[1]))
-        except subprocess.CalledProcessError:
-            logger.error(f"Error extracting keyframes from {self.path}")
+        snippet_path = os.path.join(self.directory, "snippet.mp4")
 
-        # 0 Is always a keyframe in mp4 files
-        if not self.keyframes:
-            self.keyframes = [0]
+        video = ffmpeg.input(self.path, sseof="-20")
+        audio = silence_if_no_audio(video.audio, self.path)
+        video = video.filter("scale", 640, -1)
+        ffmpeg.output(video, audio, snippet_path, t="00:00:5").run(quiet=True)
 
+        self.update({"snippet_path": snippet_path})
         self.save()
+
+        return True
+
+
+Highlight.add_view("defaults", include=("_id", "name", "index", "enabled"))

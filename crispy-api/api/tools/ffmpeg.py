@@ -1,45 +1,40 @@
 import os
 import shutil
-import subprocess
 from typing import List
 
+import moviepy.editor as mpe
 
-def merge_videos(videos_path: List[str], save_path: str, delete: bool = True) -> None:
+
+async def merge_videos(
+    videos_path: List[str], save_path: str, delete: bool = True
+) -> None:
     """
     Merge videos together
 
     :param videos_path: list of video paths
     :param save_path: path to save the merged video
     """
+    videos_path = [video for video in videos_path if video is not None]
+
     if len(videos_path) <= 1:
         shutil.copy(videos_path[0], save_path)
-        return
+    else:
+        clips = []
+        for filename in videos_path:
+            clips.append(mpe.VideoFileClip(filename))
+        print(clips)
+        final_clip = mpe.concatenate_videoclips(clips)
 
-    save_path_no_ext = os.path.splitext(save_path)[0]
-    list_path = f"{save_path_no_ext}_merge_list.txt"
-    with open(list_path, "w") as f:
-        for video_path in videos_path:
-            f.write(f"file '{video_path}'\n")
+        final_clip = final_clip.subclip(
+            t_end=(final_clip.duration - 1.0 / final_clip.fps)
+        )
+        final_clip.write_videofile(save_path, verbose=False, codec="libx264")
 
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-f",
-            "concat",
-            "-safe",
-            "0",
-            "-i",
-            list_path,
-            "-c",
-            "copy",
-            "-y",
-            "-loglevel",
-            "error",
-            save_path,
-        ]
-    )
+        for clip in clips:
+            clip.close()
 
-    os.remove(list_path)
     if delete:
         for filename in videos_path:
+            if not filename or not os.path.exists(filename):
+                continue
             os.remove(filename)
