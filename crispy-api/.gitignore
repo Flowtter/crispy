@@ -4,4 +4,6 @@ dataset/*
 
 .data/
 .tests-data/
-.datatest/
+.dataset/
+
+merged*

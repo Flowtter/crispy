@@ -5,16 +5,21 @@ from typing import Optional
 from bson import ObjectId
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from mongo_thingy import connect
 from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
 from api.config import DATABASE_PATH, DEBUG, VIDEOS
+from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights
 
 ENCODERS_BY_TYPE[ObjectId] = str
+
+neural_network = NeuralNetwork([4000, 120, 15, 2], 0.01)
+neural_network.load("./assets/valorant.npy")
 
 
 logging.getLogger("PIL").setLevel(logging.ERROR)
@@ -22,6 +27,7 @@ logging.getLogger("PIL").setLevel(logging.ERROR)
 
 def init_app(debug: bool) -> FastAPI:
     if debug:
+        logging.getLogger("uvicorn").setLevel(logging.DEBUG)
         return FastAPI(debug=True)
     return FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -31,7 +37,7 @@ app = init_app(debug=DEBUG)
 
 @app.on_event("startup")
 def init_database(path: Optional[str] = DATABASE_PATH) -> None:
-    set_storage(path, storage="sqlite")
+    set_storage(path)
     connect(path, client_cls=MontyClient)
 
 
@@ -58,4 +64,13 @@ def http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
 
 
-from api.routes import highlight  # noqa
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+from api.routes import highlight, result, segment  # noqa

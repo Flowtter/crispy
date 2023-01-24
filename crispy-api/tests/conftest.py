@@ -13,6 +13,7 @@ from PIL import Image
 
 from api import app, init_database
 from api.models.highlight import Highlight
+from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
 from api.tools.image import compare_image
 from api.tools.job_scheduler import JobScheduler
@@ -48,27 +49,6 @@ def clean_database(database):
         collection.delete_many({})
 
 
-def generate_fake_keyframes():
-    """
-    Generate fake keyframes for the main video
-    """
-    pattern = [0.016667, 0.033333, 0.05, 0.066667, 0.083333, 0.1]
-    current = 0
-
-    keyframes = [0.0]
-
-    while current < 4.9:
-        for p in pattern:
-            keyframes.append(round(current + p, 6))
-
-        current += 0.1
-
-    keyframes.remove(0.016667)
-    keyframes.append(5.016667)
-
-    return keyframes
-
-
 @pytest.fixture
 async def highlight(tmp_path):
     return Highlight(
@@ -78,7 +58,8 @@ async def highlight(tmp_path):
             "thumbnail_path": None,
             "images_path": None,
             "videos_path": None,
-            "keyframes": generate_fake_keyframes(),
+            "index": 1,
+            "enabled": True,
         }
     ).save()
 
@@ -87,6 +68,19 @@ async def highlight(tmp_path):
 async def highlight_overwatch(highlight):
     highlight.path = os.path.join("tests", "assets", "main-video-overwatch.mp4")
     return highlight.save()
+
+
+@pytest.fixture
+async def segment(highlight):
+    return Segment(
+        {
+            "highlight_id": highlight.id,
+            "path": MAIN_VIDEO,
+            "start": 0.0,
+            "end": 1.0,
+            "enabled": True,
+        }
+    ).save()
 
 
 @pytest.fixture
@@ -213,4 +207,4 @@ def pytest_sessionstart(session):
             "Directory tests/assets does not exists. Create it using `git submodule update --init`"
         )
         sys.exit(1)
-    logging.getLogger("crispy").disabled = True
+    logging.getLogger("uvicorn").disabled = True

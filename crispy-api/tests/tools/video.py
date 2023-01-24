@@ -27,7 +27,6 @@ async def test_extract_segments(
     highlight, neural_network, frames_before, frames_after, offset, expected
 ):
     await highlight.extract_images_from_game(SupportedGames.VALORANT, 8)
-    highlight.keyframes = [0, 1, 2, 3, 4]
     highlight.save()
     timestamps, _ = await extract_segments(
         highlight,

@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import os
 from typing import List, Tuple
 
@@ -7,6 +9,8 @@ from PIL import Image
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
+
+logger = logging.getLogger("uvicorn")
 
 
 def _image_to_list_format(path: str) -> List[int]:
@@ -134,5 +138,11 @@ async def extract_segments(
     queries = _create_query_array(neural_network, highlight, confidence)
     normalized = _normalize_queries(queries, frames_before, frames_after)
     processed = _post_process_query_array(normalized, offset, framerate)
-    segments = await highlight.segment(processed)
+    segments = await highlight.extract_segments(processed)
+
+    coroutines = []
+    for segment in segments:
+        coroutines.append(segment.copy_video_in_lower_resolution())
+    await asyncio.gather(*coroutines)
+
     return (processed, segments)
