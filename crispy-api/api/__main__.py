@@ -27,7 +27,9 @@ async def generate_dataset(game: SupportedGames) -> None:
 
 if __name__ == "__main__":
     if not _args.dataset:
-        uvicorn.run("api:app", host=HOST, port=PORT, reload=DEBUG, proxy_headers=True)
+        uvicorn.run(
+            "api:app", host=HOST, port=PORT, reload=DEBUG, proxy_headers=True, workers=8
+        )
     else:
         game = SupportedGames(_args.game)
         if not game:

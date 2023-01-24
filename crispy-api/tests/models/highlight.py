@@ -1,6 +1,6 @@
-import copy
 import os
 import shutil
+import time
 
 import pytest
 
@@ -13,6 +13,10 @@ from tests.constants import MAIN_VIDEO_NO_AUDIO, MAIN_VIDEO_OVERWATCH
 async def test_highlight(highlight):
     assert highlight
     assert Highlight.find_one(highlight.id)
+
+
+async def test_highlight_name(highlight):
+    assert highlight.name == "main-video"
 
 
 async def test_extract_thumbnail(highlight):
@@ -50,14 +54,12 @@ async def test_extract_images(highlight):
     ids=["with_audio", "no_audio"],
 )
 async def test_segment_video(highlight_path, timestamps, highlight):
-    assert highlight.keyframes is not None
-
     if highlight_path is not None:
         highlight.path = highlight_path
         highlight = highlight.save()
 
     assert highlight.segments_path is None
-    result = await highlight.segment(timestamps)
+    result = await highlight.extract_segments(timestamps)
 
     assert highlight.segments_path is not None
     assert os.path.exists(highlight.segments_path)
@@ -80,7 +82,7 @@ async def test_segment_video_new_clips(highlight):
 
     results = []
     for segments in [[(0, 1), (3, 5)], [(0, 1), (3, 4)]]:
-        results.append(await highlight.segment(segments))
+        results.append(await highlight.extract_segments(segments))
         assert highlight.segments_path is not None
         assert os.path.exists(highlight.segments_path)
         for segment in results[-1]:
@@ -98,16 +100,50 @@ async def test_segment_video_new_clips(highlight):
             assert initial.id == new.id
 
 
-async def test_segment_video_no_optimization(highlight):
-    highlight.keyframes = [0, 2]
+async def test_segment_video_segments_are_removed(highlight, tmp_path):
+    initial_time = time.time()
+    await highlight.extract_segments([(0, 1)])
+    duration = time.time() - initial_time
+    assert highlight.segments_path is not None
+    assert os.path.exists(highlight.segments_path)
 
-    await highlight.segment([(0.1, 1.5)])
+    segment = Segment.find_one({"highlight_id": highlight.id})
+    assert segment
 
+    assert segment.path is not None
+    assert os.path.exists(segment.path)
 
-async def test_segment_video_optimization(highlight):
-    highlight.keyframes = [0, 1]
+    current_time = time.time()
+    await highlight.extract_segments([(0, 1)])
+    assert time.time() - current_time < duration
+    assert highlight.segments_path is not None
+    assert os.path.exists(highlight.segments_path)
 
-    await highlight.segment([(0.5012, 5)])
+    segment = Segment.find_one({"highlight_id": highlight.id})
+    assert segment
+
+    assert segment.path is not None
+    assert os.path.exists(segment.path)
+
+    downscaled_path = os.path.join(tmp_path, "downscaled.mp4")
+    shutil.copy(segment.path, downscaled_path)
+
+    segment.downscaled_path = downscaled_path
+    segment.save()
+
+    assert os.path.exists(segment.downscaled_path)
+    await highlight.extract_segments([])
+    assert highlight.segments_path is not None
+
+    assert not os.path.exists(segment.downscaled_path)
+    assert not os.path.exists(segment.path)
+
+    assert not Segment.find_one({"highlight_id": highlight.id})
+
+    assert os.listdir(highlight.directory) == ["segments"]
+    assert os.listdir(highlight.segments_path) == []
+
+    os.rmdir(highlight.segments_path)
 
 
 @pytest.mark.parametrize(
@@ -155,7 +191,7 @@ async def test_scale_video_doesnt_exist(highlight):
 
 
 async def test_remove(highlight):
-    await highlight.segment([(0, 1)])
+    await highlight.extract_segments([(0, 1)])
     assert Segment.find_one({"highlight_id": highlight.id}) is not None
 
     await highlight.remove()
@@ -164,23 +200,21 @@ async def test_remove(highlight):
     assert Highlight.find_one(highlight.id) is None
 
 
-async def test_extract_keyframes(highlight):
-    keyframes = copy.deepcopy(highlight.keyframes)
-
-    highlight.keyframes = None
-    highlight.save()
-
-    assert highlight.keyframes is None
-
-    await highlight.extract_keyframes()
-    assert highlight.keyframes is not None
-    assert highlight.keyframes == keyframes
+async def test_extract_snippet_in_lower_resolution(highlight):
+    assert highlight.snippet_path is None
+    assert await highlight.extract_snippet_in_lower_resolution()
+    assert highlight.snippet_path is not None
+    assert os.path.exists(highlight.snippet_path)
+    assert not await highlight.extract_snippet_in_lower_resolution()
 
 
-async def test_extract_keyframes_fail(highlight):
-    highlight.path = "doesnt_exist.mp4"
-    highlight.keyframes = None
-    highlight.save()
+# WARNING: This test depends on the segment function working properly
+async def test_concat_segments(highlight):
+    assert not await highlight.concatenate_segments()
 
-    await highlight.extract_keyframes()
-    assert highlight.keyframes == [0]
+    await highlight.extract_segments([(0, 1), (3, 5)])
+    assert os.path.exists(highlight.segments_path)
+
+    assert await highlight.concatenate_segments()
+    assert Highlight.find_one(highlight.id).merge_path is not None
+    assert os.path.exists(highlight.path)
