@@ -45,3 +45,14 @@ repos:
         name: Coding style (flake8)
         stages: [commit]
         exclude: ^legacy-backend.*$
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        exclude: ^.github/
+        name: Prettier
+        stages: [commit]
+        additional_dependencies:
+          - prettier
+          - prettier-plugin-svelte
+          - svelte
