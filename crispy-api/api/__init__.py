@@ -14,6 +14,7 @@ from pydantic.json import ENCODERS_BY_TYPE
 from api.config import DATABASE_PATH, DEBUG, MUSICS, VIDEOS
 from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
+from api.tools.filters import apply_filters  # noqa
 from api.tools.setup import handle_highlights, handle_musics
 
 ENCODERS_BY_TYPE[ObjectId] = str
@@ -74,4 +75,4 @@ app.add_middleware(
 )
 
 
-from api.routes import highlight, music, result, segment  # noqa
+from api.routes import filters, highlight, music, result, segment  # noqa

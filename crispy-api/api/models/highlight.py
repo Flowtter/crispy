@@ -1,13 +1,14 @@
 import logging
 import os
 import shutil
-from typing import Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import ffmpeg
 from mongo_thingy import Thingy
 from PIL import Image, ImageFilter, ImageOps
 
 from api.config import BACKUP, DOT_PATH
+from api.models.filter import Filter
 from api.models.segment import Segment
 from api.tools.audio import silence_if_no_audio
 from api.tools.enums import SupportedGames
@@ -18,24 +19,34 @@ logger = logging.getLogger("uvicorn")
 
 class Highlight(Thingy):
     segments_path: Optional[str]
+    local_filters: Optional[Dict[str, Any]]
 
     @property
     def name(self) -> str:
         return str(os.path.splitext(os.path.basename(self.path))[0])
 
-    async def extract_thumbnail(self) -> bool:
+    async def extract_thumbnails(self) -> bool:
         """
         Extract the first image of a highlight
         """
-        if self.thumbnail_path:
-            return False
-
         thumbnail_path = os.path.join(self.directory, "thumbnail.jpg")
         ffmpeg.input(self.path).filter("scale", 640, -1).output(
             thumbnail_path, vframes=1
-        ).run(quiet=True)
+        ).overwrite_output().run(quiet=True)
 
-        self.update({"thumbnail_path": thumbnail_path})
+        thumbnail_path_full_size = os.path.join(
+            self.directory, "thumbnail_full_size.jpg"
+        )
+        ffmpeg.input(self.path).output(
+            thumbnail_path_full_size, vframes=1
+        ).overwrite_output().run(quiet=True)
+
+        self.update(
+            {
+                "thumbnail_path": thumbnail_path,
+                "thumbnail_path_full_size": thumbnail_path_full_size,
+            }
+        )
         self.save()
         return True
 
@@ -161,6 +172,28 @@ class Highlight(Thingy):
         else:
             raise NotImplementedError
 
+    def recompile(self) -> bool:
+        from api.tools.utils import sanitize_dict
+
+        global_filters: Dict[str, Any] = {}
+        if _global_filters := Filter.find_one({"global": True}):
+            global_filters = sanitize_dict(_global_filters.filters or {})
+
+        highlight_filters: Dict[str, Any] = {}
+        if _highlight_filters := Filter.find_one({"highlight_id": self.id}):
+            highlight_filters = sanitize_dict(_highlight_filters.filters or {})
+
+        filters = {
+            **global_filters,
+            **highlight_filters,
+        }
+
+        print(self.local_filters, filters)
+        result = sanitize_dict(self.local_filters) != filters
+        self.local_filters = filters
+        self.save()
+        return result
+
     async def extract_segments(
         self, timestamps: List[Tuple[float, float]]
     ) -> List[Segment]:
@@ -172,6 +205,10 @@ class Highlight(Thingy):
 
         :return: List of paths to the segmented videos
         """
+        if not self.local_filters:
+            self.local_filters = {}
+            self.save()
+
         if not self.segments_path:
             self.segments_path = os.path.join(self.directory, "segments")
 
@@ -180,12 +217,19 @@ class Highlight(Thingy):
 
         old_segments = Segment.find({"highlight_id": self.id}).to_list(None)
 
+        recompile = self.recompile()
+        if recompile:
+            Segment.delete_many({"highlight_id": self.id})
+
         # Make a list of timestamps that are new, not in the database
         new_timestamps = []
         for start, end in timestamps:
-            if not any(
-                old_segment.start == start and old_segment.end == end
-                for old_segment in old_segments
+            if (
+                not any(
+                    old_segment.start == start and old_segment.end == end
+                    for old_segment in old_segments
+                )
+                or recompile
             ):
                 new_timestamps.append((start, end))
 
@@ -209,13 +253,11 @@ class Highlight(Thingy):
         for (start, end) in new_timestamps:
             segment_save_path = os.path.join(self.segments_path, f"{start}-{end}.mp4")
             (
-                ffmpeg.output(
-                    video,
-                    audio,
-                    segment_save_path,
-                    ss=f"{start}",
-                    to=f"{end}",
+                ffmpeg.input(
+                    self.path,
                 )
+                .apply_filters(self.id)
+                .output(audio, segment_save_path, ss=f"{start}", to=f"{end}")
                 .overwrite_output()
                 .run(quiet=True)
             )
@@ -272,7 +314,7 @@ class Highlight(Thingy):
             raise FileNotFoundError(f"{self.path} not found")
 
         logger.warning(
-            f"\nWARNING:Scaling video {self.path}, saving a backup in ./backup"
+            f"WARNING:Scaling video {self.path}, saving a backup in ./backup"
         )
 
         if not os.path.exists(backup):
@@ -296,6 +338,7 @@ class Highlight(Thingy):
             shutil.rmtree(self.directory)
 
         Segment.delete_many({"highlight_id": self.id})
+        Filter.delete_one({"highlight_id": self.id})
         self.delete()
 
     async def extract_snippet_in_lower_resolution(self) -> bool:

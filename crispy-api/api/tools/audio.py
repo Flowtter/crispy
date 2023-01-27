@@ -1,11 +1,10 @@
-import os
 import shutil
 from typing import Any, List
 
 import ffmpeg
 from pydub import AudioSegment
 
-from api.config import ASSETS
+from api.config import SILENCE_PATH
 
 
 def merge_musics(audios: List[str], save_path: str) -> None:
@@ -25,5 +24,10 @@ def merge_musics(audios: List[str], save_path: str) -> None:
 def silence_if_no_audio(audio: Any, file: str) -> Any:
     p = ffmpeg.probe(file, select_streams="a")
     if not p["streams"]:
-        return ffmpeg.input(os.path.join(ASSETS, "silence.mp3")).audio
+        return ffmpeg.input(SILENCE_PATH).audio
     return audio
+
+
+def video_has_audio(file: str) -> bool:
+    p = ffmpeg.probe(file, select_streams="a")
+    return bool(p["streams"])

@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import ffmpeg
 from mongo_thingy import Thingy
@@ -7,6 +8,8 @@ from api.tools.audio import silence_if_no_audio
 
 
 class Segment(Thingy):
+    filters: Optional[dict]
+
     @property
     def name(self) -> str:
         return f"{self.start}-{self.end}"
@@ -26,7 +29,6 @@ class Segment(Thingy):
             video,
             audio,
             downscaled_path,
-            preset="ultrafast",
             acodec="aac",
             vcodec="libx264",
         ).overwrite_output().run(quiet=True)

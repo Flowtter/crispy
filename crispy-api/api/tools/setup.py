@@ -1,10 +1,17 @@
+import asyncio
 import logging
 import os
+import shutil
 from typing import List
 
-from api.config import SESSION
+import ffmpeg
+from PIL import Image
+
+from api.config import SESSION, SILENCE_PATH
+from api.models.filter import Filter
 from api.models.highlight import Highlight
 from api.models.music import Music
+from api.tools.audio import video_has_audio
 from api.tools.enums import SupportedGames
 from api.tools.job_scheduler import JobScheduler
 
@@ -58,20 +65,43 @@ async def handle_highlights(
                     "enabled": True,
                 }
             ).save()
+            Filter({"highlight_id": highlight.id}).save()
             new_highlights.append(highlight)
 
             job_scheduler.schedule(
                 highlight.extract_images_from_game,
                 kwargs={"game": game, "framerate": framerate},
             )
-            job_scheduler.schedule(highlight.extract_thumbnail)
+            job_scheduler.schedule(highlight.extract_thumbnails)
             job_scheduler.schedule(highlight.extract_snippet_in_lower_resolution)
             index += 1
 
     logger.info(f"Adding {len(new_highlights)} highlights, this may take a while.")
-    logger.info("Wait for `Application startup complete.` to use Crispy.")
+    logger.warning("Wait for `Application startup complete.` to use Crispy.")
 
     job_scheduler.run_in_thread().join()
+
+    for highlight in new_highlights:
+        if not video_has_audio(highlight.path):
+            tmp_path = os.path.join(highlight.directory, "tmp.mp4")
+
+            video = ffmpeg.input(highlight.path)
+            audio = ffmpeg.input(SILENCE_PATH).audio
+
+            ffmpeg.input(highlight.path).output(
+                video, audio, tmp_path, vcodec="copy", acodec="aac"
+            ).overwrite_output().run()
+            shutil.move(tmp_path, highlight.path)
+
+        if Image.open(highlight.thumbnail_path_full_size).size != (1920, 1080):
+            await highlight.scale_video()
+            coroutines = [
+                highlight.extract_thumbnails(),
+                highlight.extract_snippet_in_lower_resolution(),
+                highlight.extract_images_from_game(game, framerate),
+            ]
+
+            await asyncio.gather(*coroutines)
 
     Highlight.update_many({}, {"$set": {"job_id": None}})
 
