@@ -17,7 +17,7 @@ job_scheduler = JobScheduler(4)
 
 @app.get("/highlights")
 async def get_highlights() -> List:
-    highlights = Highlight.find().sort("index", 1).to_list(None)
+    highlights = Highlight.find().sort("index").to_list(None)
     return [highlight.view() for highlight in highlights]
 
 
