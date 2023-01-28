@@ -28,15 +28,15 @@ repos:
         language_version: python3.10
         stages: [commit]
         exclude: ^legacy-backend.*$
-  - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-        require_serial: true
-        name: isort
-        args: ["--profile", "black"]
-        stages: [commit]
-        exclude: ^legacy-backend.*$
+  # - repo: https://github.com/pycqa/isort
+  #   rev: 5.10.1
+  #   hooks:
+  #     - id: isort
+  #       require_serial: true
+  #       name: isort
+  #       args: ["--profile", "black"]
+  #       stages: [commit]
+  #       exclude: ^legacy-backend.*$
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
