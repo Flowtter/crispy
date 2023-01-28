@@ -6,6 +6,8 @@ from fastapi.responses import FileResponse
 
 from api import app
 from api.models.highlight import Highlight
+from api.models.music import Music
+from api.tools.audio import merge_musics
 from api.tools.ffmpeg import merge_videos
 from api.tools.job_scheduler import JobScheduler
 from api.tools.utils import get_all_jobs_from_highlights
@@ -15,7 +17,7 @@ job_scheduler = JobScheduler(4)
 
 @app.post("/results/generate/highlights")
 async def post_results_generate_highlights() -> List:
-    highlights = Highlight.find({"enabled": True}).sort("index", -1).to_list(None)
+    highlights = Highlight.find({"enabled": True}).sort("index").to_list(None)
     ids = []
 
     for highlight in highlights:
@@ -36,6 +38,12 @@ async def get_results_generate_highlights_status() -> List:
 
 @app.post("/results/generate/video")
 async def post_results_generate_video() -> Dict:
+    musics = Music.find({"enabled": True}).sort("index").to_list(None)
+    merge_musics(
+        [music.path for music in musics],
+        "merged.mp3",
+    )
+
     highlights = Highlight.find({"enabled": True}).sort("index").to_list(None)
 
     job_id = job_scheduler.schedule(
@@ -44,6 +52,7 @@ async def post_results_generate_video() -> Dict:
             "videos_path": [highlight.merge_path for highlight in highlights],
             "save_path": "merged.mp4",
             "delete": False,
+            "audio_path": "merged.mp3",
         },
     )
 
@@ -78,7 +87,7 @@ async def get_results_thumbnail() -> FileResponse:
                 ]
             }
         )
-        .sort("index", -1)
+        .sort("index")
         .to_list(1)
     )
 

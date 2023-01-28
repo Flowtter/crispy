@@ -59,41 +59,42 @@
 	import { API_URL, globalError } from "../../constants.js";
 	import axios from "axios";
 	import { onMount } from "svelte";
+	export let name;
+	export let id;
 
-	export let src;
-	let basename = src.split("/").pop();
 	let volume = 0.5;
 	let enabled = "enabled";
 
-	function handleSwitch() {
-		let url = API_URL + "/musics/" + basename + "/switch";
-		axios.get(url);
-		enabled = enabled === "disabled" ? "enabled" : "disabled";
+	function switchStatus() {
+		let url = API_URL + `/musics/${id}/switch-status`;
+		axios.post(url).catch((error) => {
+			globalError(error);
+		});
+		enabled = !enabled;
 	}
 
-	const fetch = () => {
-		let url = API_URL + "/musics/" + basename + "/info";
+	const setIsEnabled = () => {
+		let url = API_URL + `/musics/${id}`;
 		axios
 			.get(url)
 			.then((response) => {
-				const res = response.data;
-				enabled = res ? "enabled" : "disabled";
+				enabled = response.data.enabled;
 			})
 			.catch((error) => {
 				globalError(error);
 			});
 	};
-	onMount(fetch);
+	onMount(setIsEnabled);
 </script>
 
-<div class={enabled === "enabled" ? "" : "disabled"}>
+<div class={enabled ? "" : "disabled"}>
 	<div class="audio-container" draggable={false}>
-		<p>{basename}</p>
-		<audio {src} controls bind:volume>
+		<p>{name}</p>
+		<audio src={API_URL + `/musics/${id}/music`} controls bind:volume>
 			<track kind="captions" />
 		</audio>
 		<div class="trailing-menu">
-			<button class="only" on:click={handleSwitch}>{enabled === "enabled" ? "HIDE" : "SHOW"}</button>
+			<button class="only" on:click={switchStatus}>{enabled ? "HIDE" : "SHOW"}</button>
 		</div>
 	</div>
 </div>

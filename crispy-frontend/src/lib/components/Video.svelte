@@ -192,7 +192,7 @@
 	};
 	onMount(setIsEnabled);
 
-	function disableVideo() {
+	function switchStatus() {
 		let url = getUrl() + "/switch-status";
 		axios.post(url).catch((error) => {
 			globalError(error);
@@ -260,9 +260,9 @@
 		{#if editable}
 			<button class={false ? "green" : ""}>FILTER</button>
 			<p>|</p>
-			<button on:click={disableVideo}>{enabled ? "HIDE" : "SHOW"}</button>
+			<button on:click={switchStatus}>{enabled ? "HIDE" : "SHOW"}</button>
 		{:else}
-			<button class="only" on:click={disableVideo}>{enabled ? "HIDE" : "SHOW"}</button>
+			<button class="only" on:click={switchStatus}>{enabled ? "HIDE" : "SHOW"}</button>
 		{/if}
 	</div>
 </div>

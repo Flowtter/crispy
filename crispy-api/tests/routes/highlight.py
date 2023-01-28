@@ -9,7 +9,7 @@ from api.models.highlight import Highlight
 async def test_get_highlights(client, highlight):
     response = await client.get("/highlights")
     highlight_view = highlight.view()
-    highlight_view["_id"] = str(highlight._id)
+    highlight_view["_id"] = str(highlight.id)
 
     assert response.status_code == 200
     assert response.json() == [highlight_view]
@@ -21,7 +21,7 @@ async def test_get_highlights(client, highlight):
         }
     ).save()
     other_highlight_view = other_highlight.view()
-    other_highlight_view["_id"] = str(other_highlight._id)
+    other_highlight_view["_id"] = str(other_highlight.id)
 
     response = await client.get("/highlights")
     assert response.status_code == 200
@@ -30,7 +30,7 @@ async def test_get_highlights(client, highlight):
 
 async def test_get_highlights_id(client, highlight):
     highlight_view = highlight.view()
-    highlight_view["_id"] = str(highlight._id)
+    highlight_view["_id"] = str(highlight.id)
 
     response = await client.get(f"/highlights/{highlight.id}")
     assert response.status_code == 200

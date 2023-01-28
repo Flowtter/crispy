@@ -238,7 +238,11 @@ class Highlight(Thingy):
         Concatenate all the segments of a highlight into a single video
         """
 
-        segments = Segment.find({"highlight_id": self.id}).sort("start").to_list(None)
+        segments = (
+            Segment.find({"highlight_id": self.id, "enabled": True})
+            .sort("start")
+            .to_list(None)
+        )
 
         if not segments:
             self.merge_path = None

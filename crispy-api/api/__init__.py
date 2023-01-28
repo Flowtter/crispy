@@ -11,15 +11,15 @@ from mongo_thingy import connect
 from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
-from api.config import DATABASE_PATH, DEBUG, VIDEOS
+from api.config import DATABASE_PATH, DEBUG, MUSICS, VIDEOS
 from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
-from api.tools.setup import handle_highlights
+from api.tools.setup import handle_highlights, handle_musics
 
 ENCODERS_BY_TYPE[ObjectId] = str
 
-neural_network = NeuralNetwork([4000, 120, 15, 2], 0.01)
-neural_network.load("./assets/valorant.npy")
+neural_network = NeuralNetwork([10000, 120, 15, 2], 0.01)
+neural_network.load("./assets/overwatch.npy")
 
 
 logging.getLogger("PIL").setLevel(logging.ERROR)
@@ -55,8 +55,9 @@ def verify_ffmpeg_utils_are_installed() -> None:
 
 
 @app.on_event("startup")
-async def handle_highlights_on_startup() -> None:
-    await handle_highlights(VIDEOS, SupportedGames.VALORANT, framerate=8)
+async def setup_crispy() -> None:
+    await handle_musics(MUSICS)
+    await handle_highlights(VIDEOS, SupportedGames.OVERWATCH, framerate=8)
 
 
 @app.exception_handler(HTTPException)
@@ -73,4 +74,4 @@ app.add_middleware(
 )
 
 
-from api.routes import highlight, result, segment  # noqa
+from api.routes import highlight, music, result, segment  # noqa

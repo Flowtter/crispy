@@ -4,10 +4,17 @@ from typing import List
 
 from api.config import SESSION
 from api.models.highlight import Highlight
+from api.models.music import Music
 from api.tools.enums import SupportedGames
 from api.tools.job_scheduler import JobScheduler
 
 logger = logging.getLogger("uvicorn")
+
+
+def __sanitize_path(path: str) -> str:
+    for ch in (" ", "(", ")", "[", "]", "{", "}", "'", '"', ",", ".", "_"):
+        path = path.replace(ch, "-")
+    return path
 
 
 async def handle_highlights(
@@ -37,9 +44,9 @@ async def handle_highlights(
         file_path = os.path.join(path, file)
         if not any(highlight.path == file_path for highlight in highlights):
             logger.info(f"Adding highlight {file}")
-            directory = os.path.join(session, os.path.splitext(file)[0])
-            for ch in [" ", "(", ")", "[", "]", "{", "}", "'", '"', ",", "."]:
-                directory = directory.replace(ch, "_")
+            directory = os.path.join(
+                session, __sanitize_path(os.path.splitext(file)[0])
+            )
 
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -69,3 +76,26 @@ async def handle_highlights(
     Highlight.update_many({}, {"$set": {"job_id": None}})
 
     return new_highlights
+
+
+async def handle_musics(path: str) -> List[Music]:
+    musics = Music.find().to_list(None)
+    if len(musics) != 0:
+        index = max(music.index for music in musics)
+    else:
+        index = 0
+
+    for music in musics:
+        if not os.path.exists(music.path):
+            logger.info(f"Removing music {music.path}")
+            Music.delete_one(music.id)
+
+    new_musics = []
+    for file in sorted(os.listdir(path)):
+        file_path = os.path.join(path, file)
+        if not any(music.path == file_path for music in musics):
+            music = Music({"path": file_path, "index": index, "enabled": True}).save()
+            new_musics.append(music)
+            index += 1
+
+    return new_musics
