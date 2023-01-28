@@ -9,7 +9,7 @@ class NeuralNetwork:
     Neural network to predict if a kill is on the image
     """
 
-    def __init__(self, nodes: List[int], learning_rate: float) -> None:
+    def __init__(self, nodes: List[int], learning_rate: float = 0.01) -> None:
         self.nodes = nodes
         self.learning_rate = learning_rate
         self.weights: List[Any] = []

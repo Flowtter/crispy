@@ -11,15 +11,19 @@ from mongo_thingy import connect
 from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
-from api.config import DATABASE_PATH, DEBUG, MUSICS, VIDEOS
+from api.config import DATABASE_PATH, DEBUG, MUSICS, VIDEOS, GAME
 from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights, handle_musics
 
 ENCODERS_BY_TYPE[ObjectId] = str
 
-neural_network = NeuralNetwork([10000, 120, 15, 2], 0.01)
-neural_network.load("./assets/overwatch.npy")
+if GAME == SupportedGames.OVERWATCH:
+    neural_network = NeuralNetwork([10000, 120, 15, 2])
+    neural_network.load("./assets/overwatch.npy")
+elif GAME == SupportedGames.VALORANT:
+    neural_network = NeuralNetwork([4000, 120, 15, 2], 0.01)
+    neural_network.load("./assets/valorant.npy")
 
 
 logging.getLogger("PIL").setLevel(logging.ERROR)

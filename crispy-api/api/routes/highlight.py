@@ -11,6 +11,7 @@ from api.models.segment import Segment
 from api.tools.job_scheduler import JobScheduler
 from api.tools.utils import get_all_jobs_from_highlights
 from api.tools.video import extract_segments
+from api.config import FRAMERATE, OFFSET, FRAMES_BEFORE, FRAMES_AFTER, CONFIDENCE
 
 job_scheduler = JobScheduler(4)
 
@@ -84,11 +85,11 @@ async def post_highlights_segments_generate() -> None:
             kwargs={
                 "highlight": highlight,
                 "neural_network": neural_network,
-                "confidence": 0.6,
-                "framerate": 8,
-                "offset": 3,
-                "frames_before": 24,
-                "frames_after": 16,
+                "confidence": CONFIDENCE,
+                "framerate": FRAMERATE,
+                "offset": OFFSET,
+                "frames_before": FRAMES_BEFORE,
+                "frames_after": FRAMES_AFTER,
             },
         )
         highlight.save()
