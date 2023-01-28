@@ -9,7 +9,9 @@ from api.config import ASSETS
 
 
 def merge_musics(audios: List[str], save_path: str) -> None:
-    if len(audios) <= 1:
+    if len(audios) == 0:
+        return
+    if len(audios) == 1:
         shutil.copy(audios[0], save_path)
         return
 

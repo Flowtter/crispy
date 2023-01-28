@@ -13,11 +13,12 @@ from PIL import Image
 
 from api import app, init_database
 from api.models.highlight import Highlight
+from api.models.music import Music
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
 from api.tools.image import compare_image
 from api.tools.job_scheduler import JobScheduler
-from tests.constants import MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWORK
+from tests.constants import MAIN_MUSIC, MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWORK
 
 
 @pytest.fixture
@@ -79,6 +80,17 @@ async def segment(highlight):
             "start": 0.0,
             "end": 1.0,
             "enabled": True,
+        }
+    ).save()
+
+
+@pytest.fixture
+async def music():
+    return Music(
+        {
+            "path": MAIN_MUSIC,
+            "enabled": True,
+            "index": 1,
         }
     ).save()
 

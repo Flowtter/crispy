@@ -4,17 +4,18 @@
 	import axios from "axios";
 	import { onMount } from "svelte";
 
-	export const fetch = () => {
+	let list;
+	export const getMusics = () => {
 		axios
-			.get(API_URL + "/")
+			.get(API_URL + "/musics")
 			.then((response) => {
 				const res = response.data;
 				list = [];
-				for (let i = 0; i < res.musics.length; i++) {
-					var name = res.musics[i].name;
+				for (let i = 0; i < res.length; i++) {
+					var name = res[i].name;
 					list.push({
 						name: name,
-						id: i,
+						id: res[i]._id,
 					});
 				}
 			})
@@ -22,14 +23,16 @@
 				globalError(error);
 			});
 	};
-	onMount(fetch);
+	onMount(getMusics);
 
-	let list;
 	let hovering = false;
-
 	const drop = (event, target) => {
 		event.dataTransfer.dropEffect = "move";
 		const start = parseInt(event.dataTransfer.getData("text/plain"));
+		if (start === target) {
+			return;
+		}
+
 		const newTracklist = list;
 
 		if (start < target) {
@@ -42,16 +45,19 @@
 
 		list = newTracklist;
 		hovering = null;
-
-		var tmp = [];
-		for (let i = 0; i < list.length; i++) {
-			tmp.push({ name: list[i].name });
-		}
-
 		axios
-			.post(API_URL + "/musics/reorder", JSON.stringify(tmp), {
-				headers: { "Content-Type": "application/json" },
-			})
+			.post(
+				API_URL + "/musics/reorder",
+				JSON.stringify({
+					music_id: list[start].id,
+					other_music_id: list[target].id,
+				}),
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			)
 			.catch((error) => {
 				globalError(error);
 			});
@@ -77,7 +83,7 @@
 				on:dragenter={() => (hovering = index)}
 				class:is-active={hovering === index}
 			>
-				<AudioPlayer src={API_URL + "/musics/" + n.name} />
+				<AudioPlayer name={n.name} id={n.id} />
 			</div>
 		{/each}
 	</div>
