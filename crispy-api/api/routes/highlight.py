@@ -6,12 +6,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from api import app, neural_network
+from api.config import CONFIDENCE, FRAMERATE, FRAMES_AFTER, FRAMES_BEFORE, OFFSET
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.job_scheduler import JobScheduler
 from api.tools.utils import get_all_jobs_from_highlights
 from api.tools.video import extract_segments
-from api.config import FRAMERATE, OFFSET, FRAMES_BEFORE, FRAMES_AFTER, CONFIDENCE
 
 job_scheduler = JobScheduler(4)
 
