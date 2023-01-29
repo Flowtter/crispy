@@ -1,2 +1,2 @@
 start frontend/index.html
-python backend/src/app.py
+python -m api
