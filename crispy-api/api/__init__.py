@@ -11,7 +11,7 @@ from mongo_thingy import connect
 from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
-from api.config import DATABASE_PATH, DEBUG, MUSICS, VIDEOS, GAME
+from api.config import DATABASE_PATH, DEBUG, GAME, MUSICS, VIDEOS
 from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
 from api.tools.filters import apply_filters  # noqa

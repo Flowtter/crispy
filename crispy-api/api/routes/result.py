@@ -94,4 +94,4 @@ async def get_results_thumbnail() -> FileResponse:
     if not highlights:
         raise HTTPException(404)
 
-    return FileResponse(highlights[0].thumbnail_path)
+    return FileResponse(highlights[0].thumbnail_path_full_size)

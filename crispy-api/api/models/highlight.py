@@ -188,7 +188,6 @@ class Highlight(Thingy):
             **highlight_filters,
         }
 
-        print(self.local_filters, filters)
         result = sanitize_dict(self.local_filters) != filters
         self.local_filters = filters
         self.save()

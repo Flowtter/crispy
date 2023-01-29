@@ -1,7 +1,8 @@
-import os
 import json
+import os
 
 from starlette.config import Config
+
 from api.tools.enums import SupportedGames
 
 config = Config(".env")
@@ -40,7 +41,7 @@ with open(SETTINGS_JSON, "r") as f:
         raise KeyError(f"clips not found in {SETTINGS_JSON}")
 
     FRAMERATE = __clip.get("framerate", 8)
-    OFFSET = __clip.get("second-between-clips", 0) * FRAMERATE
+    OFFSET = __clip.get("second-between-kills", 0) * FRAMERATE
     FRAMES_BEFORE = __clip.get("second-before", 0) * FRAMERATE
     FRAMES_AFTER = __clip.get("second-after", 0) * FRAMERATE
 
