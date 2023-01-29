@@ -172,7 +172,7 @@
 			});
 		});
 
-		dispatch("changeMode", "cuts");
+		dispatch("changeMode", "segments");
 	}
 
 	async function generateResult() {
@@ -222,6 +222,7 @@
 		globalSuccess("Result generated!");
 
 		dispatch("changeGenerating", false);
+		dispatch("changeMode", "result");
 	}
 
 	function changeMenu(newMode) {
@@ -240,9 +241,9 @@
 	<div class="menu">
 		<button class={mode === "clips" ? "selected" : ""} on:click={() => changeMenu("clips")}>CLIPS</button>
 		<p>|</p>
-		<button class={mode === "cuts" ? "selected" : ""} on:click={() => changeMenu("cuts")}>SEGMENTS</button>
+		<button class={mode === "segments" ? "selected" : ""} on:click={() => changeMenu("segments")}>SEGMENTS</button>
 		<p>|</p>
-		<button class={mode === "music" ? "selected" : ""} on:click={() => changeMenu("music")}>MUSIC</button>
+		<button class={mode === "musics" ? "selected" : ""} on:click={() => changeMenu("musics")}>MUSICS</button>
 		<p>|</p>
 		<button class={mode === "effects" ? "selected" : ""} on:click={() => changeMenu("effects")}>EFFECTS</button>
 		<p>|</p>
@@ -251,8 +252,8 @@
 	{#key mode}
 		<div class="end">
 			{#if mode === "clips"}
-				<button on:click={generateSegments}>GENERATE CUTS</button>
-			{:else if mode === "cuts"}
+				<button on:click={generateSegments}>GENERATE SEGMENTS</button>
+			{:else if mode === "segments"}
 				<button on:click={generateResult}>GENERATE RESULT</button>
 			{/if}
 		</div>

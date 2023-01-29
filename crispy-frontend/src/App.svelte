@@ -76,14 +76,14 @@
 
 <script>
 	import "./constants";
-	import Cut from "./lib/components/Cut.svelte";
+	import Segments from "./lib/components/Segments.svelte";
 	import Gallery from "./lib/components/Gallery.svelte";
 	import Menubar from "./lib/components/Menubar.svelte";
 	import Result from "./lib/components/Result.svelte";
 	import Effects from "./lib/components/Effects.svelte";
+	import Musics from "./lib/components/Musics.svelte";
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
-	import Music from "./lib/components/Music.svelte";
 	import { globalInfo } from "./constants";
 
 	let mode = "clips";
@@ -99,7 +99,7 @@
 	toast.push("Thanks for using Crispy!", {
 		duration: 2500,
 	});
-	globalInfo("Activate the videos you want in your montage, then generate cuts!");
+	globalInfo("Activate the videos you want in your montage, then generate segments!");
 </script>
 
 <main>
@@ -116,12 +116,12 @@
 			{#key mode}
 				{#if mode === "clips"}
 					<Gallery />
-				{:else if mode === "cuts"}
-					<Cut {generating} />
+				{:else if mode === "segments"}
+					<Segments {generating} />
 				{:else if mode === "result"}
 					<Result />
-				{:else if mode === "music"}
-					<Music />
+				{:else if mode === "musics"}
+					<Musics />
 				{:else if mode === "effects"}
 					<Effects />
 				{/if}
