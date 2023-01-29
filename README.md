@@ -4,7 +4,7 @@
 
 Crispy is a machine-learning algorithm to make video-games montages efficiently.
 It uses a neural network to detect highlights in the video-game frames.\
-[![Tech](https://skillicons.dev/icons?i=python,svelte,ts,css,html,docker,bash)](https://skillicons.dev)
+[![Tech](https://skillicons.dev/icons?i=python,svelte,ts,css,html,docker,bash,mongo,github)](https://skillicons.dev)
 
 </div>
 
@@ -15,7 +15,7 @@ It uses a neural network to detect highlights in the video-game frames.\
 
 # Supported games
 
-Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)** and Valorant-review (a custom mode to see only the moments you're alive in a game).
+Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)**.
 
 # Usage
 
@@ -53,13 +53,13 @@ config example:
 The following settings are adjustable:
 
 - neural-network
-  - confidence: The confidence level used by the neural network.
+  - confidence: The confidence level used by the neural network. Lower values will include more frames, but might include some false positives.
 - clip
-  - framerate: The framerate of the clip.
+  - framerate: The framerate of the clip at which the neural network will be applied. Higher values will include more frames, but will take more time to process.
   - second-before: Seconds of gameplay included before the highlight.
   - second-after: Seconds of gameplay included after the highlight.
-  - second-between-kills: Transition time between highlights.
-- game: Chosen game (either "valorant", "overwatch" or "valorant-review")
+  - second-between-kills: Transition time between highlights. If the time between two highlights is less than this value, the both highlights will be merged.
+- game: Chosen game (either "valorant" or "overwatch")
 
 ## Run
 
@@ -68,43 +68,42 @@ You can now run the application with the run.[sh|bat] file.
 # Frontend explanation
 
 The frontend is a web-application that allows you to add options to the Crispy algorithm.\
-It has 5 pages:
+It has 5 views:
 
-- clips
-- cuts
-- music
-- effects
-- result
+- Clips
+- Segments
+- Musics
+- Effects
+- Result
 
 ### Clips
 
-In the clips page, you can see the list of your videos.\
+In the clips view, you can see the list of your videos.\
 You can rearrange them by dragging and dropping them.\
-Select the videos you want to make cuts of by selecting "show" for that video \
+Select the videos you want to make segments of by selecting "show" for that video \
 Select the videos you want in the montage and add customs effects for a single clip.\
-Once you've made your selection, you can click on `generate cuts` to create the cuts.
+Once you've made your selection, you can click on `generate segments` to create the segments.
 
-### Cuts
+### Segments
 
-In the cuts page, you can see the list of your cuts.\
-Each cut is a gameplay highlight chosen by the algorithm. \
-You can select "hide" on a cut to exclude that cut from the final result.
+In the segments view, you can see the list of your segments.\
+Each segment is a gameplay highlight chosen by the algorithm. \
+You can select "hide" on a segment to exclude that segment from the final result.
 
-### Music
+### Musics
 
-In the music page, you can see the list of your music.\
+In the music view, you can see the list of your music.\
 This is the music that will be played in the final result video. \
 You can select "hide" for songs you don't want and you can you can rearrange them by dragging and dropping them.
 
 ### Effects
 
-In the effects page, you can see the list of your effects.\
+In the effects view, you can see the list of your effects.\
 Those effects are applied to the whole video.\
 Yet the clips' effects override the global effects.\
 The following effects are available to use:
 
 - blur
-- scale
 - hflip
 - vflip
 - brightness
@@ -114,7 +113,7 @@ The following effects are available to use:
 
 ### Result
 
-In the result page, you can see the result of your montage.
+In the result view, you can see the result of your montage.
 
 # Contributing
 
@@ -138,5 +137,5 @@ Now `pre-commit` will run on every `git commit`.
 
 ## Start
 
-- `cd frontend && npm install && npm run dev`
-- `pip install -r backend/requirements.txt && python backend/src/app.py`
+- `cd crispy-frontend && yarn && yarn dev`
+- `cd crispy-backend && pip install -Ir requirements-dev.txt && python -m api`
