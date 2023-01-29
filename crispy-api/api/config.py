@@ -24,7 +24,7 @@ VIDEOS = os.path.join(RESOURCES, "videos")
 MUSICS = os.path.join(RESOURCES, "musics")
 
 DATASET_PATH = "dataset"
-DATASET_VALUES_PATH = "dataset_values.json"
+DATASET_VALUES_PATH = "dataset-values.json"
 
 DATABASE_PATH = ".data"
 

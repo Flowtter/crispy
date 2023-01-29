@@ -1,5 +1,5 @@
 dataset/*
-!dataset/values_template.json
+!dataset/dataset-values-template.json
 !dataset/README.md
 
 .data/

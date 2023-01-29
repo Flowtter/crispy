@@ -17,7 +17,7 @@ def to_csv(highlight: Highlight, values: dict, dataset_path: str) -> None:
     Convert all images of an highlight to a csv file
 
     :param highlight: Highlight to convert
-    :param values: values array from dataset_values.json
+    :param values: values array from dataset-values.json
     :param dataset_path: Path to the dataset folder
     """
     name = os.path.splitext(os.path.basename(highlight.path))[0]
