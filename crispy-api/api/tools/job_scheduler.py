@@ -41,6 +41,7 @@ class JobScheduler:
                             "status": "failed",
                         }
                         logger.error(f"Job {job_id} failed")
+                        logger.debug(tasks[i].exception())
                     else:
                         self._jobs[job_id] = {
                             **self._jobs[job_id],

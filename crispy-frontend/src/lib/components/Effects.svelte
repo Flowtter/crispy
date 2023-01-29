@@ -18,5 +18,5 @@
 
 <div class="component">
 	<br />
-	<Filters name="filters" filterRoute="filters" />
+	<Filters name="filters" filterRoute="/filters/global" />
 </div>

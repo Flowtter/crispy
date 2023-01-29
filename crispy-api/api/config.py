@@ -12,6 +12,7 @@ PORT = config("PORT", cast=int, default=7821)
 MONGO_URI = config("MONGO_URI", default="mongodb://localhost/crispy")
 
 ASSETS = "assets"
+SILENCE_PATH = os.path.join(ASSETS, "silence.mp3")
 DOT_PATH = os.path.join(ASSETS, "dot.png")
 
 BACKUP = "backup"

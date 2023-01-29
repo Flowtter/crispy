@@ -12,6 +12,7 @@ from mutagen.mp3 import MP3
 from PIL import Image
 
 from api import app, init_database
+from api.models.filter import Filter
 from api.models.highlight import Highlight
 from api.models.music import Music
 from api.models.segment import Segment
@@ -82,6 +83,11 @@ async def segment(highlight):
             "enabled": True,
         }
     ).save()
+
+
+@pytest.fixture
+async def filter_h(highlight):
+    return Filter({"highlight_id": highlight.id}).save()
 
 
 @pytest.fixture
@@ -195,7 +201,7 @@ class CompareFolder:
                 self.is_same_directory(file_path, expected_file_path)
             elif extension in (".jpg", ".png", ".bmp"):
                 assert Image.open(file_path).size == Image.open(expected_file_path).size
-                compare_image(file_path, expected_file_path)
+                assert compare_image(file_path, expected_file_path)
             elif extension == ".mp3":
                 self.is_same_audio(file_path, expected_file_path)
             elif extension == ".csv":

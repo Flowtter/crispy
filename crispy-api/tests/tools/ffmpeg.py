@@ -1,10 +1,11 @@
 import os
 import shutil
+import subprocess
+
 import pytest
 
 from api.tools.ffmpeg import merge_videos
-from tests.constants import MAIN_VIDEO, MAIN_MUSIC, MAIN_VIDEO_NO_AUDIO
-import subprocess
+from tests.constants import MAIN_MUSIC, MAIN_VIDEO, MAIN_VIDEO_NO_AUDIO
 
 
 async def test_merge_one_video(tmp_path):
