@@ -19,4 +19,4 @@ def compare_image(path1: str, path2: str) -> bool:
     data1 = np.asarray(blur1)
     data2 = np.asarray(blur2)
 
-    return bool((1 + np.corrcoef(data1.flat, data2.flat)[0, 1]) / 2 > 0.95)
+    return bool((1 + np.corrcoef(data1.flat, data2.flat)[0, 1]) / 2 > 0.8)

@@ -9,17 +9,22 @@ from tests.constants import DATASET_VALUES_PATH, VIDEOS_PATH
 
 
 async def test_create_dataset(tmp_path):
+    tmp_videos = os.path.join(tmp_path, "tmp_videos")
+    os.mkdir(tmp_videos)
+    for file in os.listdir(VIDEOS_PATH):
+        shutil.copy(os.path.join(VIDEOS_PATH, file), tmp_videos)
+
     await create_dataset(
-        SupportedGames.VALORANT, VIDEOS_PATH, 8, tmp_path, DATASET_VALUES_PATH
+        SupportedGames.VALORANT, tmp_videos, 8, tmp_path, DATASET_VALUES_PATH
     )
 
     await create_dataset(
-        SupportedGames.VALORANT, VIDEOS_PATH, 8, tmp_path, DATASET_VALUES_PATH
+        SupportedGames.VALORANT, tmp_videos, 8, tmp_path, DATASET_VALUES_PATH
     )
 
     with pytest.raises(ValueError):
         await create_dataset(
-            SupportedGames.VALORANT, VIDEOS_PATH, 8, tmp_path, "not_a_path"
+            SupportedGames.VALORANT, tmp_videos, 8, tmp_path, "not_a_path"
         )
 
     for file_or_folder in os.listdir(tmp_path):

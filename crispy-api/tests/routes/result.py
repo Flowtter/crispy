@@ -26,7 +26,7 @@ async def test_post_results_generate_highlights(client, highlight):
 
 
 async def test_post_results_generate_video(client, highlight):
-    await highlight.extract_thumbnail()
+    await highlight.extract_thumbnails()
     await highlight.extract_segments([[0, 1], [4, 5]])
     assert (
         Segment.find({"highlight_id": highlight.id, "enabled": True})

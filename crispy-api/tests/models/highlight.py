@@ -19,15 +19,15 @@ async def test_highlight_name(highlight):
     assert highlight.name == "main-video"
 
 
-async def test_extract_thumbnail(highlight):
+async def test_extract_thumbnails(highlight):
     assert highlight.thumbnail_path is None
-    assert await highlight.extract_thumbnail()
+    await highlight.extract_thumbnails()
     assert highlight.thumbnail_path is not None
     assert os.path.exists(highlight.thumbnail_path)
+    assert os.path.exists(highlight.thumbnail_path_full_size)
+    assert highlight.thumbnail_path_full_size != highlight.thumbnail_path
 
-    assert not await highlight.extract_thumbnail()
-    assert highlight.thumbnail_path is not None
-    assert os.path.exists(highlight.thumbnail_path)
+    shutil.rmtree(highlight.directory)
 
 
 async def test_extract_images(highlight):

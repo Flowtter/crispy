@@ -30,80 +30,101 @@
 </style>
 
 <script>
-	import { toast } from "@zerodevx/svelte-toast";
 	import axios from "axios";
 	import { onMount } from "svelte";
-	import { API_URL, globalError } from "../../constants";
-	import Filter from "./Row.svelte";
+	import { API_URL, globalError, globalSuccess } from "../../constants";
+	import Filter from "./RowFilter.svelte";
 
-	import { createEventDispatcher } from "svelte";
-	const dispatch = createEventDispatcher();
+	import { toast } from "@zerodevx/svelte-toast";
 
 	export let toastId;
 	export let name;
-
 	export let filterRoute;
 
-	async function saved() {
-		function error(filter) {
-			toast.push({
-				msg: "Please fill all fields in " + filter,
-				theme: {
-					"--toastBackground": "#FF5252",
-					"--toastBarBackground": "#C53030",
-				},
-			});
-		}
-		for (let filter in filters) {
-			if (filters[filter].box) {
-				if (
-					filter === "scale" &&
-					(filters[filter].h === null ||
-						filters[filter].w === null ||
-						filters[filter].h === "" ||
-						filters[filter].w === "")
-				) {
-					error(filter);
-					return;
-				}
-				if (filters[filter].value === null || filters[filter].value === "") {
-					error(filter);
-					return;
-				}
-			}
-		}
-		toast.pop(toastId);
-		toast.push({
-			msg: "Saved!",
-			duration: 2500,
-			theme: {
-				"--toastBackground": "#2ecc71",
-				"--toastBarBackground": "#27ae60",
-			},
-		});
-		dispatch("save", {});
-		await saveFilters();
-	}
+	let defaultFilters = {
+		blur: {
+			box: false,
+			value: null,
+		},
+		hflip: {
+			box: false,
+		},
+		vflip: {
+			box: false,
+		},
+		saturation: {
+			box: false,
+			value: null,
+		},
+		brightness: {
+			box: false,
+			value: null,
+		},
+		zoom: {
+			box: false,
+			value: null,
+		},
+		grayscale: {
+			box: false,
+		},
+	};
 
-	async function readFilters() {
-		console.log(API_URL + "/" + filterRoute + "/read");
-		let read = await axios.get(API_URL + "/" + filterRoute + "/read").catch((error) => {
-			globalError(error);
-		});
-		filters = read.data;
-	}
+	let filters = undefined;
 	async function saveFilters() {
-		let j = JSON.stringify(filters);
+		let json = JSON.stringify(filters);
 		await axios
-			.post(API_URL + "/" + filterRoute + "/save", j, {
+			.post(API_URL + filterRoute, json, {
 				headers: { "Content-Type": "application/json" },
 			})
 			.catch((error) => {
 				globalError(error);
 			});
 	}
+
+	async function verifyFilterValues() {
+		for (let filter in filters) {
+			if (filters[filter].box) {
+				if (filters[filter].value === null || filters[filter].value === "") {
+					globalError("Value cannot be empty!");
+					return;
+				}
+			}
+		}
+		toast.pop(toastId);
+		globalSuccess("Filters saved!");
+		await saveFilters();
+	}
+
+	async function readFilters() {
+		let read = await axios.get(API_URL + filterRoute).catch((error) => {
+			globalError(error);
+		});
+		let tmpFilter = read.data.filters || {};
+		for (let filter in tmpFilter) {
+			if (typeof tmpFilter[filter] === "boolean") {
+				tmpFilter[filter] = {
+					box: tmpFilter[filter],
+				};
+			} else if (!tmpFilter[filter]) {
+				tmpFilter[filter] = {
+					box: false,
+					value: null,
+				};
+			} else {
+				tmpFilter[filter] = {
+					box: true,
+					value: tmpFilter[filter],
+				};
+			}
+		}
+		for (let filter in defaultFilters) {
+			if (!(filter in tmpFilter)) {
+				tmpFilter[filter] = defaultFilters[filter];
+			}
+		}
+		filters = tmpFilter;
+	}
 	onMount(readFilters);
-	let filters = undefined;
 </script>
 
 {#if filters}
@@ -115,15 +136,6 @@
 			mode="one"
 			firstPlaceholder="10"
 			bind:firstInput={filters["blur"].value}
-		/>
-		<Filter
-			bind:activated={filters["scale"].box}
-			text="scale"
-			mode="two"
-			firstPlaceholder="width"
-			secondPlaceholder="height"
-			bind:firstInput={filters["scale"].w}
-			bind:secondInput={filters["scale"].h}
 		/>
 
 		<Filter bind:activated={filters["hflip"].box} text="hflip" />
@@ -152,7 +164,6 @@
 		/>
 		<Filter bind:activated={filters["grayscale"].box} text="grayscale" />
 
-		<!-- <Filter bind:activated={activated[0]} text="saturation" mode="one" /> -->
-		<button on:click={saved}>Save</button>
+		<button on:click={verifyFilterValues}>Save</button>
 	</div>
 {/if}

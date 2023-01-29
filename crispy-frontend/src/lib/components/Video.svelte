@@ -165,6 +165,8 @@
 	import axios from "axios";
 	import { onMount } from "svelte";
 	import { API_URL, globalError } from "../../constants.js";
+	import Filters from "./Filters.svelte";
+	import { toast } from "@zerodevx/svelte-toast";
 
 	export let id;
 	export let videoUrl;
@@ -198,6 +200,62 @@
 			globalError(error);
 		});
 		enabled = !enabled;
+	}
+
+	let anyFilter;
+	async function readFilters() {
+		if (isSegment) return;
+
+		anyFilter = false;
+		let read = await axios.get(API_URL + `/filters/${id}`).catch((error) => {
+			globalError(error);
+		});
+		for (let filter in read.data.filters) {
+			if (read.data.filters[filter]) {
+				anyFilter = true;
+				break;
+			}
+		}
+	}
+	onMount(readFilters);
+
+	let filtersInterval = undefined;
+	async function timeReadFilters() {
+		let url = API_URL + `/filters/${id}`;
+		let response = await axios.get(url).catch((error) => {
+			globalError(error);
+		});
+		if (!response.data.updating) {
+			await readFilters();
+			clearInterval(filtersInterval);
+		}
+	}
+
+	async function clickFilter() {
+		await axios.post(API_URL + `/filters/${id}/update`).catch((error) => {
+			globalError(error);
+		});
+		toast.push({
+			component: {
+				src: Filters,
+				props: {
+					name: shortname,
+					filterRoute: "/filters/" + id,
+				},
+				sendIdTo: "toastId",
+			},
+			target: "new",
+			dismissable: false,
+			initial: 0,
+			intro: { y: -192 },
+			theme: {
+				"--toastBackground": "#323c53",
+				"--toastBorderRadius": "1rem",
+			},
+		});
+		filtersInterval = setInterval(async () => {
+			await timeReadFilters();
+		}, 1000);
 	}
 
 	///////////
@@ -258,7 +316,7 @@
 	</div>
 	<div class="trailing-menu">
 		{#if editable}
-			<button class={false ? "green" : ""}>FILTER</button>
+			<button class={anyFilter ? "green" : ""} on:click={clickFilter}>FILTER</button>
 			<p>|</p>
 			<button on:click={switchStatus}>{enabled ? "HIDE" : "SHOW"}</button>
 		{:else}

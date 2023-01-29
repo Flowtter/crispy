@@ -55,7 +55,7 @@ async def test_get_highlights_id_snippet(client, highlight):
 
 
 async def test_get_highlights_id_thumbnail(client, highlight):
-    await highlight.extract_thumbnail()
+    await highlight.extract_thumbnails()
 
     response = await client.get(f"/highlights/{highlight.id}/thumbnail")
     assert response.status_code == 200
@@ -65,7 +65,7 @@ async def test_get_highlights_id_thumbnail(client, highlight):
     response = await client.get(f"/highlights/{ObjectId()}/thumbnail")
     assert response.status_code == 404
 
-    os.remove(highlight.thumbnail_path)
+    shutil.rmtree(highlight.directory)
 
 
 async def test_post_highlights_id_move_other_highlight_id(client, highlight):
