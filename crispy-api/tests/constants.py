@@ -13,7 +13,7 @@ MAIN_VIDEO_NO_AUDIO = os.path.join(VIDEOS_PATH, "main-video-no-audio.mp4")
 MAIN_VIDEO_OVERWATCH = os.path.join(VIDEOS_PATH, "main-video-overwatch.mp4")
 MAIN_SEGMENT = os.path.join(VIDEOS_PATH, "main-video-segment.mp4")
 
-DATASET_VALUES_PATH = os.path.join(ROOT_ASSETS, "dataset_values.json")
+DATASET_VALUES_PATH = os.path.join(ROOT_ASSETS, "dataset-values.json")
 
 CSV_PATH_XOR = os.path.join(CSV_PATH, "xor.csv")
 CSV_PATH_OVERWATCH = os.path.join(CSV_PATH, "overwatch.csv")
