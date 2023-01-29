@@ -109,7 +109,7 @@
 							<p>{blocks.highlight.name}.mp4</p>
 							<div class="group">
 								{#if blocks.segments.length == 0}
-									<p style="color: var(--text);">No cuts</p>
+									<p style="color: var(--text);">No segments</p>
 								{:else}
 									{#each Object.entries(blocks.segments) as [index]}
 										<Video
