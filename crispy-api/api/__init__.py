@@ -62,7 +62,7 @@ def verify_ffmpeg_utils_are_installed() -> None:
 @app.on_event("startup")
 async def setup_crispy() -> None:
     await handle_musics(MUSICS)
-    await handle_highlights(VIDEOS, SupportedGames.OVERWATCH, framerate=8)
+    await handle_highlights(VIDEOS, GAME, framerate=8)
 
 
 @app.exception_handler(HTTPException)

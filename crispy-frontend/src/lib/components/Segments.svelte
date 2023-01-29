@@ -88,7 +88,7 @@
 			if (highlights.data.every((highlight) => highlight.status == "completed")) {
 				break;
 			}
-			await sleep(1500);
+			await sleep(5000);
 		}
 	};
 	mainLoop();

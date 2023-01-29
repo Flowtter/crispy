@@ -119,9 +119,19 @@
 				if (jobs.every((highlight) => highlight.status == "completed")) {
 					break;
 				}
+				if (jobs.some((highlight) => highlight.status == "failed")) {
+					globalError("Error while generating.");
+					dispatch("changeMode", "clips");
+					return false;
+				}
 			} else {
 				if (jobs.status == "completed") {
 					break;
+				}
+				if (jobs.status == "failed") {
+					globalError("Error while generating.");
+					dispatch("changeMode", "clips");
+					return false;
 				}
 			}
 			if (id) {
@@ -136,8 +146,9 @@
 				}
 			}
 
-			await sleep(1500);
+			await sleep(5000);
 		}
+		return true;
 	};
 
 	async function generateSegments() {
@@ -163,7 +174,10 @@
 				return;
 			});
 
-			waitForJobs(API_URL + "/highlights/segments/generate/status", id, "Generating Segments!").then(() => {
+			waitForJobs(API_URL + "/highlights/segments/generate/status", id, "Generating Segments!").then((result) => {
+				if (!result) {
+					return;
+				}
 				toast.pop(0);
 				globalSuccess("Segments generated!");
 				globalInfo("You can now generate the result.");

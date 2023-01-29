@@ -7,7 +7,7 @@ from api.tools.enums import SupportedGames
 
 config = Config(".env")
 
-DEBUG = config("DEBUG", cast=bool, default=True)
+DEBUG = config("DEBUG", cast=bool, default=False)
 HOST = config("HOST", default="127.0.0.1")
 PORT = config("PORT", cast=int, default=7821)
 MONGO_URI = config("MONGO_URI", default="mongodb://localhost/crispy")
