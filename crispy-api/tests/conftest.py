@@ -166,7 +166,7 @@ class CompareFolder:
         audio = MP3(file_path)
         expected_audio = MP3(expected_file_path)
 
-        assert audio.info.length - expected_audio.info.length < 0.1
+        assert abs(audio.info.length - expected_audio.info.length) < 0.1
 
     def is_same_csv(self, file_path, expected_file_path):
         with open(expected_file_path, "r") as e:
