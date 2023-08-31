@@ -59,7 +59,63 @@ The following settings are adjustable:
   - second-before: Seconds of gameplay included before the highlight.
   - second-after: Seconds of gameplay included after the highlight.
   - second-between-kills: Transition time between highlights. If the time between two highlights is less than this value, the both highlights will be merged.
-- game: Chosen game (either "valorant" or "overwatch")
+- game: Chosen game (either "valorant", "overwatch" or "csgo2")
+
+### Recommended settings
+
+I recommend you to use the trials and errors method to find the best settings for your videos.\
+Here are some settings that I found to work well for me:
+
+#### Valorant
+
+```json
+{
+  "neural-network": {
+    "confidence": 0.8
+  },
+  "clip": {
+    "framerate": 8,
+    "second-before": 4,
+    "second-after": 0.5,
+    "second-between-kills": 3
+  },
+  "game": "valorant"
+}
+```
+
+#### Overwatch
+
+```json
+{
+  "neural-network": {
+    "confidence": 0.6
+  },
+  "clip": {
+    "framerate": 8,
+    "second-before": 4,
+    "second-after": 3,
+    "second-between-kills": 5
+  },
+  "game": "overwatch"
+}
+```
+
+#### CSGO2
+
+```json
+{
+  "neural-network": {
+    "confidence": 0.7
+  },
+  "clip": {
+    "framerate": 8,
+    "second-before": 4,
+    "second-after": 1,
+    "second-between-kills": 3
+  },
+  "game": "csgo2"
+}
+```
 
 ## Run
 
@@ -139,3 +195,7 @@ Now `pre-commit` will run on every `git commit`.
 
 - `cd crispy-frontend && yarn && yarn dev`
 - `cd crispy-backend && pip install -Ir requirements-dev.txt && python -m api`
+
+## Test
+
+- `cd crispy-api && pytest`

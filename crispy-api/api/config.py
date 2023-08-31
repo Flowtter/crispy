@@ -14,7 +14,8 @@ MONGO_URI = config("MONGO_URI", default="mongodb://localhost/crispy")
 
 ASSETS = "assets"
 SILENCE_PATH = os.path.join(ASSETS, "silence.mp3")
-DOT_PATH = os.path.join(ASSETS, "dot.png")
+VALORANT_MASK_PATH = os.path.join(ASSETS, "valorant-mask.png")
+CSGO2_MASK_PATH = os.path.join(ASSETS, "csgo2-mask.png")
 
 BACKUP = "backup"
 
@@ -24,7 +25,10 @@ VIDEOS = os.path.join(RESOURCES, "videos")
 MUSICS = os.path.join(RESOURCES, "musics")
 
 DATASET_PATH = "dataset"
-DATASET_VALUES_PATH = "dataset-values.json"
+DATASET_VALUES_PATH = os.path.join(DATASET_PATH, "dataset-values.json")
+DATASET_CSV_PATH = os.path.join(DATASET_PATH, "result.csv")
+DATASET_CSV_TEST_PATH = os.path.join(DATASET_PATH, "test.csv")
+NETWORK_OUTPUTS_PATH = "outputs"
 
 DATABASE_PATH = ".data"
 

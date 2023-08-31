@@ -8,10 +8,5 @@
     "second-after": 0.5,
     "second-between-kills": 1
   },
-  "supported-games-and-recommended-neural-network-confidence": [
-    ["valorant", 0.8],
-    ["valorant-review", 0.6],
-    ["overwatch", 0.4]
-  ],
   "game": "valorant"
 }
