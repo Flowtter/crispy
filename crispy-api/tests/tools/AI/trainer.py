@@ -3,16 +3,21 @@ import shutil
 
 import numpy
 
+from api.tools.AI.network import NetworkResolution
 from api.tools.AI.trainer import Trainer
 from api.tools.AI.trainer import test as trainer_test
 from api.tools.AI.trainer import train
+from api.tools.enums import SupportedGames
 from tests.constants import CSV_PATH_XOR
+
+SupportedGames.XOR = "xor"
+NetworkResolution[SupportedGames.XOR] = [2, 4, 2]
 
 numpy.random.seed(2)
 
 
 def test_trainer(capsys, tmp_path):
-    trainer = Trainer([2, 4, 2], 0.1)
+    trainer = Trainer(SupportedGames.XOR, 0.1)
     trainer.initialize_weights()
 
     assert not trainer_test(trainer, CSV_PATH_XOR)
@@ -30,7 +35,7 @@ def test_trainer(capsys, tmp_path):
 
 
 def test_print(capsys):
-    trainer = Trainer([2, 4, 2], 0.1)
+    trainer = Trainer(SupportedGames.XOR, 0.1)
     trainer.hash = "test"
 
     print(trainer)

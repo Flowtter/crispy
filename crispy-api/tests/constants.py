@@ -11,6 +11,7 @@ MAIN_VIDEO = os.path.join(VIDEOS_PATH, "main-video.mp4")
 MAIN_VIDEO_DOWNSCALED = os.path.join(VIDEOS_PATH, "main-video_downscaled.mp4")
 MAIN_VIDEO_NO_AUDIO = os.path.join(VIDEOS_PATH, "main-video-no-audio.mp4")
 MAIN_VIDEO_OVERWATCH = os.path.join(VIDEOS_PATH, "main-video-overwatch.mp4")
+MAIN_VIDEO_CSGO2 = os.path.join(VIDEOS_PATH, "main-video-csgo2.mp4")
 MAIN_SEGMENT = os.path.join(VIDEOS_PATH, "main-video-segment.mp4")
 
 DATASET_VALUES_PATH = os.path.join(ROOT_ASSETS, "dataset-values.json")

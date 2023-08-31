@@ -3,14 +3,22 @@ from typing import Any, List, Tuple
 import numpy as np
 import scipy.special
 
+from api.tools.enums import SupportedGames
+
+NetworkResolution = {
+    SupportedGames.VALORANT: [4000, 120, 15, 2],
+    SupportedGames.OVERWATCH: [10000, 120, 15, 2],
+    SupportedGames.CSGO2: [10000, 120, 15, 2],
+}
+
 
 class NeuralNetwork:
     """
     Neural network to predict if a kill is on the image
     """
 
-    def __init__(self, nodes: List[int], learning_rate: float = 0.01) -> None:
-        self.nodes = nodes
+    def __init__(self, game: SupportedGames, learning_rate: float = 0.01) -> None:
+        self.nodes = NetworkResolution[game]
         self.learning_rate = learning_rate
         self.weights: List[Any] = []
         self.activation_function = lambda x: scipy.special.expit(x)
@@ -55,7 +63,7 @@ class NeuralNetwork:
         for i in range(len(self.nodes) - 1 - 1, 0, -1):
             errors.insert(0, np.dot(self.weights[i].T, errors[0]))
 
-        # ten times more likely to be not be kill
+        # five times more likely to be not be kill
         # so we mitigate the error
         if expected == 0:
             errors = [e / 5 for e in errors]

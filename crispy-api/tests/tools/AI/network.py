@@ -4,6 +4,7 @@ import numpy
 
 from api.tools.AI.network import NeuralNetwork
 from api.tools.AI.trainer import get_inputs_targets
+from api.tools.enums import SupportedGames
 from tests.constants import CSV_PATH_OVERWATCH, OVERWATCH_NETWORK
 
 numpy.random.seed(2)
@@ -11,7 +12,7 @@ numpy.random.seed(2)
 
 def test_network(tmp_path, capsys):
     with capsys.disabled():
-        network = NeuralNetwork([10000, 120, 15, 2], 0.01)
+        network = NeuralNetwork(SupportedGames.OVERWATCH, 0.01)
         assert network.weights == []
         network.initialize_weights()
         assert len(network.weights) == 3
@@ -25,7 +26,7 @@ def test_network(tmp_path, capsys):
 
         network.save(os.path.join(tmp_path, "test"), False)
 
-        network2 = NeuralNetwork([10000, 120, 15, 2], 0.01)
+        network2 = NeuralNetwork(SupportedGames.OVERWATCH, 0.01)
         network2.load(os.path.join(tmp_path, "test.npy"))
 
         assert numpy.allclose(network.weights[0], network2.weights[0])

@@ -7,7 +7,7 @@ import ffmpeg
 from mongo_thingy import Thingy
 from PIL import Image, ImageFilter, ImageOps
 
-from api.config import BACKUP, DOT_PATH
+from api.config import BACKUP, CSGO2_MASK_PATH, VALORANT_MASK_PATH
 from api.models.filter import Filter
 from api.models.segment import Segment
 from api.tools.audio import silence_if_no_audio
@@ -15,6 +15,8 @@ from api.tools.enums import SupportedGames
 from api.tools.ffmpeg import merge_videos
 
 logger = logging.getLogger("uvicorn")
+valorant_mask = Image.open(VALORANT_MASK_PATH)
+csgo2_mask = Image.open(CSGO2_MASK_PATH)
 
 
 class Highlight(Thingy):
@@ -130,9 +132,7 @@ class Highlight(Thingy):
 
             image = image.crop((1, 1, image.width - 2, image.height - 2))
 
-            dot = Image.open(DOT_PATH)
-
-            image.paste(dot, (0, 0), dot)
+            image.paste(valorant_mask, (0, 0), valorant_mask)
 
             left = image.crop((0, 0, 25, 60))
             right = image.crop((95, 0, 120, 60))
@@ -162,6 +162,22 @@ class Highlight(Thingy):
             post_process, (899, 801, 122, 62), framerate=framerate
         )
 
+    async def extract_csgo2_images(self, framerate: int = 4) -> bool:
+        def post_process(image: Image) -> Image:
+            image = ImageOps.grayscale(
+                image.filter(ImageFilter.FIND_EDGES).filter(
+                    ImageFilter.EDGE_ENHANCE_MORE
+                )
+            )
+            final = Image.new("RGB", (100, 100))
+            final.paste(image, (0, 0))
+            final.paste(csgo2_mask, (0, 0), csgo2_mask)
+            return final
+
+        return await self.extract_images(
+            post_process, (930, 925, 100, 100), framerate=framerate
+        )
+
     async def extract_images_from_game(
         self, game: SupportedGames, framerate: int = 4
     ) -> bool:
@@ -169,6 +185,8 @@ class Highlight(Thingy):
             return await self.extract_overwatch_images(framerate)
         elif game == SupportedGames.VALORANT:
             return await self.extract_valorant_images(framerate)
+        elif game == SupportedGames.CSGO2:
+            return await self.extract_csgo2_images(framerate)
         else:
             raise NotImplementedError
 

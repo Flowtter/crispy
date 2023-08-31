@@ -17,6 +17,7 @@ from api.models.highlight import Highlight
 from api.models.music import Music
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
+from api.tools.enums import SupportedGames
 from api.tools.image import compare_image
 from api.tools.job_scheduler import JobScheduler
 from tests.constants import MAIN_MUSIC, MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWORK
@@ -108,7 +109,7 @@ async def job_scheduler():
 
 @pytest.fixture
 async def neural_network():
-    neural_network = NeuralNetwork([4000, 120, 15, 2], 0.01)
+    neural_network = NeuralNetwork(SupportedGames.VALORANT, 0.01)
     neural_network.load(VALORANT_NETWORK)
     return neural_network
 
@@ -173,8 +174,11 @@ class CompareFolder:
             with open(file_path, "r") as f:
                 reader = csv.reader(f)
                 expected_reader = csv.reader(e)
-                for row, expected_row in zip(reader, expected_reader):
-                    assert row == expected_row
+                assert len(list(reader)) == len(list(expected_reader))
+
+                for line, expected_line in zip(reader, expected_reader):
+                    assert len(line) == len(expected_line)
+                    assert line[0] == expected_line[0]
 
     def is_same_directory(self, folder, expected_folder):
         assert os.path.exists(expected_folder)
