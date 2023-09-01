@@ -4,8 +4,5 @@
 	"singleQuote": false,
 	"tabWidth": 4,
 	"useTabs": true,
-	"printWidth": 120,
-	"svelteSortOrder": "options-styles-scripts-markup",
-	"svelteIndentScriptAndStyle": true,
-	"plugins": ["prettier-plugin-svelte"]
+	"printWidth": 120
 }

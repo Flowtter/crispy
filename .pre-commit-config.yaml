@@ -54,5 +54,4 @@ repos:
         stages: [commit]
         additional_dependencies:
           - prettier
-          - prettier-plugin-svelte
           - svelte
