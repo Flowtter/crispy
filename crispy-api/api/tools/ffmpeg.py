@@ -24,7 +24,7 @@ async def merge_videos(
     else:
         clips = []
         for filename in videos_path:
-            clips.append(mpe.VideoFileClip(filename))
+            clips.append(mpe.VideoFileClip(filename).resize((1920, 1080)))
 
         final_clip = mpe.concatenate_videoclips(clips)
 

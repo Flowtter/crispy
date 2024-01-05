@@ -55,6 +55,7 @@ with open(SETTINGS_JSON, "r") as f:
 
     CONFIDENCE = __neural_network.get("confidence", 0.6)
 
+    STRETCH = __settings.get("stretch", False)
     GAME = __settings.get("game")
     if GAME is None:
         raise KeyError("game not found in settings.json")
