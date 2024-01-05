@@ -19,6 +19,42 @@ valorant_mask = Image.open(VALORANT_MASK_PATH)
 csgo2_mask = Image.open(CSGO2_MASK_PATH)
 
 
+class Box:
+    def __init__(
+        self,
+        offset_x: int,
+        y: int,
+        width: int,
+        height: int,
+        shift_x: int,
+        stretch: bool,
+    ) -> None:
+        """
+        :param offset_x: Offset in pixels from the center of the video to the left
+        :param y: Offset in pixels from the top of the video
+        :param width: Width of the box in pixels
+        :param height: Height of the box in pixels
+        :param shift_x: Shift the box by a certain amount of pixels to the right
+
+        example:
+        If you want to create a box at 50 px from the center on x, but shifted by 20px to the right
+        you would do:
+        Box(50, 0, 100, 100, 20)
+        """
+        half = 720 if stretch else 960
+
+        self.x = half - offset_x + shift_x
+        self.y = y
+        self.width = width
+        self.height = height
+
+    def __iter__(self) -> Any:
+        yield self.x
+        yield self.y
+        yield self.width
+        yield self.height
+
+
 class Highlight(Thingy):
     segments_path: Optional[str]
     local_filters: Optional[Dict[str, Any]]
@@ -55,7 +91,7 @@ class Highlight(Thingy):
     async def extract_images(
         self,
         post_process: Callable,
-        coordinates: Tuple,
+        coordinates: Box,
         framerate: int = 4,
     ) -> bool:
         """
@@ -93,7 +129,9 @@ class Highlight(Thingy):
 
         return True
 
-    async def extract_overwatch_images(self, framerate: int = 4) -> bool:
+    async def extract_overwatch_images(
+        self, framerate: int = 4, stretch: bool = False
+    ) -> bool:
         def post_process(image: Image) -> Image:
             r, g, b = image.split()
             for x in range(image.width):
@@ -121,10 +159,12 @@ class Highlight(Thingy):
             return final
 
         return await self.extract_images(
-            post_process, (910, 490, 100, 100), framerate=framerate
+            post_process, Box(50, 490, 100, 100, 0, stretch), framerate=framerate
         )
 
-    async def extract_valorant_images(self, framerate: int = 4) -> bool:
+    async def extract_valorant_images(
+        self, framerate: int = 4, stretch: bool = False
+    ) -> bool:
         def _apply_filter_and_do_operations(
             image: Image, image_filter: ImageFilter
         ) -> Image:
@@ -159,10 +199,12 @@ class Highlight(Thingy):
             return final
 
         return await self.extract_images(
-            post_process, (899, 801, 122, 62), framerate=framerate
+            post_process, Box(61, 801, 122, 62, 0, stretch), framerate=framerate
         )
 
-    async def extract_csgo2_images(self, framerate: int = 4) -> bool:
+    async def extract_csgo2_images(
+        self, framerate: int = 4, stretch: bool = False
+    ) -> bool:
         def post_process(image: Image) -> Image:
             image = ImageOps.grayscale(
                 image.filter(ImageFilter.FIND_EDGES).filter(
@@ -175,18 +217,18 @@ class Highlight(Thingy):
             return final
 
         return await self.extract_images(
-            post_process, (930, 925, 100, 100), framerate=framerate
+            post_process, Box(50, 925, 100, 100, 20, stretch), framerate=framerate
         )
 
     async def extract_images_from_game(
-        self, game: SupportedGames, framerate: int = 4
+        self, game: SupportedGames, framerate: int = 4, stretch: bool = False
     ) -> bool:
         if game == SupportedGames.OVERWATCH:
-            return await self.extract_overwatch_images(framerate)
+            return await self.extract_overwatch_images(framerate, stretch)
         elif game == SupportedGames.VALORANT:
-            return await self.extract_valorant_images(framerate)
+            return await self.extract_valorant_images(framerate, stretch)
         elif game == SupportedGames.CSGO2:
-            return await self.extract_csgo2_images(framerate)
+            return await self.extract_csgo2_images(framerate, stretch)
         else:
             raise NotImplementedError
 
@@ -212,7 +254,7 @@ class Highlight(Thingy):
         return result
 
     async def extract_segments(
-        self, timestamps: List[Tuple[float, float]]
+        self, timestamps: List[Tuple[float, float]], stretch: bool = False
     ) -> List[Segment]:
         """
         Segment a video into multiple videos
@@ -269,11 +311,13 @@ class Highlight(Thingy):
 
         for (start, end) in new_timestamps:
             segment_save_path = os.path.join(self.segments_path, f"{start}-{end}.mp4")
+            dar = 4 / 3 if stretch else 16 / 9
             (
                 ffmpeg.input(
                     self.path,
                 )
                 .apply_filters(self.id)
+                .filter("setdar", dar)
                 .output(audio, segment_save_path, ss=f"{start}", to=f"{end}")
                 .overwrite_output()
                 .run(quiet=True)
@@ -318,7 +362,11 @@ class Highlight(Thingy):
         return True
 
     async def scale_video(
-        self, width: int = 1920, height: int = 1080, backup: str = BACKUP
+        self,
+        width: int = 1920,
+        height: int = 1080,
+        backup: str = BACKUP,
+        stretch: bool = False,
     ) -> None:
         """
         Scale (up or down) a video.
@@ -344,6 +392,9 @@ class Highlight(Thingy):
         audio = silence_if_no_audio(video.audio, backup_path)
 
         video = video.filter("scale", w=width, h=height)
+        video = (
+            video.filter("setdar", 4 / 3) if stretch else video.filter("setdar", 16 / 9)
+        )
 
         ffmpeg.output(video, audio, self.path, start_number=0).run(quiet=True)
 
@@ -358,7 +409,7 @@ class Highlight(Thingy):
         Filter.delete_one({"highlight_id": self.id})
         self.delete()
 
-    async def extract_snippet_in_lower_resolution(self) -> bool:
+    async def extract_snippet_in_lower_resolution(self, stretch: bool = False) -> bool:
         """Extract 5 seconds of a highlight in lower resolution"""
         if self.snippet_path:
             return False
@@ -367,7 +418,11 @@ class Highlight(Thingy):
 
         video = ffmpeg.input(self.path, sseof="-20")
         audio = silence_if_no_audio(video.audio, self.path)
+
         video = video.filter("scale", 640, -1)
+        video = (
+            video.filter("setdar", 4 / 3) if stretch else video.filter("setdar", 16 / 9)
+        )
         ffmpeg.output(video, audio, snippet_path, t="00:00:5").run(quiet=True)
 
         self.update({"snippet_path": snippet_path})

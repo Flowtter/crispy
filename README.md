@@ -46,6 +46,7 @@ config example:
     "second-after": 3,
     "second-between-kills": 5
   },
+  "stretch": false,
   "game": "valorant"
 }
 ```
@@ -60,6 +61,7 @@ The following settings are adjustable:
   - second-after: Seconds of gameplay included after the highlight.
   - second-between-kills: Transition time between highlights. If the time between two highlights is less than this value, the both highlights will be merged.
 - game: Chosen game (either "valorant", "overwatch" or "csgo2")
+- stretch: This is an option in case you're playing on a 4:3 resolution but your clips are recorded in 16:9.
 
 ### Recommended settings
 
@@ -79,6 +81,7 @@ Here are some settings that I found to work well for me:
     "second-after": 0.5,
     "second-between-kills": 3
   },
+  "stretch": false,
   "game": "valorant"
 }
 ```
@@ -96,6 +99,7 @@ Here are some settings that I found to work well for me:
     "second-after": 3,
     "second-between-kills": 5
   },
+  "stretch": false,
   "game": "overwatch"
 }
 ```
@@ -113,6 +117,7 @@ Here are some settings that I found to work well for me:
     "second-after": 1,
     "second-between-kills": 3
   },
+  "stretch": false,
   "game": "csgo2"
 }
 ```

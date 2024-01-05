@@ -5,7 +5,12 @@ from api.models.highlight import Highlight
 from api.models.music import Music
 from api.tools.enums import SupportedGames
 from api.tools.setup import handle_highlights, handle_musics
-from tests.constants import MAIN_MUSIC, MAIN_VIDEO, MAIN_VIDEO_NO_AUDIO
+from tests.constants import (
+    MAIN_MUSIC,
+    MAIN_VIDEO,
+    MAIN_VIDEO_NO_AUDIO,
+    MAIN_VIDEO_STRETCH,
+)
 
 
 async def test_handle_highlights(tmp_path):
@@ -54,6 +59,29 @@ async def test_handle_highlights(tmp_path):
 
     assert highlights[0].id == new_highlights[0].id
 
+    shutil.rmtree(tmp_resources)
+
+
+async def test_handle_highlights_stretch(tmp_path):
+    tmp_session = os.path.join(tmp_path, "session")
+    tmp_resources = os.path.join(tmp_path, "resources")
+    os.mkdir(tmp_resources)
+
+    shutil.copy(MAIN_VIDEO_STRETCH, tmp_resources)
+
+    assert await handle_highlights(
+        tmp_resources, SupportedGames.VALORANT, session=tmp_session, stretch=True
+    )
+
+    assert Highlight.count_documents() == 1
+
+    basename_no_ext = os.path.splitext(os.path.basename(MAIN_VIDEO_STRETCH))[0]
+
+    shutil.copytree(
+        os.path.join(tmp_session, basename_no_ext, "images"),
+        os.path.join(tmp_path, "images"),
+    )
+    shutil.rmtree(tmp_session)
     shutil.rmtree(tmp_resources)
 
 

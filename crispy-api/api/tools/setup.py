@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import shutil
@@ -7,7 +6,7 @@ from typing import List
 import ffmpeg
 from PIL import Image
 
-from api.config import SESSION, SILENCE_PATH
+from api.config import SESSION, SILENCE_PATH, STRETCH
 from api.models.filter import Filter
 from api.models.highlight import Highlight
 from api.models.music import Music
@@ -29,6 +28,7 @@ async def handle_highlights(
     game: SupportedGames,
     framerate: int = 4,
     session: str = SESSION,
+    stretch: bool = STRETCH,
 ) -> List[Highlight]:
 
     if not os.path.exists(session):
@@ -45,7 +45,6 @@ async def handle_highlights(
             logger.info(f"Removing highlight {highlight.path}")
             await highlight.remove()
 
-    job_scheduler = JobScheduler(4)
     new_highlights = []
     for file in sorted(os.listdir(path)):
         file_path = os.path.join(path, file)
@@ -67,20 +66,14 @@ async def handle_highlights(
             ).save()
             Filter({"highlight_id": highlight.id}).save()
             new_highlights.append(highlight)
+            await highlight.extract_thumbnails()
 
-            job_scheduler.schedule(
-                highlight.extract_images_from_game,
-                kwargs={"game": game, "framerate": framerate},
-            )
-            job_scheduler.schedule(highlight.extract_thumbnails)
-            job_scheduler.schedule(highlight.extract_snippet_in_lower_resolution)
             index += 1
 
     logger.info(f"Adding {len(new_highlights)} highlights, this may take a while.")
     logger.warning("Wait for `Application startup complete.` to use Crispy.")
 
-    job_scheduler.run_in_thread().join()
-
+    target_size = (1440, 1080) if stretch else (1920, 1080)
     for highlight in new_highlights:
         if not video_has_audio(highlight.path):
             tmp_path = os.path.join(highlight.directory, "tmp.mp4")
@@ -90,18 +83,24 @@ async def handle_highlights(
 
             ffmpeg.input(highlight.path).output(
                 video, audio, tmp_path, vcodec="copy", acodec="aac"
-            ).overwrite_output().run()
+            ).overwrite_output().run(quiet=True)
             shutil.move(tmp_path, highlight.path)
 
-        if Image.open(highlight.thumbnail_path_full_size).size != (1920, 1080):
-            await highlight.scale_video()
-            coroutines = [
-                highlight.extract_thumbnails(),
-                highlight.extract_snippet_in_lower_resolution(),
-                highlight.extract_images_from_game(game, framerate),
-            ]
+        if Image.open(highlight.thumbnail_path_full_size).size != target_size:
+            await highlight.scale_video(*target_size, stretch=stretch)
+            await highlight.extract_thumbnails()
 
-            await asyncio.gather(*coroutines)
+    job_scheduler = JobScheduler(4)
+    for highlight in new_highlights:
+        job_scheduler.schedule(
+            highlight.extract_images_from_game,
+            kwargs={"game": game, "framerate": framerate, "stretch": stretch},
+        )
+        job_scheduler.schedule(
+            highlight.extract_snippet_in_lower_resolution, kwargs={"stretch": stretch}
+        )
+
+    job_scheduler.run_in_thread().join()
 
     Highlight.update_many({}, {"$set": {"job_id": None}})
 
