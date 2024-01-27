@@ -56,7 +56,7 @@ def _create_query_array(
     return queries
 
 
-def _get_the_finals_query_array(highlight: Highlight) -> List[int]:
+def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
     usernames = highlight.usernames
     images = os.listdir(highlight.images_path)
     images.sort()
@@ -80,7 +80,7 @@ def _get_query_array(
     if neural_network:
         return _create_query_array(neural_network, highlight, confidence)
     if GAME == SupportedGames.THEFINALS:
-        return _get_the_finals_query_array(highlight)
+        return _create_the_finals_query_array(highlight)
     raise ValueError(f"No neural network for game {GAME} and no custom query array")
 
 
@@ -158,7 +158,6 @@ async def extract_segments(
     Extract segments from a highlight
 
     :param highlight: highlight to extract segments from
-    :param neural_network: neural network to query
     :param confidence: confidence to query
     :param offset: offset to post process
     :param framerate: framerate of the video

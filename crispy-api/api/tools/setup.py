@@ -24,6 +24,41 @@ def __sanitize_path(path: str) -> str:
     return path
 
 
+def handle_the_finals(
+    new_highlights: List[Highlight],
+    framerate: int = 4,
+) -> None:
+    for highlight in new_highlights:
+        path = os.path.join(highlight.directory, "usernames")
+        images = os.listdir(path)
+        usernames: List[str] = ["", ""]
+        usernames_histogram: Counter = Counter()
+
+        for i in range(0, len(images), framerate):
+            image = images[i]
+            image_path = os.path.join(path, image)
+            result = READER.readtext(image_path)
+            for text in result:
+                if text[1].isnumeric():
+                    continue
+                usernames_histogram[text[1]] += 1
+            most_common_usernames = usernames_histogram.most_common(2)
+            if most_common_usernames[0][1] >= 10 and most_common_usernames[1][1] >= 10:
+                usernames = [most_common_usernames[0][0], most_common_usernames[1][0]]
+                break
+        highlight.update({"usernames": usernames})
+        highlight.save()
+
+
+def handle_specific_game(
+    new_highlights: List[Highlight],
+    game: SupportedGames,
+    framerate: int = 4,
+) -> None:
+    if game == SupportedGames.THEFINALS:
+        handle_the_finals(new_highlights, framerate)
+
+
 async def handle_highlights(
     path: str,
     game: SupportedGames,
@@ -105,30 +140,7 @@ async def handle_highlights(
 
     Highlight.update_many({}, {"$set": {"job_id": None}})
 
-    if game == SupportedGames.THEFINALS:
-        path = os.path.join(highlight.directory, "usernames")
-        for highlight in new_highlights:
-            images = os.listdir(path)
-            usernames = [""] * 2
-            usernames_histogram: Counter = Counter()
-
-            for i in range(0, len(images), framerate):
-                image = images[i]
-                image_path = os.path.join(path, image)
-                result = READER.readtext(image_path)
-                for text in result:
-                    if text[1].isnumeric():
-                        continue
-                    usernames_histogram[text[1]] += 1
-                two_best = usernames_histogram.most_common(2)
-                if two_best[0][1] >= 10 and two_best[1][1] >= 10:
-                    usernames = [
-                        usernames_histogram.most_common(2)[0][0],
-                        usernames_histogram.most_common(2)[1][0],
-                    ]
-                    break
-            highlight.update({"usernames": usernames})
-            highlight.save()
+    handle_specific_game(new_highlights, game, framerate)
 
     return new_highlights
 

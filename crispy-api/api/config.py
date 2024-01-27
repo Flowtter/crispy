@@ -64,3 +64,4 @@ with open(SETTINGS_JSON, "r") as f:
         raise ValueError(f"game {GAME} not supported")
 
 READER = easyocr.Reader(["fr", "en"], gpu=True, verbose=False)
+USE_NETWORK = GAME not in [SupportedGames.THEFINALS]

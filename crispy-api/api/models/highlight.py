@@ -116,7 +116,6 @@ class Highlight(Thingy):
         images_path = os.path.join(self.directory, save_path)
 
         if not os.path.exists(images_path):
-            print("creating images path at", images_path)
             os.mkdir(images_path)
             (
                 ffmpeg.input(self.path)
