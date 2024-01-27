@@ -1,12 +1,13 @@
 import logging
 import os
 import shutil
+from collections import Counter
 from typing import List
 
 import ffmpeg
 from PIL import Image
 
-from api.config import SESSION, SILENCE_PATH, STRETCH
+from api.config import READER, SESSION, SILENCE_PATH, STRETCH
 from api.models.filter import Filter
 from api.models.highlight import Highlight
 from api.models.music import Music
@@ -103,6 +104,31 @@ async def handle_highlights(
     job_scheduler.run_in_thread().join()
 
     Highlight.update_many({}, {"$set": {"job_id": None}})
+
+    if game == SupportedGames.THEFINALS:
+        path = os.path.join(highlight.directory, "usernames")
+        for highlight in new_highlights:
+            images = os.listdir(path)
+            usernames = [""] * 2
+            usernames_histogram: Counter = Counter()
+
+            for i in range(0, len(images), framerate):
+                image = images[i]
+                image_path = os.path.join(path, image)
+                result = READER.readtext(image_path)
+                for text in result:
+                    if text[1].isnumeric():
+                        continue
+                    usernames_histogram[text[1]] += 1
+                two_best = usernames_histogram.most_common(2)
+                if two_best[0][1] >= 10 and two_best[1][1] >= 10:
+                    usernames = [
+                        usernames_histogram.most_common(2)[0][0],
+                        usernames_histogram.most_common(2)[1][0],
+                    ]
+                    break
+            highlight.update({"usernames": usernames})
+            highlight.save()
 
     return new_highlights
 

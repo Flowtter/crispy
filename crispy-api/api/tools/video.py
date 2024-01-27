@@ -6,9 +6,11 @@ from typing import List, Tuple
 import numpy as np
 from PIL import Image
 
+from api.config import GAME, READER
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
+from api.tools.enums import SupportedGames
 
 logger = logging.getLogger("uvicorn")
 
@@ -52,6 +54,34 @@ def _create_query_array(
             queries.append(i)
 
     return queries
+
+
+def _get_the_finals_query_array(highlight: Highlight) -> List[int]:
+    usernames = highlight.usernames
+    images = os.listdir(highlight.images_path)
+    images.sort()
+    queries = []
+
+    for i, image in enumerate(images):
+        image_path = os.path.join(highlight.images_path, image)
+
+        text = READER.readtext(image_path)
+        for word in text:
+            if word[1] not in usernames:
+                queries.append(i)
+                break
+
+    return queries
+
+
+def _get_query_array(
+    neural_network: NeuralNetwork, highlight: Highlight, confidence: float
+) -> List[int]:
+    if neural_network:
+        return _create_query_array(neural_network, highlight, confidence)
+    if GAME == SupportedGames.THEFINALS:
+        return _get_the_finals_query_array(highlight)
+    raise ValueError(f"No neural network for game {GAME} and no custom query array")
 
 
 def _normalize_queries(
@@ -135,7 +165,7 @@ async def extract_segments(
 
     :return: list of segments
     """
-    queries = _create_query_array(neural_network, highlight, confidence)
+    queries = _get_query_array(neural_network, highlight, confidence)
     normalized = _normalize_queries(queries, frames_before, frames_after)
     processed = _post_process_query_array(normalized, offset, framerate)
     segments = await highlight.extract_segments(processed)

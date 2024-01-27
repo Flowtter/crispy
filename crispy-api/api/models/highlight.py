@@ -22,28 +22,34 @@ csgo2_mask = Image.open(CSGO2_MASK_PATH)
 class Box:
     def __init__(
         self,
-        offset_x: int,
+        x: int,
         y: int,
         width: int,
         height: int,
         shift_x: int,
         stretch: bool,
+        from_center: bool = True,
     ) -> None:
         """
-        :param offset_x: Offset in pixels from the center of the video to the left
+        :param x: Offset in pixels from the left of the video or from the center if use_offset is enabled
         :param y: Offset in pixels from the top of the video
         :param width: Width of the box in pixels
         :param height: Height of the box in pixels
         :param shift_x: Shift the box by a certain amount of pixels to the right
+        :param stretch: Stretch the box to fit the video
+        :param use_offset: If enabled, x will be from the center of the video, else it will be from the left (usef)
 
         example:
         If you want to create a box at 50 px from the center on x, but shifted by 20px to the right
         you would do:
         Box(50, 0, 100, 100, 20)
         """
-        half = 720 if stretch else 960
+        if from_center:
+            half = 720 if stretch else 960
+            self.x = half - x + shift_x
+        else:
+            self.x = x + shift_x
 
-        self.x = half - offset_x + shift_x
         self.y = y
         self.width = width
         self.height = height
@@ -93,19 +99,24 @@ class Highlight(Thingy):
         post_process: Callable,
         coordinates: Box,
         framerate: int = 4,
+        save_path: str = "images",
+        force_extract: bool = False,
     ) -> bool:
         """
         Extracts images from a video at a given framerate
 
         :param post_process: Function to apply to each image
+        :param coordinates: Coordinates of the box to extract
         :param framerate: Framerate to extract the images
+        :param save_path: Path to save the images
 
         """
-        if self.images_path:
+        if self.images_path and not force_extract:
             return False
-        images_path = os.path.join(self.directory, "images")
+        images_path = os.path.join(self.directory, save_path)
 
         if not os.path.exists(images_path):
+            print("creating images path at", images_path)
             os.mkdir(images_path)
             (
                 ffmpeg.input(self.path)
@@ -124,8 +135,9 @@ class Highlight(Thingy):
 
             post_process(im).save(im_path)
 
-        self.update({"images_path": images_path})
-        self.save()
+        if save_path == "images":
+            self.update({"images_path": images_path})
+            self.save()
 
         return True
 
@@ -220,6 +232,72 @@ class Highlight(Thingy):
             post_process, Box(50, 925, 100, 100, 20, stretch), framerate=framerate
         )
 
+    async def extract_the_finals_images(
+        self, framerate: int = 4, stretch: bool = False
+    ) -> bool:
+        def is_color_close(
+            pixel: Tuple[int, int, int],
+            expected: Tuple[int, int, int],
+            threshold: int = 100,
+        ) -> bool:
+            distance: int = (
+                sum((pixel[i] - expected[i]) ** 2 for i in range(len(pixel))) ** 0.5
+            )
+            return distance < threshold
+
+        def post_process_killfeed(image: Image) -> Image:
+            r, g, b = image.split()
+            for x in range(image.width):
+                for y in range(image.height):
+                    if not is_color_close(
+                        (r.getpixel((x, y)), g.getpixel((x, y)), b.getpixel((x, y))),
+                        (12, 145, 201),
+                    ):
+                        r.putpixel((x, y), 0)
+                        b.putpixel((x, y), 0)
+                        g.putpixel((x, y), 0)
+
+            im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
+
+            final = Image.new("RGB", (250, 115))
+            final.paste(im, (0, 0))
+            return final
+
+        killfeed_state = await self.extract_images(
+            post_process_killfeed,
+            Box(1500, 75, 250, 115, 0, stretch, from_center=False),
+            framerate=framerate,
+        )
+
+        def post_process(image: Image) -> Image:
+            r, g, b = image.split()
+            for x in range(image.width):
+                for y in range(image.height):
+                    if not is_color_close(
+                        (r.getpixel((x, y)), g.getpixel((x, y)), b.getpixel((x, y))),
+                        (255, 255, 255),
+                    ):
+                        r.putpixel((x, y), 0)
+                        b.putpixel((x, y), 0)
+                        g.putpixel((x, y), 0)
+
+            im = ImageOps.grayscale(Image.merge("RGB", (r, g, b)))
+
+            final = Image.new("RGB", (200, 120))
+            final.paste(im, (0, 0))
+            return final
+
+        return (
+            await self.extract_images(
+                post_process,
+                Box(20, 800, 200, 120, 0, stretch, from_center=False),
+                framerate=framerate,
+                save_path="usernames",
+                force_extract=True,
+            )
+            and killfeed_state
+        )
+
     async def extract_images_from_game(
         self, game: SupportedGames, framerate: int = 4, stretch: bool = False
     ) -> bool:
@@ -229,8 +307,10 @@ class Highlight(Thingy):
             return await self.extract_valorant_images(framerate, stretch)
         elif game == SupportedGames.CSGO2:
             return await self.extract_csgo2_images(framerate, stretch)
+        elif game == SupportedGames.THEFINALS:
+            return await self.extract_the_finals_images(framerate, stretch)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f"game {game} not supported")
 
     def recompile(self) -> bool:
         from api.tools.utils import sanitize_dict

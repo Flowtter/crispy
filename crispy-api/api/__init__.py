@@ -20,16 +20,19 @@ from api.tools.setup import handle_highlights, handle_musics
 
 ENCODERS_BY_TYPE[ObjectId] = str
 
-neural_network = NeuralNetwork(GAME)
+neural_network = None
 
-if GAME == SupportedGames.OVERWATCH:
-    neural_network.load(os.path.join(ASSETS, "overwatch.npy"))
-elif GAME == SupportedGames.VALORANT:
-    neural_network.load(os.path.join(ASSETS, "valorant.npy"))
-elif GAME == SupportedGames.CSGO2:
-    neural_network.load(os.path.join(ASSETS, "csgo2.npy"))
-else:
-    raise ValueError(f"game {GAME} not supported")
+if GAME != SupportedGames.THEFINALS:
+    neural_network = NeuralNetwork(GAME)
+
+    if GAME == SupportedGames.OVERWATCH:
+        neural_network.load(os.path.join(ASSETS, "overwatch.npy"))
+    elif GAME == SupportedGames.VALORANT:
+        neural_network.load(os.path.join(ASSETS, "valorant.npy"))
+    elif GAME == SupportedGames.CSGO2:
+        neural_network.load(os.path.join(ASSETS, "csgo2.npy"))
+    else:
+        raise ValueError(f"game {GAME} not supported")
 
 
 logging.getLogger("PIL").setLevel(logging.ERROR)

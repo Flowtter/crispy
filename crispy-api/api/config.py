@@ -1,6 +1,7 @@
 import json
 import os
 
+import easyocr
 from starlette.config import Config
 
 from api.tools.enums import SupportedGames
@@ -61,3 +62,5 @@ with open(SETTINGS_JSON, "r") as f:
         raise KeyError("game not found in settings.json")
     if GAME.upper() not in [game.name for game in SupportedGames]:
         raise ValueError(f"game {GAME} not supported")
+
+READER = easyocr.Reader(["fr", "en"], gpu=True, verbose=False)
