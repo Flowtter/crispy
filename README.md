@@ -124,13 +124,18 @@ Here are some settings that I found to work well for me:
 
 #### The Finals
 
+Since the finals is not using the neural network, the settings are a bit different.\
+The principal problem is that the OCR makes the code very slow.\
+So I recommend using a framerate of 4 which gave me the ratio between speed and results.\
+Though, If you want to have better results, you can try to increase the framerate, I would recommend a maximum of 8.
+
 ```json
 {
   "clip": {
-    "framerate": 8,
+    "framerate": 4,
     "second-before": 6,
     "second-after": 0,
-    "second-between-kills": 3
+    "second-between-kills": 6
   },
   "stretch": false,
   "game": "thefinals"
@@ -214,6 +219,12 @@ A tutorial is available [here](https://github.com/Flowtter/crispy/tree/master/cr
 **A:** Unfortunately, there is nothing you can do.\
 The neural-network is trained to detect kills in the default UI.\
 I'm planning to add support for custom UI in the future, but this is definitely not a priority.
+
+### **Q:** Why is the algorithm so slow on the finals?
+
+**A:** The algorithm is slow because we're using an OCR to detect the killfeed.\
+This makes the algorithm very slow, which is why I recommend using a lower framerate for the finals.\
+**In most scenarios**, a framerate of 4 is enough to detect all the kills, and increasing the framerate will only increase the processing time, without improving the results.
 
 # Contributing
 
