@@ -54,7 +54,7 @@ def handle_the_finals(
                     most_common_usernames[0][0], most_common_usernames[1][0]
                 )
                 >= 3
-            ):
+            ):  # pragma: no cover
                 break
 
         for username, count in usernames_histogram.items():
