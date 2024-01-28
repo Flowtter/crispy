@@ -59,7 +59,8 @@ def handle_the_finals(
 
         for username, count in usernames_histogram.items():
             if count > 2:
-                usernames.append(username)
+                if username not in usernames:
+                    usernames.append(username)
 
                 for ch in ("_", " ", ".", "-"):
                     split_username = username.split(ch)

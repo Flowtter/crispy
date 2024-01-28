@@ -102,9 +102,7 @@ async def test_handle_highlights_the_finals(tmp_path):
         "_raynox",
         "heximius",
         "raynox",
-        "raynox",
         "sxi",
-        "sxr",
         "sxr",
         "sxr_",
     ]
