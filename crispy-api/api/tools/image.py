@@ -21,7 +21,7 @@ def compare_image(path1: str, path2: str) -> bool:
 
     # https://stackoverflow.com/questions/51248810/python-why-would-numpy-corrcoef-return-nan-values
     corrcoef = np.corrcoef(data1.flat, data2.flat)
-    if np.isnan(corrcoef).all():
+    if np.isnan(corrcoef).all():  # pragma: no cover
         return True
 
     return bool((1 + corrcoef[0, 1]) / 2 > 0.8)

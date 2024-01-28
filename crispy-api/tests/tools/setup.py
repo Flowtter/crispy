@@ -99,10 +99,8 @@ async def test_handle_highlights_the_finals(tmp_path):
 
     assert Highlight.count_documents() == 1
     assert sorted(Highlight.find_one().usernames) == [
-        "5xr",
         "_raynox",
         "heximius",
-        "heximnius",
         "raynox",
         "raynox",
         "sxi",

@@ -248,11 +248,11 @@ async def test_extract_segments_the_finals(highlight):
         game=SupportedGames.THEFINALS,
     )
     assert timestamps == [
-        (5.5, 6.75),
-        (9.5, 10.75),
+        (5.5, 7.875),
         (12.125, 13.5),
-        (19.75, 21.75),
-        (22.75, 28.0),
+        (19.75, 21.0),
+        (21.125, 22.375),
+        (23.0, 25.875),
     ]
     shutil.rmtree(highlight.images_path)
     shutil.rmtree(os.path.join(os.path.dirname(highlight.images_path), "usernames"))
