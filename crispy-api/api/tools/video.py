@@ -1,14 +1,18 @@
 import asyncio
 import logging
 import os
+from collections import Counter
 from typing import List, Tuple
 
 import numpy as np
 from PIL import Image
 
+from api.config import GAME, READER
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
+from api.tools.enums import SupportedGames
+from api.tools.utils import levenstein_distance
 
 logger = logging.getLogger("uvicorn")
 
@@ -52,6 +56,116 @@ def _create_query_array(
             queries.append(i)
 
     return queries
+
+
+def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
+    teammate_usernames = highlight.usernames
+    images = os.listdir(highlight.images_path)
+    images.sort()
+
+    usernames_histogram: Counter = Counter()
+
+    for image in images:
+        image_path = os.path.join(highlight.images_path, image)
+
+        result = READER.readtext(image_path)
+        for text in result:
+            if text[1].isnumeric():
+                continue
+            usernames_histogram[text[1].lower()] += 1
+
+    # filter all usernames that have a levenstein distance of 3 or more to the usernames array (filtering teammates)
+    for username in list(usernames_histogram):
+        if (
+            min(
+                levenstein_distance(username, teammate_username)
+                for teammate_username in teammate_usernames
+            )
+            <= 3
+        ):
+            usernames_histogram.pop(username)
+
+    # filter all usernames that appear only once
+    for username in list(usernames_histogram):
+        if usernames_histogram[username] == 1:
+            usernames_histogram.pop(username)
+
+    # merge all usernames that have a levenstein distance of 1 or 2 to the usernames_histogram
+    while True:
+        final_usernames_histogram: Counter = Counter()
+        seen = set()
+
+        for i, username in enumerate(list(usernames_histogram)):
+            if username in seen:
+                continue
+            shift = i + 1
+            for other_username in list(usernames_histogram)[shift:]:
+                if levenstein_distance(username, other_username) <= 2:
+                    most_common_username = max(
+                        username,
+                        other_username,
+                        key=lambda username: usernames_histogram[username],
+                    )
+                    least_common_username = min(
+                        username,
+                        other_username,
+                        key=lambda username: usernames_histogram[username],
+                    )
+                    final_usernames_histogram[most_common_username] = (
+                        usernames_histogram[least_common_username]
+                        + usernames_histogram[most_common_username]
+                    )
+                    seen.add(least_common_username)
+                    seen.add(most_common_username)
+                    break
+            else:
+                final_usernames_histogram[username] = usernames_histogram[username]
+
+        if len(final_usernames_histogram) == len(usernames_histogram):
+            break
+
+        usernames_histogram = final_usernames_histogram
+
+    if len(final_usernames_histogram) == 0:  # pragma: no cover
+        logger.warning(f"No usernames found for highlight {highlight.id}")
+        return []
+
+    queries = []
+    predicted_username = max(
+        final_usernames_histogram, key=final_usernames_histogram.__getitem__
+    )
+
+    for i, image in enumerate(images):
+        image_path = os.path.join(highlight.images_path, image)
+
+        result = READER.readtext(image_path)
+        for text in result:
+            if text[1].isnumeric():
+                continue
+            if levenstein_distance(text[1].lower(), predicted_username) <= 1:
+                queries.append(i)
+                break
+
+    logger.debug(
+        f"For highlight {highlight.id} found {predicted_username} with"
+        + f"{final_usernames_histogram[predicted_username]} occurences"
+    )
+    return queries
+
+
+def _get_query_array(
+    neural_network: NeuralNetwork,
+    highlight: Highlight,
+    confidence: float,
+    game: SupportedGames,
+) -> List[int]:
+    if neural_network:
+        return _create_query_array(neural_network, highlight, confidence)
+    if game == SupportedGames.THEFINALS:
+        return _create_the_finals_query_array(highlight)
+    raise ValueError(
+        f"No neural network for game {game} and no custom query array"
+    )  # pragma: no cover
 
 
 def _normalize_queries(
@@ -123,19 +237,20 @@ async def extract_segments(
     offset: int,
     frames_before: int,
     frames_after: int,
+    game: SupportedGames = GAME,
 ) -> Tuple[List[Tuple[float, float]], List[Segment]]:
     """
-    Extract segments from a highlight
+        Extract segments from a highlight
+    game
+        :param highlight: highlight to extract segments from
+        :param neural_network: neural network to query
+        :param confidence: confidence to query
+        :param offset: offset to post process
+        :param framerate: framerate of the video
 
-    :param highlight: highlight to extract segments from
-    :param neural_network: neural network to query
-    :param confidence: confidence to query
-    :param offset: offset to post process
-    :param framerate: framerate of the video
-
-    :return: list of segments
+        :return: list of segments
     """
-    queries = _create_query_array(neural_network, highlight, confidence)
+    queries = _get_query_array(neural_network, highlight, confidence, game)
     normalized = _normalize_queries(queries, frames_before, frames_after)
     processed = _post_process_query_array(normalized, offset, framerate)
     segments = await highlight.extract_segments(processed)

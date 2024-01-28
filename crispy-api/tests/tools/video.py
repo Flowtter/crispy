@@ -1,3 +1,4 @@
+import os
 import shutil
 
 import pytest
@@ -6,7 +7,7 @@ from api.models.filter import Filter
 from api.models.segment import Segment
 from api.tools.enums import SupportedGames
 from api.tools.video import extract_segments
-from tests.constants import MAIN_VIDEO
+from tests.constants import MAIN_VIDEO, MAIN_VIDEO_THEFINALS
 
 
 @pytest.mark.parametrize(
@@ -228,3 +229,30 @@ async def test_extract_segment_recompile_global(
     )
     assert timestamps == expected
     shutil.rmtree(highlight.images_path)
+
+
+async def test_extract_segments_the_finals(highlight):
+    highlight.path = MAIN_VIDEO_THEFINALS
+    highlight.usernames = ["heximius", "sxr_raynox", "srx", "raynox"]
+    highlight = highlight.save()
+
+    await highlight.extract_images_from_game(SupportedGames.THEFINALS, 8)
+    timestamps, _ = await extract_segments(
+        highlight,
+        None,
+        confidence=0,
+        framerate=8,
+        offset=0,
+        frames_before=0,
+        frames_after=8,
+        game=SupportedGames.THEFINALS,
+    )
+    assert timestamps == [
+        (5.5, 7.875),
+        (12.125, 13.5),
+        (19.75, 21.0),
+        (21.125, 22.375),
+        (23.0, 25.875),
+    ]
+    shutil.rmtree(highlight.images_path)
+    shutil.rmtree(os.path.join(os.path.dirname(highlight.images_path), "usernames"))

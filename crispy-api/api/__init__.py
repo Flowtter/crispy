@@ -12,24 +12,27 @@ from mongo_thingy import connect
 from montydb import MontyClient, set_storage
 from pydantic.json import ENCODERS_BY_TYPE
 
-from api.config import ASSETS, DATABASE_PATH, DEBUG, FRAMERATE, GAME, MUSICS, VIDEOS
+from api.config import (
+    ASSETS,
+    DATABASE_PATH,
+    DEBUG,
+    FRAMERATE,
+    GAME,
+    MUSICS,
+    USE_NETWORK,
+    VIDEOS,
+)
 from api.tools.AI.network import NeuralNetwork
-from api.tools.enums import SupportedGames
 from api.tools.filters import apply_filters  # noqa
 from api.tools.setup import handle_highlights, handle_musics
 
 ENCODERS_BY_TYPE[ObjectId] = str
 
-neural_network = NeuralNetwork(GAME)
+NEURAL_NETWORK = None
 
-if GAME == SupportedGames.OVERWATCH:
-    neural_network.load(os.path.join(ASSETS, "overwatch.npy"))
-elif GAME == SupportedGames.VALORANT:
-    neural_network.load(os.path.join(ASSETS, "valorant.npy"))
-elif GAME == SupportedGames.CSGO2:
-    neural_network.load(os.path.join(ASSETS, "csgo2.npy"))
-else:
-    raise ValueError(f"game {GAME} not supported")
+if USE_NETWORK:
+    NEURAL_NETWORK = NeuralNetwork(GAME)
+    NEURAL_NETWORK.load(os.path.join(ASSETS, GAME + ".npy"))
 
 
 logging.getLogger("PIL").setLevel(logging.ERROR)

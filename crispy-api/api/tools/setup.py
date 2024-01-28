@@ -1,18 +1,20 @@
 import logging
 import os
 import shutil
+from collections import Counter
 from typing import List
 
 import ffmpeg
 from PIL import Image
 
-from api.config import SESSION, SILENCE_PATH, STRETCH
+from api.config import READER, SESSION, SILENCE_PATH, STRETCH
 from api.models.filter import Filter
 from api.models.highlight import Highlight
 from api.models.music import Music
 from api.tools.audio import video_has_audio
 from api.tools.enums import SupportedGames
 from api.tools.job_scheduler import JobScheduler
+from api.tools.utils import levenstein_distance
 
 logger = logging.getLogger("uvicorn")
 
@@ -21,6 +23,63 @@ def __sanitize_path(path: str) -> str:
     for ch in (" ", "(", ")", "[", "]", "{", "}", "'", '"', ",", ".", "_"):
         path = path.replace(ch, "-")
     return path
+
+
+def handle_the_finals(
+    new_highlights: List[Highlight],
+    framerate: int = 4,
+) -> None:
+    for highlight in new_highlights:
+        path = os.path.join(highlight.directory, "usernames")
+        images = os.listdir(path)
+        usernames: List[str] = []
+        usernames_histogram: Counter = Counter()
+
+        step = int(framerate / 2)
+        step = 1 if step == 0 else step
+        for i in range(0, len(images), step):
+            image = images[i]
+            image_path = os.path.join(path, image)
+            result = READER.readtext(image_path)
+            for text in result:
+                if text[1].isnumeric():
+                    continue
+                usernames_histogram[text[1].lower()] += 1
+            most_common_usernames = usernames_histogram.most_common(2)
+            if (
+                len(most_common_usernames) == 2
+                and most_common_usernames[0][1] >= 10
+                and most_common_usernames[1][1] >= 10
+                and levenstein_distance(
+                    most_common_usernames[0][0], most_common_usernames[1][0]
+                )
+                >= 3
+            ):  # pragma: no cover
+                break
+
+        for username, count in usernames_histogram.items():
+            if count > 2:
+                if username not in usernames:
+                    usernames.append(username)
+
+                for ch in ("_", " ", ".", "-"):
+                    split_username = username.split(ch)
+                    if len(split_username) > 1:
+                        for split in split_username:
+                            if split not in usernames and len(split) > 2:
+                                usernames.append(split)
+
+        highlight.update({"usernames": usernames})
+        highlight.save()
+
+
+def handle_specific_game(
+    new_highlights: List[Highlight],
+    game: SupportedGames,
+    framerate: int = 4,
+) -> None:
+    if game == SupportedGames.THEFINALS:
+        handle_the_finals(new_highlights, framerate)
 
 
 async def handle_highlights(
@@ -103,6 +162,8 @@ async def handle_highlights(
     job_scheduler.run_in_thread().join()
 
     Highlight.update_many({}, {"$set": {"job_id": None}})
+
+    handle_specific_game(new_highlights, game, framerate)
 
     return new_highlights
 

@@ -1,6 +1,7 @@
 import json
 import os
 
+import easyocr
 from starlette.config import Config
 
 from api.tools.enums import SupportedGames
@@ -49,15 +50,23 @@ with open(SETTINGS_JSON, "r") as f:
     FRAMES_BEFORE = __clip.get("second-before", 0) * FRAMERATE
     FRAMES_AFTER = __clip.get("second-after", 0) * FRAMERATE
 
-    __neural_network = __settings.get("neural-network")
-    if __neural_network is None:
-        raise KeyError("neural-network not found in settings.json")
-
-    CONFIDENCE = __neural_network.get("confidence", 0.6)
-
-    STRETCH = __settings.get("stretch", False)
     GAME = __settings.get("game")
     if GAME is None:
         raise KeyError("game not found in settings.json")
     if GAME.upper() not in [game.name for game in SupportedGames]:
         raise ValueError(f"game {GAME} not supported")
+
+    USE_NETWORK = GAME not in [SupportedGames.THEFINALS]
+
+    __neural_network = __settings.get("neural-network")
+    if __neural_network is None and USE_NETWORK:
+        raise KeyError("neural-network not found in settings.json")
+
+    if __neural_network is not None:
+        CONFIDENCE = __neural_network.get("confidence", 0.6)
+    else:
+        CONFIDENCE = 0
+
+    STRETCH = __settings.get("stretch", False)
+
+READER = easyocr.Reader(["en", "fr"], gpu=True, verbose=False)

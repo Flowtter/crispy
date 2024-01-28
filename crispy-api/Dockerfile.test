@@ -1,0 +1,14 @@
+FROM python:3.10-slim
+WORKDIR /app
+RUN apt-get -y update
+RUN apt-get install ffmpeg -y
+
+COPY requirements.txt .
+COPY requirements-dev.txt .
+RUN pip install -r requirements-dev.txt
+COPY api api
+COPY tests tests
+COPY assets assets
+COPY settings.json settings.json
+COPY setup.cfg setup.cfg
+CMD ["pytest"]

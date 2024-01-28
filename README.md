@@ -15,7 +15,7 @@ It uses a neural network to detect highlights in the video-game frames.\
 
 # Supported games
 
-Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)** and **[CSGO2](https://www.counter-strike.net/cs2)**.
+Currently it supports **[Valorant](https://playvalorant.com/)**, **[Overwatch](https://playoverwatch.com/)**, **[CSGO2](https://www.counter-strike.net/cs2)** and **[The Finals](https://www.reachthefinals.com/)**.
 
 # Usage
 
@@ -122,6 +122,21 @@ Here are some settings that I found to work well for me:
 }
 ```
 
+#### The Finals
+
+```json
+{
+  "clip": {
+    "framerate": 8,
+    "second-before": 6,
+    "second-after": 0,
+    "second-between-kills": 3
+  },
+  "stretch": false,
+  "game": "thefinals"
+}
+```
+
 ## Run
 
 You can now run the application with the run.[sh|bat] file.
@@ -175,6 +190,30 @@ The following effects are available to use:
 ### Result
 
 In the result view, you can see the result of your montage.
+
+# Q&A
+
+### **Q:** Why are some games not using the neural network?
+
+**A:** To detect highlights in a video-game, the neural-network searches for things that always happen in a highlight.\
+For example, in Overwatch, a kill is symbolized by a red skull. So the neural-network will search for red skulls in the frames.\
+Unfortunately, not all games have such things.\
+The finals, for example, is a game where you don't have any symbol to represent a kill.\
+So for those games, the neural-network is not used. Instead, we're using an OCR to detect the killfeed.\
+The OCR is definitely not as efficient as the neural-network, slow, and depends on the quality of the video.\
+But it's the best we can do for now.
+
+### **Q:** Why are some games not supported?
+
+**A:** The neural-network has simply not been trained for those games.\
+If you want to add support for a game, you can train the neural-network yourself and then make a pull request.\
+A tutorial is available [here](https://github.com/Flowtter/crispy/tree/master/crispy-api/dataset).
+
+### **Q:** In CSGO2, I moved the UI, and the kills are not detected anymore. What can I do?
+
+**A:** Unfortunately, there is nothing you can do.\
+The neural-network is trained to detect kills in the default UI.\
+I'm planning to add support for custom UI in the future, but this is definitely not a priority.
 
 # Contributing
 

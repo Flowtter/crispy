@@ -7,7 +7,12 @@ import pytest
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.enums import SupportedGames
-from tests.constants import MAIN_VIDEO_CSGO2, MAIN_VIDEO_NO_AUDIO, MAIN_VIDEO_OVERWATCH
+from tests.constants import (
+    MAIN_VIDEO_CSGO2,
+    MAIN_VIDEO_NO_AUDIO,
+    MAIN_VIDEO_OVERWATCH,
+    MAIN_VIDEO_THEFINALS,
+)
 
 
 async def test_highlight(highlight):
@@ -152,8 +157,9 @@ async def test_segment_video_segments_are_removed(highlight, tmp_path):
         (None, SupportedGames.VALORANT, 8),
         (MAIN_VIDEO_OVERWATCH, SupportedGames.OVERWATCH, 1.5),
         (MAIN_VIDEO_CSGO2, SupportedGames.CSGO2, 1.5),
+        (MAIN_VIDEO_THEFINALS, SupportedGames.THEFINALS, 0.75),
     ],
-    ids=["valorant", "overwatch", "csgo2"],
+    ids=["valorant", "overwatch", "csgo2", "thefinals"],
 )
 async def test_extract_game_images(highlight, highlight_path, game, rate):
     if highlight_path is not None:

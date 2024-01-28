@@ -10,6 +10,7 @@ from tests.constants import (
     MAIN_VIDEO,
     MAIN_VIDEO_NO_AUDIO,
     MAIN_VIDEO_STRETCH,
+    MAIN_VIDEO_THEFINALS,
 )
 
 
@@ -81,6 +82,27 @@ async def test_handle_highlights_stretch(tmp_path):
         os.path.join(tmp_session, basename_no_ext, "images"),
         os.path.join(tmp_path, "images"),
     )
+    shutil.rmtree(tmp_session)
+    shutil.rmtree(tmp_resources)
+
+
+async def test_handle_highlights_the_finals(tmp_path):
+    tmp_session = os.path.join(tmp_path, "session")
+    tmp_resources = os.path.join(tmp_path, "resources")
+    os.mkdir(tmp_resources)
+
+    shutil.copy(MAIN_VIDEO_THEFINALS, tmp_resources)
+
+    assert await handle_highlights(
+        tmp_resources, SupportedGames.THEFINALS, session=tmp_session
+    )
+
+    assert Highlight.count_documents() == 1
+    usernames = sorted(Highlight.find_one().usernames)
+    assert "heximius" in usernames
+    assert "raynox" in usernames
+    assert "sxr" in usernames
+
     shutil.rmtree(tmp_session)
     shutil.rmtree(tmp_resources)
 

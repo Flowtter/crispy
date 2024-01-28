@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from api import app, neural_network
+from api import NEURAL_NETWORK, app
 from api.config import CONFIDENCE, FRAMERATE, FRAMES_AFTER, FRAMES_BEFORE, OFFSET
 from api.models.highlight import Highlight
 from api.models.segment import Segment
@@ -84,7 +84,7 @@ async def post_highlights_segments_generate() -> None:
             extract_segments,
             kwargs={
                 "highlight": highlight,
-                "neural_network": neural_network,
+                "neural_network": NEURAL_NETWORK,
                 "confidence": CONFIDENCE,
                 "framerate": FRAMERATE,
                 "offset": OFFSET,
