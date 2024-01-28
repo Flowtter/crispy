@@ -251,6 +251,7 @@ class Highlight(Thingy):
                     if not is_color_close(
                         (r.getpixel((x, y)), g.getpixel((x, y)), b.getpixel((x, y))),
                         (12, 145, 201),
+                        120,
                     ):
                         r.putpixel((x, y), 0)
                         b.putpixel((x, y), 0)

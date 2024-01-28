@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from collections import Counter
 from typing import List, Tuple
 
 import numpy as np
@@ -11,6 +12,7 @@ from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
+from api.tools.utils import levenstein_distance
 
 logger = logging.getLogger("uvicorn")
 
@@ -60,14 +62,80 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
     usernames = highlight.usernames
     images = os.listdir(highlight.images_path)
     images.sort()
+
+    usernames_histogram: Counter = Counter()
+
+    for image in images:
+        image_path = os.path.join(highlight.images_path, image)
+
+        result = READER.readtext(image_path)
+        for text in result:
+            if text[1].isnumeric():
+                continue
+            usernames_histogram[text[1]] += 1
+
+    # filter all usernames that have a levenstein distance of 3 or more to the usernames array (filtering teammates)
+    for username in list(usernames_histogram):
+        if (
+            min(levenstein_distance(username, username2) for username2 in usernames)
+            <= 3
+        ):
+            usernames_histogram.pop(username)
+
+    # merge all usernames that have a levenstein distance of 1 or 2 to the usernames_histogram
+    while True:
+        final_usernames_histogram: Counter = Counter()
+        seen = set()
+
+        for i, username in enumerate(list(usernames_histogram)):
+            if username in seen:
+                continue
+            shift = i + 1
+            for other_username in list(usernames_histogram)[shift:]:
+                if username == other_username:
+                    continue
+                if levenstein_distance(username, other_username) <= 2:
+                    most_common_username = max(
+                        username,
+                        other_username,
+                        key=lambda username: usernames_histogram[username],
+                    )
+                    least_common_username = min(
+                        username,
+                        other_username,
+                        key=lambda username: usernames_histogram[username],
+                    )
+                    final_usernames_histogram[most_common_username] = (
+                        usernames_histogram[least_common_username]
+                        + usernames_histogram[most_common_username]
+                    )
+                    seen.add(least_common_username)
+                    seen.add(most_common_username)
+                    break
+            else:
+                final_usernames_histogram[username] = usernames_histogram[username]
+
+        if len(final_usernames_histogram) == len(usernames_histogram):
+            break
+
+        usernames_histogram = final_usernames_histogram
+
+    if len(final_usernames_histogram) == 0:
+        return []
+
     queries = []
+    predicted_username = max(
+        final_usernames_histogram, key=final_usernames_histogram.__getitem__
+    )
 
     for i, image in enumerate(images):
         image_path = os.path.join(highlight.images_path, image)
 
-        text = READER.readtext(image_path)
-        for word in text:
-            if word[1] not in usernames:
+        result = READER.readtext(image_path)
+        for text in result:
+            if text[1].isnumeric():
+                continue
+            if levenstein_distance(text[1], predicted_username) <= 1:
                 queries.append(i)
                 break
 
@@ -158,6 +226,7 @@ async def extract_segments(
     Extract segments from a highlight
 
     :param highlight: highlight to extract segments from
+    :param neural_network: neural network to query
     :param confidence: confidence to query
     :param offset: offset to post process
     :param framerate: framerate of the video
