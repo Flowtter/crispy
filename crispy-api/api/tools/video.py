@@ -59,7 +59,7 @@ def _create_query_array(
 
 
 def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
-    usernames = highlight.usernames
+    teammate_usernames = highlight.usernames
     images = os.listdir(highlight.images_path)
     images.sort()
 
@@ -72,14 +72,22 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
         for text in result:
             if text[1].isnumeric():
                 continue
-            usernames_histogram[text[1]] += 1
+            usernames_histogram[text[1].lower()] += 1
 
     # filter all usernames that have a levenstein distance of 3 or more to the usernames array (filtering teammates)
     for username in list(usernames_histogram):
         if (
-            min(levenstein_distance(username, username2) for username2 in usernames)
+            min(
+                levenstein_distance(username, teammate_username)
+                for teammate_username in teammate_usernames
+            )
             <= 3
         ):
+            usernames_histogram.pop(username)
+
+    # filter all usernames that appear only once
+    for username in list(usernames_histogram):
+        if usernames_histogram[username] == 1:
             usernames_histogram.pop(username)
 
     # merge all usernames that have a levenstein distance of 1 or 2 to the usernames_histogram
@@ -92,8 +100,6 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
                 continue
             shift = i + 1
             for other_username in list(usernames_histogram)[shift:]:
-                if username == other_username:
-                    continue
                 if levenstein_distance(username, other_username) <= 2:
                     most_common_username = max(
                         username,
@@ -120,7 +126,8 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
 
         usernames_histogram = final_usernames_histogram
 
-    if len(final_usernames_histogram) == 0:
+    if len(final_usernames_histogram) == 0:  # pragma: no cover
+        logger.warning(f"No usernames found for highlight {highlight.id}")
         return []
 
     queries = []
@@ -135,21 +142,30 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
         for text in result:
             if text[1].isnumeric():
                 continue
-            if levenstein_distance(text[1], predicted_username) <= 1:
+            if levenstein_distance(text[1].lower(), predicted_username) <= 1:
                 queries.append(i)
                 break
 
+    logger.debug(
+        f"For highlight {highlight.id} found {predicted_username} with"
+        + f"{final_usernames_histogram[predicted_username]} occurences"
+    )
     return queries
 
 
 def _get_query_array(
-    neural_network: NeuralNetwork, highlight: Highlight, confidence: float
+    neural_network: NeuralNetwork,
+    highlight: Highlight,
+    confidence: float,
+    game: SupportedGames,
 ) -> List[int]:
     if neural_network:
         return _create_query_array(neural_network, highlight, confidence)
-    if GAME == SupportedGames.THEFINALS:
+    if game == SupportedGames.THEFINALS:
         return _create_the_finals_query_array(highlight)
-    raise ValueError(f"No neural network for game {GAME} and no custom query array")
+    raise ValueError(
+        f"No neural network for game {game} and no custom query array"
+    )  # pragma: no cover
 
 
 def _normalize_queries(
@@ -221,19 +237,20 @@ async def extract_segments(
     offset: int,
     frames_before: int,
     frames_after: int,
+    game: SupportedGames = GAME,
 ) -> Tuple[List[Tuple[float, float]], List[Segment]]:
     """
-    Extract segments from a highlight
+        Extract segments from a highlight
+    game
+        :param highlight: highlight to extract segments from
+        :param neural_network: neural network to query
+        :param confidence: confidence to query
+        :param offset: offset to post process
+        :param framerate: framerate of the video
 
-    :param highlight: highlight to extract segments from
-    :param neural_network: neural network to query
-    :param confidence: confidence to query
-    :param offset: offset to post process
-    :param framerate: framerate of the video
-
-    :return: list of segments
+        :return: list of segments
     """
-    queries = _get_query_array(neural_network, highlight, confidence)
+    queries = _get_query_array(neural_network, highlight, confidence, game)
     normalized = _normalize_queries(queries, frames_before, frames_after)
     processed = _post_process_query_array(normalized, offset, framerate)
     segments = await highlight.extract_segments(processed)

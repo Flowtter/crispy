@@ -62,7 +62,10 @@ with open(SETTINGS_JSON, "r") as f:
     if __neural_network is None and USE_NETWORK:
         raise KeyError("neural-network not found in settings.json")
 
-    CONFIDENCE = __neural_network.get("confidence", 0.6)
+    if __neural_network is not None:
+        CONFIDENCE = __neural_network.get("confidence", 0.6)
+    else:
+        CONFIDENCE = 0
 
     STRETCH = __settings.get("stretch", False)
 

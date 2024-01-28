@@ -19,4 +19,9 @@ def compare_image(path1: str, path2: str) -> bool:
     data1 = np.asarray(blur1)
     data2 = np.asarray(blur2)
 
-    return bool((1 + np.corrcoef(data1.flat, data2.flat)[0, 1]) / 2 > 0.8)
+    # https://stackoverflow.com/questions/51248810/python-why-would-numpy-corrcoef-return-nan-values
+    corrcoef = np.corrcoef(data1.flat, data2.flat)
+    if np.isnan(corrcoef).all():
+        return True
+
+    return bool((1 + corrcoef[0, 1]) / 2 > 0.8)
