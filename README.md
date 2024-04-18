@@ -29,6 +29,10 @@ Firstly, you will have to install [ffmpeg](https://ffmpeg.org/about.html) (ffpro
 Once unzip, you can run the setup.[sh|bat] file.\
 Then you can add your videos in the mp4/mp3 format in the resources folder.
 
+### Python version
+
+Currently, Crispy supports Python 3.8, 3.9, and 3.10.
+
 ## Configuration
 
 You can configure the algorithm in the settings.json file.\
