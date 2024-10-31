@@ -4,9 +4,9 @@
   },
   "clip": {
     "framerate": 8,
-    "second-before": 3,
+    "second-before": 4,
     "second-after": 0.5,
-    "second-between-kills": 1
+    "second-between-kills": 3
   },
   "stretch": false,
   "game": "valorant"

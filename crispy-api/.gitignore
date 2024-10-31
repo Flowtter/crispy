@@ -7,3 +7,5 @@ dataset/*
 .dataset/
 
 merged*
+
+.venv

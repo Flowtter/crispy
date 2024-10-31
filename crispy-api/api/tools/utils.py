@@ -1,7 +1,80 @@
-from typing import Any, Dict, List
+import asyncio
+import logging
+import os
+from io import BytesIO
+from typing import Any, Dict, List, Union
 
+import aiohttp
+import requests
+from PIL import Image
+
+from api.config import LEAGUE_IMAGES_PATH
 from api.models.highlight import Highlight
 from api.tools.job_scheduler import JobScheduler
+
+logger = logging.getLogger("uvicorn")
+
+# URL for champion data and image base
+base_url = "https://ddragon.leagueoflegends.com"
+version_url = f"{base_url}/realms/na.json"
+json_url = f"{base_url}/cdn/VERSION/data/en_US/champion.json"
+image_base_url = f"{base_url}/cdn/VERSION/img/champion"
+
+
+def get_league_of_legends_version() -> Union[str, None]:
+    response = requests.get(version_url)
+    if response.status_code != 200:  # pragma: no cover
+        logger.error("Cannot download the league of legends patch version")
+        return None
+    data = response.json()
+    if "n" not in data or "champion" not in data["n"]:  # pragma: no cover
+        logger.error("Could not extract the league of legends patch version")
+    return str(data["n"]["champion"])
+
+
+async def fetch_image(session: aiohttp.ClientSession, url: str, path: str) -> None:
+    async with session.get(url) as response:
+        if response.status != 200:  # pragma: no cover
+            logger.error(f"Cannot download image from {url}")
+            return
+        img = Image.open(BytesIO(await response.read()))
+        img.save(path)
+
+
+async def download_champion_images(path: str = LEAGUE_IMAGES_PATH) -> None:
+    version = get_league_of_legends_version()
+    if not version:  # pragma: no cover
+        logger.error("Could not download the league of legends images")
+        return
+    async with aiohttp.ClientSession() as session:
+        champions = await session.get(json_url.replace("VERSION", version))
+        if champions.status != 200:  # pragma: no cover
+            logger.error("Cannot download the league of legends champion.json")
+            return
+        champion_names = (await champions.json())["data"].keys()
+
+        if not os.path.exists(path):  # pragma: no cover
+            os.makedirs(path)
+
+        logger.info("Downloading league of legends champion images")
+        tasks = []
+        for champion in champion_names:
+            image_path = os.path.join(path, f"{champion}.png")
+            if os.path.exists(image_path):
+                continue
+            image_url = f"{image_base_url.replace('VERSION', version)}/{champion}.png"
+            tasks.append(fetch_image(session, image_url, image_path))
+
+        await asyncio.gather(*tasks)
+
+    for champion in champion_names:
+        image_path = os.path.join(path, f"{champion}.png")
+        if os.path.exists(image_path):
+            img = Image.open(image_path)
+            img = img.resize((41, 41), Image.ANTIALIAS)
+            img.save(image_path)
+
+    logger.info("Done downloading and resizing league champions")
 
 
 def get_all_jobs_from_highlights(

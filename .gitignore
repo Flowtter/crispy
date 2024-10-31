@@ -28,3 +28,4 @@ backup/
 .coverage
 
 dataset-values.json
+**/league-images/

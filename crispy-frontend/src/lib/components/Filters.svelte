@@ -3,8 +3,8 @@
 		background-color: transparent;
 	}
 	button {
-		margin-top: -60px;
-		margin-bottom: 20px;
+		margin-top: -55px;
+		margin-bottom: 10px;
 		float: right;
 		text-align: center;
 		padding: 12px 20px;

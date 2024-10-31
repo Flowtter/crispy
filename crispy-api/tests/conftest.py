@@ -20,6 +20,7 @@ from api.tools.AI.network import NeuralNetwork
 from api.tools.enums import SupportedGames
 from api.tools.image import compare_image
 from api.tools.job_scheduler import JobScheduler
+from api.tools.utils import download_champion_images
 from tests.constants import MAIN_MUSIC, MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWORK
 
 
@@ -229,4 +230,5 @@ def pytest_sessionstart(session):
             "Directory tests/assets does not exists. Create it using `git submodule update --init`"
         )
         sys.exit(1)
+    asyncio.run(download_champion_images())
     logging.getLogger("uvicorn").disabled = True

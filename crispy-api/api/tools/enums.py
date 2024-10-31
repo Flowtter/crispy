@@ -5,4 +5,5 @@ class SupportedGames(str, Enum):
     VALORANT = "valorant"
     OVERWATCH = "overwatch"
     CSGO2 = "csgo2"
-    THEFINALS = "thefinals"
+    THE_FINALS = "the-finals"
+    LEAGUE_OF_LEGENDS = "league-of-legends"

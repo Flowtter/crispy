@@ -57,7 +57,7 @@
 		}
 	}
 
-	@media (max-width: 700px) {
+	@media (max-width: 900px) {
 		.content {
 			border-radius: 0% !important;
 		}
@@ -76,6 +76,7 @@
 
 <script>
 	import "./constants";
+	import Loader from "./lib/components/Loader.svelte";
 	import Segments from "./lib/components/Segments.svelte";
 	import Gallery from "./lib/components/Gallery.svelte";
 	import Menubar from "./lib/components/Menubar.svelte";
@@ -84,10 +85,45 @@
 	import Musics from "./lib/components/Musics.svelte";
 
 	import { SvelteToast, toast } from "@zerodevx/svelte-toast";
-	import { globalInfo } from "./constants";
+	import axios from "axios";
+	import { onMount } from "svelte";
+	import { globalInfo, globalError, API_URL } from "./constants";
 
 	let mode = "clips";
 	let generating = false;
+	let healthy = false;
+	let healthCheckIndex = 0;
+
+	onMount(() => {
+		if (!healthy) {
+			const interval = setInterval(checkHealth, 5000);
+			checkHealth();
+			return () => clearInterval(interval);
+		}
+	});
+
+	async function checkHealth() {
+		if (healthy) {
+			return;
+		}
+		try {
+			const response = await axios.get(API_URL + "/health");
+			if (response.status === 200) {
+				healthy = true;
+				if (healthCheckIndex > 0) {
+					toast.pop(0);
+				}
+				globalInfo("Activate the videos you want in your montage, then generate segments!");
+			}
+		} catch (error) {
+			healthy = false;
+			if (healthCheckIndex % 12 === 1) {
+				globalError("Can't connect to the server. Please check it is running and ready.", { duration: 10000 });
+			}
+		}
+
+		healthCheckIndex++;
+	}
 
 	function changeMode(event) {
 		mode = event.detail;
@@ -96,36 +132,37 @@
 		generating = event.detail;
 	}
 
-	toast.push("Thanks for using Crispy!", {
-		duration: 2500,
-	});
-	globalInfo("Activate the videos you want in your montage, then generate segments!");
+	toast.push("Thanks for using Crispy!", { duration: 2500 });
 </script>
 
 <main>
-	<div class="top">
-		<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
-	</div>
-	<div class="right">
-		<SvelteToast />
-	</div>
-	<div class="main-container">
-		<Menubar {mode} {generating} on:changeMode={changeMode} on:changeGenerating={changeGenerating} />
-		<div class="content">
-			<br />
-			{#key mode}
-				{#if mode === "clips"}
-					<Gallery />
-				{:else if mode === "segments"}
-					<Segments {generating} />
-				{:else if mode === "result"}
-					<Result />
-				{:else if mode === "musics"}
-					<Musics />
-				{:else if mode === "effects"}
-					<Effects />
-				{/if}
-			{/key}
+		<div class="top">
+			<SvelteToast options={{ initial: 0, intro: { y: -64 } }} target="new" />
 		</div>
-	</div>
+		<div class="right">
+			<SvelteToast />
+		</div>
+		<div class="main-container">
+			<Menubar {healthy} {mode} {generating} on:changeMode={changeMode} on:changeGenerating={changeGenerating} />
+			{#if healthy}
+				<div class="content">
+					<br />
+					{#key mode}
+						{#if mode === "clips"}
+							<Gallery />
+						{:else if mode === "segments"}
+							<Segments {generating} />
+						{:else if mode === "result"}
+							<Result />
+						{:else if mode === "musics"}
+							<Musics />
+						{:else if mode === "effects"}
+							<Effects />
+						{/if}
+					{/key}
+				</div>
+			{:else}
+				<Loader {healthy} />
+			{/if}
+		</div>
 </main>

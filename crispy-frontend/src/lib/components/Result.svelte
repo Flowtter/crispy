@@ -11,8 +11,8 @@
 		justify-content: center;
 		border-radius: 20px;
 		position: relative;
-		margin-left: 10vh;
-		margin-right: 10vh;
+		margin-left: 8vw;
+		margin-right: 8vw;
 	}
 	video {
 		width: 98%;
@@ -141,34 +141,36 @@
 	let t = Date.now();
 </script>
 
-<div class="object">
-	<div class="title">merged.mp4</div>
-	<video
-		poster={API_URL + "/results/thumbnail?t=" + t}
-		src={API_URL + "/results/video?t=" + t}
-		on:mousedown={handleMousedown}
-		on:mouseup={handleMouseup}
-		bind:currentTime={time}
-		bind:duration
-		bind:paused
-	>
-		<track kind="captions" />
-	</video>
-	<br />
+<div>
+	<div class="object">
+		<div class="title">merged.mp4</div>
+		<video
+			poster={API_URL + "/results/thumbnail?t=" + t}
+			src={API_URL + "/results/video?t=" + t}
+			on:mousedown={handleMousedown}
+			on:mouseup={handleMouseup}
+			bind:currentTime={time}
+			bind:duration
+			bind:paused
+		>
+			<track kind="captions" />
+		</video>
 
-	{#if !duration}
-		<div class="loader">
-			<div class="lds-roller">
-				<div />
-				<div />
-				<div />
-				<div />
-				<div />
-				<div />
-				<div />
-				<div />
+		{#if !duration}
+			<div class="loader">
+				<div class="lds-roller">
+					<div />
+					<div />
+					<div />
+					<div />
+					<div />
+					<div />
+					<div />
+					<div />
+				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+		<br />
+	</div>
 	<br />
 </div>

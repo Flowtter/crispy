@@ -12,6 +12,15 @@ repos:
         language: system
         entry: ./etc/scripts/check_commit_msg.sh
         stages: [commit-msg]
+
+      - id: no-carriage-returns
+        require_serial: true
+        name: No Carriage Returns
+        description: Check that there are no \r characters in .py files
+        entry: ./etc/scripts/check_no_carriage_returns.sh
+        language: system
+        stages: [commit-msg]
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:
@@ -19,6 +28,7 @@ repos:
         exclude: ^(legacy-backend|tests)/.*$
         files: ^crispy-api/api/.*\.py$
         stages: [commit]
+        additional_dependencies: ["types-requests"]
   - repo: https://github.com/psf/black
     rev: 22.10.0
     hooks:

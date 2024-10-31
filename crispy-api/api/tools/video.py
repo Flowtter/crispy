@@ -2,12 +2,13 @@ import asyncio
 import logging
 import os
 from collections import Counter
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
+import cv2
 import numpy as np
 from PIL import Image
 
-from api.config import GAME, READER
+from api.config import GAME, LEAGUE_IMAGES_PATH, READER
 from api.models.highlight import Highlight
 from api.models.segment import Segment
 from api.tools.AI.network import NeuralNetwork
@@ -15,6 +16,8 @@ from api.tools.enums import SupportedGames
 from api.tools.utils import levenstein_distance
 
 logger = logging.getLogger("uvicorn")
+
+LEAGUE_CHAMPIONS: List[Dict[str, Any]] = []
 
 
 def _image_to_list_format(path: str) -> List[int]:
@@ -153,16 +156,85 @@ def _create_the_finals_query_array(highlight: Highlight) -> List[int]:
     return queries
 
 
+def _create_league_of_legends_query_array(highlight: Highlight) -> List[int]:
+    global LEAGUE_CHAMPIONS
+    if not LEAGUE_CHAMPIONS:
+        if not os.path.exists(LEAGUE_IMAGES_PATH):  # pragma: no cover
+            logger.error("The league of legends images do not exists")
+            return []
+
+        for image_path in sorted(os.listdir(LEAGUE_IMAGES_PATH)):
+            LEAGUE_CHAMPIONS.append(
+                {
+                    "image": cv2.imread(os.path.join(LEAGUE_IMAGES_PATH, image_path)),
+                    "name": image_path.split(".")[0],
+                }
+            )
+
+    images = sorted(os.listdir(highlight.images_path))
+    images.sort()
+
+    queries = []
+    yellow_rgb = np.array([54, 216, 213])
+    yellow_threshold = 115
+
+    for j, image_name in enumerate(images):
+        full_image_path = os.path.join(highlight.images_path, image_name)
+        image = cv2.imread(full_image_path, cv2.IMREAD_COLOR)
+
+        is_kill = False
+        kill_spots = []
+
+        regions = {
+            1: image[7:51, 46:48],
+            2: image[69:113, 46:48],
+            3: image[132:176, 46:48],
+            4: image[195:239, 46:48],
+        }
+
+        enemy_region = {
+            1: image[8:49, 84:125],
+            2: image[70:111, 84:125],
+            3: image[133:174, 84:125],
+            4: image[196:237, 84:125],
+        }
+
+        for region_index, region in regions.items():
+            avg_color = np.mean(region.reshape(-1, 3), axis=0)
+            color_distance = np.linalg.norm(avg_color - yellow_rgb)
+
+            if color_distance < yellow_threshold:
+                enemy_image = enemy_region[region_index]
+
+                max_score = -1
+                for champion in LEAGUE_CHAMPIONS:
+                    score = cv2.matchTemplate(
+                        enemy_image, champion["image"], cv2.TM_CCOEFF_NORMED
+                    )
+                    if score > max_score:
+                        max_score = score
+
+                if max_score > 0.75:
+                    is_kill = True
+                    kill_spots.append(region_index)
+
+        if is_kill:
+            queries.append(j)
+    return queries
+
+
 def _get_query_array(
-    neural_network: NeuralNetwork,
+    neural_network: Union[NeuralNetwork, None],
     highlight: Highlight,
     confidence: float,
     game: SupportedGames,
 ) -> List[int]:
     if neural_network:
         return _create_query_array(neural_network, highlight, confidence)
-    if game == SupportedGames.THEFINALS:
+    if game == SupportedGames.THE_FINALS:
         return _create_the_finals_query_array(highlight)
+    if game == SupportedGames.LEAGUE_OF_LEGENDS:
+        return _create_league_of_legends_query_array(highlight)
     raise ValueError(
         f"No neural network for game {game} and no custom query array"
     )  # pragma: no cover
@@ -231,7 +303,7 @@ def _post_process_query_array(
 
 async def extract_segments(
     highlight: Highlight,
-    neural_network: NeuralNetwork,
+    neural_network: Union[NeuralNetwork, None],
     confidence: float,
     framerate: int,
     offset: int,

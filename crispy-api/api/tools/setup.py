@@ -78,7 +78,7 @@ def handle_specific_game(
     game: SupportedGames,
     framerate: int = 4,
 ) -> None:
-    if game == SupportedGames.THEFINALS:
+    if game == SupportedGames.THE_FINALS:
         handle_the_finals(new_highlights, framerate)
 
 

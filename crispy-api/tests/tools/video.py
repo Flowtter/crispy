@@ -7,7 +7,7 @@ from api.models.filter import Filter
 from api.models.segment import Segment
 from api.tools.enums import SupportedGames
 from api.tools.video import extract_segments
-from tests.constants import MAIN_VIDEO, MAIN_VIDEO_THEFINALS
+from tests.constants import MAIN_VIDEO, MAIN_VIDEO_LEAGUE, MAIN_VIDEO_THE_FINALS
 
 
 @pytest.mark.parametrize(
@@ -232,11 +232,11 @@ async def test_extract_segment_recompile_global(
 
 
 async def test_extract_segments_the_finals(highlight):
-    highlight.path = MAIN_VIDEO_THEFINALS
+    highlight.path = MAIN_VIDEO_THE_FINALS
     highlight.usernames = ["heximius", "sxr_raynox", "srx", "raynox"]
     highlight = highlight.save()
 
-    await highlight.extract_images_from_game(SupportedGames.THEFINALS, 8)
+    await highlight.extract_images_from_game(SupportedGames.THE_FINALS, 8)
     timestamps, _ = await extract_segments(
         highlight,
         None,
@@ -245,7 +245,7 @@ async def test_extract_segments_the_finals(highlight):
         offset=0,
         frames_before=0,
         frames_after=8,
-        game=SupportedGames.THEFINALS,
+        game=SupportedGames.THE_FINALS,
     )
     assert timestamps == [
         (5.5, 7.875),
@@ -256,3 +256,23 @@ async def test_extract_segments_the_finals(highlight):
     ]
     shutil.rmtree(highlight.images_path)
     shutil.rmtree(os.path.join(os.path.dirname(highlight.images_path), "usernames"))
+
+
+async def test_extract_segments_league_of_legends(highlight):
+    highlight.path = MAIN_VIDEO_LEAGUE
+    highlight.save()
+
+    await highlight.extract_images_from_game(SupportedGames.LEAGUE_OF_LEGENDS, 4)
+    timestamps, _ = await extract_segments(
+        highlight,
+        None,
+        confidence=0,
+        framerate=4,
+        offset=0,
+        frames_before=0,
+        frames_after=8,
+        game=SupportedGames.LEAGUE_OF_LEGENDS,
+    )
+    assert timestamps == [(11.5, 14.75)]
+
+    shutil.rmtree(highlight.images_path)
