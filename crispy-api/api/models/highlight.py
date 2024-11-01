@@ -298,6 +298,18 @@ class Highlight(Thingy):
             and killfeed_state
         )
 
+    async def extract_league_of_legends_images(
+        self, framerate: int = 4, stretch: bool = False
+    ) -> bool:
+        def post_process(image: Image) -> Image:
+            return image
+
+        return await self.extract_images(
+            post_process,
+            Box(1795, 240, 133, 245, 0, stretch, from_center=False),
+            framerate=framerate,
+        )
+
     async def extract_images_from_game(
         self, game: SupportedGames, framerate: int = 4, stretch: bool = False
     ) -> bool:
@@ -307,8 +319,10 @@ class Highlight(Thingy):
             return await self.extract_valorant_images(framerate, stretch)
         elif game == SupportedGames.CSGO2:
             return await self.extract_csgo2_images(framerate, stretch)
-        elif game == SupportedGames.THEFINALS:
+        elif game == SupportedGames.THE_FINALS:
             return await self.extract_the_finals_images(framerate, stretch)
+        elif game == SupportedGames.LEAGUE_OF_LEGENDS:
+            return await self.extract_league_of_legends_images(framerate, stretch)
         else:
             raise NotImplementedError(f"game {game} not supported")
 
@@ -458,9 +472,7 @@ class Highlight(Thingy):
         if not os.path.exists(self.path):
             raise FileNotFoundError(f"{self.path} not found")
 
-        logger.warning(
-            f"WARNING:Scaling video {self.path}, saving a backup in ./backup"
-        )
+        logger.warning(f"Scaling video {self.path}, saving a backup in ./backup")
 
         if not os.path.exists(backup):
             os.makedirs(backup)

@@ -7,3 +7,4 @@ pytest-cov==4.0.0
 flake8
 httpx
 mutagen
+types-requests==2.32.0.20241016

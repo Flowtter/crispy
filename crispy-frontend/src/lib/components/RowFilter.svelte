@@ -29,7 +29,15 @@
 	input[type="number"] {
 		grid-column: span 3;
 		width: 80%;
+		border-radius: 4px;
+		background-color: var(--color-primary);
+		color: var(--color-text);
 	}
+	input:focus {
+    	outline: none;
+    	box-shadow: none;
+	}
+
 </style>
 
 <script>

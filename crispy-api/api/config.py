@@ -1,10 +1,13 @@
 import json
 import os
+import warnings
 
 import easyocr
 from starlette.config import Config
 
 from api.tools.enums import SupportedGames
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 config = Config(".env")
 
@@ -25,6 +28,8 @@ RESOURCES = "resources"
 VIDEOS = os.path.join(RESOURCES, "videos")
 MUSICS = os.path.join(RESOURCES, "musics")
 
+LEAGUE_IMAGES_PATH = os.path.join(os.getcwd(), "league-images")
+
 DATASET_PATH = "dataset"
 DATASET_VALUES_PATH = os.path.join(DATASET_PATH, "dataset-values.json")
 DATASET_CSV_PATH = os.path.join(DATASET_PATH, "result.csv")
@@ -43,7 +48,7 @@ with open(SETTINGS_JSON, "r") as f:
 
     __clip = __settings.get("clip")
     if __clip is None:
-        raise KeyError(f"clips not found in {SETTINGS_JSON}")
+        raise KeyError(f"No clips in the {SETTINGS_JSON}")
 
     FRAMERATE = __clip.get("framerate", 8)
     OFFSET = __clip.get("second-between-kills", 0) * FRAMERATE
@@ -53,10 +58,13 @@ with open(SETTINGS_JSON, "r") as f:
     GAME = __settings.get("game")
     if GAME is None:
         raise KeyError("game not found in settings.json")
-    if GAME.upper() not in [game.name for game in SupportedGames]:
+    if GAME.upper().replace("-", "_") not in [game.name for game in SupportedGames]:
         raise ValueError(f"game {GAME} not supported")
 
-    USE_NETWORK = GAME not in [SupportedGames.THEFINALS]
+    USE_NETWORK = GAME not in [
+        SupportedGames.THE_FINALS,
+        SupportedGames.LEAGUE_OF_LEGENDS,
+    ]
 
     __neural_network = __settings.get("neural-network")
     if __neural_network is None and USE_NETWORK:

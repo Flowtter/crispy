@@ -56,7 +56,7 @@
 	.selected {
 		background-color: var(--primary);
 	}
-	@media (max-width: 700px) {
+	@media (max-width: 900px) {
 		.main {
 			flex-direction: column;
 			border-radius: 0% !important;
@@ -105,6 +105,7 @@
 
 	export let mode;
 	export let generating;
+	export let healthy;
 
 	const waitForJobs = async (url, id, msg) => {
 		let count = -1;
@@ -152,6 +153,7 @@
 	};
 
 	async function generateSegments() {
+		if (!healthy) { return }
 		if (generating) {
 			globalError("Already generating.");
 			return;
@@ -215,7 +217,7 @@
 		await waitForJobs(API_URL + "/results/generate/highlights/status", toastId, "Generating Results!");
 		toast.pop(0);
 		globalSuccess("All results generated! Generating final video...");
-		globalInfo("Generating Final video! This may take a while...", {
+		globalInfo("Generating the final video! This may take a while...", {
 			initial: 0,
 			dismissable: false,
 		});
@@ -240,6 +242,7 @@
 	}
 
 	function changeMenu(newMode) {
+		if (!healthy) { return }
 		if (generating) {
 			globalError("Wait for current job to finish.");
 			return;
@@ -251,7 +254,7 @@
 	}
 </script>
 
-<div class={"main" + (generating ? " menu-generating" : "")}>
+<div class={"main" + ((generating || !healthy) ? " menu-generating" : "")}>
 	<div class="menu">
 		<button class={mode === "clips" ? "selected" : ""} on:click={() => changeMenu("clips")}>CLIPS</button>
 		<p>|</p>

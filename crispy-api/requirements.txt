@@ -21,3 +21,5 @@ scipy==1.8.0
 pydub==0.25.1
 montydb==2.4.0
 easyocr==1.7.1
+aiohttp==3.10.10
+requests==2.32.3

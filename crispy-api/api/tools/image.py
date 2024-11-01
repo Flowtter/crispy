@@ -16,12 +16,15 @@ def compare_image(path1: str, path2: str) -> bool:
     blur1 = image1.filter(ImageFilter.GaussianBlur(radius=7))
     blur2 = image2.filter(ImageFilter.GaussianBlur(radius=7))
 
-    data1 = np.asarray(blur1)
-    data2 = np.asarray(blur2)
+    data1 = np.asarray(blur1, dtype=np.float32)
+    data2 = np.asarray(blur2, dtype=np.float32)
 
-    # https://stackoverflow.com/questions/51248810/python-why-would-numpy-corrcoef-return-nan-values
-    corrcoef = np.corrcoef(data1.flat, data2.flat)
-    if np.isnan(corrcoef).all():  # pragma: no cover
+    if np.std(data1) == 0 or np.std(data2) == 0:  # pragma: no cover
         return True
 
-    return bool((1 + corrcoef[0, 1]) / 2 > 0.8)
+    # https://stackoverflow.com/questions/51248810/python-why-would-numpy-corrcoef-return-nan-values
+    corrcoef = np.corrcoef(data1.flat, data2.flat)[0, 1]
+    if np.isnan(corrcoef):  # pragma: no cover
+        return True
+
+    return bool((1 + corrcoef) / 2 > 0.8)

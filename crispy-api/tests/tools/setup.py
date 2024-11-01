@@ -10,7 +10,7 @@ from tests.constants import (
     MAIN_VIDEO,
     MAIN_VIDEO_NO_AUDIO,
     MAIN_VIDEO_STRETCH,
-    MAIN_VIDEO_THEFINALS,
+    MAIN_VIDEO_THE_FINALS,
 )
 
 
@@ -91,10 +91,10 @@ async def test_handle_highlights_the_finals(tmp_path):
     tmp_resources = os.path.join(tmp_path, "resources")
     os.mkdir(tmp_resources)
 
-    shutil.copy(MAIN_VIDEO_THEFINALS, tmp_resources)
+    shutil.copy(MAIN_VIDEO_THE_FINALS, tmp_resources)
 
     assert await handle_highlights(
-        tmp_resources, SupportedGames.THEFINALS, session=tmp_session
+        tmp_resources, SupportedGames.THE_FINALS, session=tmp_session
     )
 
     assert Highlight.count_documents() == 1
