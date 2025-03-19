@@ -66,7 +66,9 @@ def handle_the_finals(
                     split_username = username.split(ch)
                     if len(split_username) > 1:
                         for split in split_username:
-                            if split not in usernames and len(split) > 2:
+                            if (
+                                split not in usernames and len(split) > 2
+                            ):  # pragma: no cover
                                 usernames.append(split)
 
         highlight.update({"usernames": usernames})

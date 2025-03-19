@@ -3,7 +3,7 @@ repos:
     rev: v3.3.0
     hooks:
       - id: end-of-file-fixer
-        stages: [commit]
+        stages: [pre-commit]
   - repo: local
     hooks:
       - id: conventional-commit
@@ -27,7 +27,7 @@ repos:
       - id: mypy
         exclude: ^(legacy-backend|tests)/.*$
         files: ^crispy-api/api/.*\.py$
-        stages: [commit]
+        stages: [pre-commit]
         additional_dependencies: ["types-requests"]
   - repo: https://github.com/psf/black
     rev: 22.10.0
@@ -36,7 +36,7 @@ repos:
         require_serial: true
         name: Coding style (Black)
         language_version: python3.10
-        stages: [commit]
+        stages: [pre-commit]
         exclude: ^legacy-backend.*$
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
@@ -45,7 +45,7 @@ repos:
         require_serial: true
         name: isort
         args: ["--profile", "black"]
-        stages: [commit]
+        stages: [pre-commit]
         exclude: ^legacy-backend.*$
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
@@ -53,15 +53,15 @@ repos:
       - id: flake8
         require_serial: true
         name: Coding style (flake8)
-        stages: [commit]
+        stages: [pre-commit]
         exclude: ^legacy-backend.*$
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+    rev: v3.1.0
     hooks:
       - id: prettier
         exclude: ^.github/
         name: Prettier
-        stages: [commit]
+        stages: [pre-commit]
         additional_dependencies:
           - prettier
           - svelte
