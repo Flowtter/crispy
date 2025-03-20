@@ -6,7 +6,7 @@ import sys
 
 import ffmpeg
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from mongo_thingy import Thingy
 from mutagen.mp3 import MP3
 from PIL import Image
@@ -26,7 +26,9 @@ from tests.constants import MAIN_MUSIC, MAIN_VIDEO, ROOT_ASSETS, VALORANT_NETWOR
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(app=app, base_url="https://tests") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app), base_url="https://tests"
+    ) as client:
         yield client
 
 
